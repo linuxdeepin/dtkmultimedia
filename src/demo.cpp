@@ -10,7 +10,7 @@
 #include <QtGui/QPainter>
 #include <QDebug>
 
-DDEMO_BEGIN_NAMESPACE
+DMULTIMEDIA_BEGIN_NAMESPACE
 Demo::Demo(QObject *parent) : QObject(parent) {}
 
 Demo::~Demo() {}
@@ -56,4 +56,4 @@ bool Demo::svg2png(const QString &svgfile, const QString &pngfile,  QSize size)
     return outPutimage.save(pngfile);
 }
 
-DDEMO_END_NAMESPACE
+DMULTIMEDIA_END_NAMESPACE
