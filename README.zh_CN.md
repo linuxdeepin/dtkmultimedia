@@ -72,3 +72,7 @@ bash config.sh -N <namespace>
 ## doxygen 与 reuse
 1. 项目需使用`doxygen`编写文档，尽可能多的编写示例，示例可写在`docs/*.md`，注释可写在`docs/*.dox`中。
 2. 项目使用`SPDX`规范开源协议，请使用`reuse`工具进行检查，参考[这里](https://spdx.org/licenses/)。
+
+## 协议
+
+DTK工具包遵循协议 [LGPL-3.0-or-later](LICENSE).

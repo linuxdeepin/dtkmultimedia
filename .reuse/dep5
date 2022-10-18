@@ -28,8 +28,17 @@ Files: .github/* .gitignore
 Copyright: None
 License: CC0-1.0
 
-# cpp-stub
-Files: tests/3rdparty/cpp-stub/*
-Copyright: None
-License: MIT
+# src
+Files: src/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later
 
+# tests
+Files: tests/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later
+
+# examples
+Files: examples/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later

@@ -70,4 +70,8 @@ Classes should be named with `D` as the first letter, such as: `DPower`,`DPowerM
 
 ## Doxygen And Reuse
 1. The project needs to be documented using `doxygen` and as many examples as possible. Examples can be written in `docs/*.md` and comments can be written in `docs/*.dox`.
-2. The project uses the `SPDX` specification open source protocol, please use the `reuse` tool to check it, refer to [here](https://spdx.org/licenses/).
+2. The project uses the `SPDX` specification open source protocol, please use the `reuse` tool to check it, refer to [here](https://spdx.org/licenses/)
+
+## License
+
+deepin-tool-kit is licensed under [LGPL-3.0-or-later](LICENSE).
