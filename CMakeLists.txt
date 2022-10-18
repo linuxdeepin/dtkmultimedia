@@ -43,6 +43,7 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui DBus)
 
 add_subdirectory(src)
+add_subdirectory(examples/player)
 
 set(BUILD_DOCS ON CACHE BOOL "Generate doxygen-based documentation")
 find_package(Doxygen)
@@ -51,9 +52,9 @@ if (BUILD_DOCS AND DOXYGEN_FOUND)
 endif ()
 
 # test
-if (BUILD_TESTING)
-   add_subdirectory(tests)
-endif ()
+#if (BUILD_TESTING)
+#   add_subdirectory(tests)
+#endif ()
 
 # for pc file config
 set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)
