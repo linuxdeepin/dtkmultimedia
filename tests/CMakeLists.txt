@@ -21,6 +21,11 @@ include_directories(
     "../include"
     "../src/dbus"
 )
+add_definitions(-D_LIBDMR_)
+include_directories(../src/common/utils)
+include_directories(../src/engine/interface)
+include_directories(../src/engine/multimedia)
+include_directories(../src/engine/multimedia/player)
 
 add_executable(${BIN_NAME}
     ${INCLUDE_FILES}
@@ -29,14 +34,42 @@ add_executable(${BIN_NAME}
     ${DFAKE_INTERFACE_DBUS_XML}
 )
 
+find_package(Qt5Widgets)
+find_package(Qt5DBus)
+find_package(Qt5X11Extras)
+find_package(Qt5LinguistTools)
+find_package(Qt5Network)
+find_package(Qt5Concurrent)
+find_package(Qt5Sql)
+find_package(Qt5Svg)
+find_package(Qt5Multimedia)
+find_package(Qt5MultimediaWidgets)
+find_package(Qt5Xml)
 find_package(PkgConfig REQUIRED)
+
 pkg_search_module(RSVG2 REQUIRED librsvg-2.0)
+pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
+pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
+pkg_check_modules(Xcb REQUIRED IMPORTED_TARGET xcb xcb-shape)
+pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
+pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
+# IMPORTED_TARGET failed to work for some of libs under flatpak env
+pkg_check_modules(Other REQUIRED  gsettings-qt)
+
+set(TARGET_LIBS X11 Xtst PkgConfig::Xcb Qt5::Widgets Qt5::X11Extras Qt5::Network Qt5::DBus Qt5::Sql Qt5::Svg Qt5::Multimedia
+    Qt5::MultimediaWidgets PkgConfig::Dtk PkgConfig::DBusextended PkgConfig::Gst GL va va-x11
+    Qt5::Concurrent Qt5::Xml)
+
+list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
+list(APPEND PROJECT_INCLUDE ${PROJECT_SOURCE_DIR}/src/engine/plugin/ffmpeg)
+list(APPEND PROJECT_INCLUDE ${PROJECT_SOURCE_DIR}/src/engine/plugin/gstreamer)
 
 target_include_directories(${BIN_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::DBus
     ${RSVG2_INCLUDE_DIRS}
+    ${PROJECT_INCLUDE}
 )
 
 target_link_libraries(${BIN_NAME} PRIVATE
@@ -44,6 +77,7 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::DBus
     ${RSVG2_LIBRARIES}
+    ${TARGET_LIBS}
     -lpthread
     -lgcov
     -lgtest

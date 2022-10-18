@@ -52,9 +52,9 @@ if (BUILD_DOCS AND DOXYGEN_FOUND)
 endif ()
 
 # test
-#if (BUILD_TESTING)
-#   add_subdirectory(tests)
-#endif ()
+if (BUILD_TESTING)
+   add_subdirectory(tests)
+endif ()
 
 # for pc file config
 set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)

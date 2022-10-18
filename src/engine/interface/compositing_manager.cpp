@@ -129,30 +129,16 @@ CompositingManager::CompositingManager()
         return;
     }
 
-    _composited = false;
-    QGSettings gsettings("com.deepin.deepin-movie", "/com/deepin/deepin-movie/");
-    QString aa = gsettings.get("composited").toString();
-    if ((gsettings.get("composited").toString() == "DisableComposited"
-            || gsettings.get("composited").toString() == "EnableComposited")) {
-        if (gsettings.keys().contains("composited")) {
-            if (gsettings.get("composited").toString() == "DisableComposited") {
-                _composited = false;
-            } else if (gsettings.get("composited").toString() == "EnableComposited") {
-                _composited = true;
-            }
+    if (_platform == Platform::X86) {
+        if (m_bZXIntgraphics) {
+            _composited = false;
+        } else {
+            _composited = true;
         }
     } else {
-        if (_platform == Platform::X86) {
-            if (m_bZXIntgraphics) {
-                _composited = false;
-            } else {
-                _composited = true;
-            }
-        } else {
-            if (_platform == Platform::Arm64 && isDriverLoaded)
-                m_bHasCard = true;
-            _composited = false;
-        }
+        if (_platform == Platform::Arm64 && isDriverLoaded)
+            m_bHasCard = true;
+        _composited = false;
     }
 
     //读取配置
