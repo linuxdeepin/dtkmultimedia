@@ -30,7 +30,7 @@ Description: Deepin Tool Kit template library
 
 Package: libdtkmultimedia-dev
 Architecture: any
-Depends:${misc:Depends}, libdtktemplate( =${binary:Version})
+Depends:${misc:Depends}, libdtkmultimedia( =${binary:Version})
 Description: Deepin Tool Kit template devel library
  libdtkmultimedia-dev is base devel library of Deepin Qt/C++ applications.
  .
