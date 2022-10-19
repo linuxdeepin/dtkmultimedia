@@ -121,6 +121,7 @@ void DEnginePlayer::setVideoSink(DVideoSink *)
 
 void DEnginePlayer::setPlayer(QWidget *Player)
 {
+    if(!Player) return;
     m_pPlayer = Player;
     PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(m_pPlayer)->engine();
     m_audioOutput = new DAudioOutput(Player);

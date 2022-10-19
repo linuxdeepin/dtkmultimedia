@@ -23,7 +23,7 @@ Standards-Version: 4.5.0
 Package: libdtkmultimedia
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Deepin Tool Kit template library
+Description: Deepin Tool dtkmultimedia library
  libdtkmultimedia is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
@@ -31,7 +31,7 @@ Description: Deepin Tool Kit template library
 Package: libdtkmultimedia-dev
 Architecture: any
 Depends:${misc:Depends}, libdtkmultimedia( =${binary:Version})
-Description: Deepin Tool Kit template devel library
+Description: Deepin Tool dtkmultimedia devel library
  libdtkmultimedia-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.

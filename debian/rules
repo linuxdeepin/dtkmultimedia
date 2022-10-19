@@ -10,5 +10,5 @@ BUILD_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$2}' | sed 's/[^0-
 	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DBUILD_VERSION=$(BUILD_VER) -DDVERSION=$(PACK_VER)
+	dh_auto_configure -- -DBUILD_VERSION=$(BUILD_VER) -DVERSION=$(PACK_VER)
 

@@ -37,6 +37,7 @@ public Q_SLOTS:
 private:
     DPlatformMediaPlayer *m_pPlayer = nullptr;
     QVideoWidget *m_videoWidget = nullptr;
+    QMediaPlaylist *m_pPlayList = nullptr;
 };
 
 

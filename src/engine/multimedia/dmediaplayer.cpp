@@ -40,7 +40,12 @@ DMediaPlayer::~DMediaPlayer()
 
 void DMediaPlayer::play()
 {
-    QUrl url = QMediaPlayer::currentMedia().canonicalUrl();
+    if(!m_pPlayer || !m_pPlayList|| m_pPlayList->isEmpty()) return;
+    QUrl url = m_pPlayList->currentMedia().canonicalUrl();
+    if(url.isEmpty()) {
+        m_pPlayList->setCurrentIndex(0);
+        url = m_pPlayList->media(0).canonicalUrl();
+    }
     if((m_pPlayer->media() != url) ||
             m_pPlayer->state() == QMediaPlayer::StoppedState) {
         m_pPlayer->setMedia(url, nullptr);
@@ -54,38 +59,44 @@ void DMediaPlayer::play()
 
 void DMediaPlayer::pause()
 {
+    if(!m_pPlayer) return;
     m_pPlayer->pause();
 //    QMediaPlayer::pause();
 }
 
 void DMediaPlayer::stop()
 {
+    if(!m_pPlayer) return;
     m_pPlayer->stop();
 //    QMediaPlayer::stop();
 }
 
 void DMediaPlayer::setPosition(qint64 position)
 {
+    if(!m_pPlayer) return;
     m_pPlayer->setPosition(position);
 //    QMediaPlayer::setPosition(position);
 }
 
 void DMediaPlayer::setVolume(int volume)
 {
+    if(!m_pPlayer) return;
     m_pPlayer->setVolume(volume);
 //    QMediaPlayer::setVolume(volume);
 }
 
 void DMediaPlayer::setMuted(bool muted)
 {
+    if(!m_pPlayer) return;
     m_pPlayer->setMuted(muted);
 //    QMediaPlayer::setMuted(muted);
 }
 
 void DMediaPlayer::setPlaybackRate(qreal rate)
 {
+    if(!m_pPlayer) return;
     m_pPlayer->setPlaybackRate(rate);
-    QMediaPlayer::setPlaybackRate(rate);
+//    QMediaPlayer::setPlaybackRate(rate);
 }
 
 void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
@@ -95,6 +106,12 @@ void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
 
 void DMediaPlayer::setPlaylist(DMediaPlaylist *playlist)
 {
+    m_pPlayList = playlist;
+    connect(playlist, &DMediaPlaylist::currentIndexChanged, [=]() {
+        if(m_pPlayer->state() == QMediaPlayer::PlayingState) {
+            play();
+        }
+    });
     QMediaPlayer::setPlaylist(playlist);
 }
 
