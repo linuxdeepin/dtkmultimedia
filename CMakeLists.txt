@@ -4,9 +4,17 @@
 
 cmake_minimum_required(VERSION 3.13)
 
+# If do't define version number, specify the version number
+set (VERSION "1.0.0" CACHE STRING "define project version")
+
 set(BIN_NAME dtkmultimedia)
 
-project(${BIN_NAME})
+project(${BIN_NAME}
+    LANGUAGES CXX
+    HOMEPAGE_URL https://github.com/linuxdeepin/dtk-template
+    DESCRIPTION "dtk library template"
+    VERSION ${VERSION}
+)
 
 # specify install dir
 include(GNUInstallDirs)
