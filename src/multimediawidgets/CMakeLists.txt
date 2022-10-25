@@ -2,40 +2,35 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-set(BIN_NAME ut-dtkmultimedia)
+set(BIN_NAME ${CMAKE_PROJECT_NAME}widgets)
 
-#add_definitions(-DUSE_MOCK_INTERFACE)
-
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-access-control -fno-inline -Wno-pmf-conversions")
-
-include(./dbus/fakeInterface.cmake)
-
-file(GLOB_RECURSE INCLUDE_FILES "../src/multimediawidgets/*.h")
+file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
+file(GLOB_RECURSE INCLUDE_FILES "./*.h")
 file(GLOB_RECURSE SRCS
-    "../src/multimediawidgets/*.h"
-    "../src/multimediawidgets/*.cpp"
-)
-file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
-
-include_directories(
-    "../include/dtkmultimedia"
-    "../include/dtkmultimediawidgets"
-    "../src/multimediawidgets/dbus"
+    "./*.h"
+    "./*.cpp"
 )
 
-include_directories(../src/multimediawidgets/common/utils)
-include_directories(../src/multimediawidgets/engine/interface)
-include_directories(../src/multimediawidgets/engine/multimedia)
-include_directories(../src/multimediawidgets/engine/multimedia/player)
-include_directories(../src/multimediawidgets/engine/plugin/ffmpeg)
-include_directories(../src/multimediawidgets/engine/plugin/gstreamer)
-
-add_executable(${BIN_NAME}
+add_library(${BIN_NAME} SHARED
     ${INCLUDE_FILES}
     ${SRCS}
-    ${TEST_FILES}
-    ${DFAKE_INTERFACE_DBUS_XML}
 )
+
+include_directories(../../include)
+include_directories(../../include/dtkmultimediawidgets)
+include_directories(../../include/dtkmultimedia)
+include_directories(common/utils)
+include_directories(engine/interface)
+include_directories(engine/multimedia)
+include_directories(engine/multimedia/player)
+include_directories(engine/plugin/ffmpeg)
+include_directories(engine/plugin/gstreamer)
+
+set_target_properties(${BIN_NAME} PROPERTIES
+    VERSION ${CMAKE_PROJECT_VERSION}
+    SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR})
+
+target_compile_definitions(${BIN_NAME} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}")
 
 find_package(Qt5Widgets)
 find_package(Qt5DBus)
@@ -77,19 +72,9 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::DBus
-    ${RSVG2_LIBRARIES}
     ${TARGET_LIBS}
-    -lpthread
-    -lgcov
-    -lgtest
+    ${RSVG2_LIBRARIES}
 )
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(${BIN_NAME} PRIVATE -fprofile-instr-generate -ftest-coverage)
-endif()
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(${BIN_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
-endif()
-
-enable_testing()
-add_test(NAME ${BIN_NAME} COMMAND ${BIN_NAME})
+install(FILES ${INSTALL_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME})
+install(TARGETS ${BIN_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
