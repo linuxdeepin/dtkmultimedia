@@ -17,7 +17,7 @@ Build-Depends:
                 libavcodec-dev, libavformat-dev,libavutil-dev,
                 libpulse-dev, libdvdnav-dev, libgsettings-qt-dev,
                 libmpris-qt5-dev, libdbusextended-qt5-dev, libva-dev,
-                libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev
+                libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev, qtbase5-private-dev
 Standards-Version: 4.5.0
 
 Package: libdtkmultimedia
