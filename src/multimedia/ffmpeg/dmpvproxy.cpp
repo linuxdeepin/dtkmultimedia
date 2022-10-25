@@ -6,7 +6,6 @@
 #include "config.h"
 #include "dmpvproxy.h"
 #include "dcompositemanager.h"
-#include "hwdec_probe.h"
 #include <mpv/client.h>
 
 #include <random>
