@@ -1,10 +1,9 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef DVideoWidget_H
-#define DVideoWidget_H
+#ifndef DVIDEOWIDGET_H
+#define DVIDEOWIDGET_H
 
 #include <QVideoWidget>
 #include <dtkmultimedia.h>
@@ -19,10 +18,10 @@ public:
     ~DVideoWidget();
     QWidget *getPlayer();
     void setPlatformMediaPlayer(DPlatformMediaPlayer *mediaPlayer = nullptr);
-protected:
-    void showEvent(QShowEvent *pEvent) override;
 public Q_SLOTS:
     void slotFullScreenChanged(bool fullScreen);
+protected:
+    void showEvent(QShowEvent *pEvent) override;
 private:
     QWidget *m_player {nullptr};
     DPlatformMediaPlayer *m_mediaPlayer;

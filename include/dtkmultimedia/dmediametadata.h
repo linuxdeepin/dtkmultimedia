@@ -1,20 +1,18 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef QMEDIAMETADATA_H
-#define QMEDIAMETADATA_H
+#ifndef DMEDIAMETADATA_H
+#define DMEDIAMETADATA_H
 
-#include <dtkmultimedia.h>
 #include <QtCore/qpair.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qhash.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <dtkmultimedia.h>
 
 
-// Class forward declaration required for QDoc bug
 class QString;
 DMULTIMEDIA_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT DMediaMetaData
@@ -65,13 +63,10 @@ public:
     Q_INVOKABLE void insert(Key k, const QVariant &value) { data.insert(k, value); }
     Q_INVOKABLE void remove(Key k) { data.remove(k); }
     Q_INVOKABLE QList<Key> keys() const { return data.keys(); }
-
     QVariant &operator[](Key k) { return data[k]; }
     Q_INVOKABLE void clear() { data.clear(); }
-
     Q_INVOKABLE bool isEmpty() const { return data.isEmpty(); }
     Q_INVOKABLE QString stringValue(Key k) const;
-
     Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
 protected:
@@ -79,7 +74,7 @@ protected:
     { return a.data == b.data; }
     friend bool operator!=(const DMediaMetaData &a, const DMediaMetaData &b)
     { return a.data != b.data; }
-
+protected:
     QHash<Key, QVariant> data;
 };
 

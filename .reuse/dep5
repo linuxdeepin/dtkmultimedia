@@ -31,19 +31,19 @@ License: CC0-1.0
 # include
 Files: include/*
 Copyright: UnionTech Software Technology Co., Ltd.
-License: GPL-3.0-or-later
+License: LGPL-3.0-or-later
 
 # src
 Files: src/*
 Copyright: UnionTech Software Technology Co., Ltd.
-License: GPL-3.0-or-later
+License: LGPL-3.0-or-later
 
 # tests
 Files: tests/*
 Copyright: UnionTech Software Technology Co., Ltd.
-License: GPL-3.0-or-later
+License: LGPL-3.0-or-later
 
 # examples
 Files: examples/*
 Copyright: UnionTech Software Technology Co., Ltd.
-License: GPL-3.0-or-later
+License: LGPL-3.0-or-later

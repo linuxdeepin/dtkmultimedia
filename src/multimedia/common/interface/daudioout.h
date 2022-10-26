@@ -1,10 +1,9 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef DAudioOutput_H
-#define DAudioOutput_H
+#ifndef DAUDIOOUT_H
+#define DAUDIOOUT_H
 #include <QMediaObject>
 #include <dtkmultimedia.h>
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -26,7 +25,6 @@ class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaObject
 public:
     DAudioOutput(QObject *parent = nullptr);
     ~DAudioOutput();
-public:
     void  setDevice (const DAudioDevice &device);
     void  setVolume (float volume);
     void  setMuted (bool muted);

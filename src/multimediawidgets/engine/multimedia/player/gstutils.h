@@ -1,18 +1,17 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #ifndef GSTUTILS_H
 #define GSTUTILS_H
 
+#include <string.h>
 #include <QString>
 #include <QObject>
 #include "dplaylistmodel.h"
 #include <dtkmultimedia.h>
 
 extern "C" {
-#include <string.h>
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 }

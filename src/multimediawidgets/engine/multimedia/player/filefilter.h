@@ -1,11 +1,11 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #ifndef FILEFILTER_H
 #define FILEFILTER_H
 
+#include <string.h>
 #include <QObject>
 #include <QUrl>
 #include <QDir>
@@ -21,7 +21,6 @@ extern "C" {
 }
 
 extern "C" {
-#include <string.h>
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 }

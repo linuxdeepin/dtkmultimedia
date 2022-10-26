@@ -1,13 +1,13 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "dengineplayer.h"
 #include <playerwidget.h>
 #include <player/dplaylistmodel.h>
 #include <player/playerengine.h>
 #include <DMediaPlayer>
+DMULTIMEDIA_USE_NAMESPACE
 
 DEnginePlayer::DEnginePlayer(QMediaPlayer *parent)
     :DPlatformMediaPlayer(parent), m_mediaPlayer(parent)

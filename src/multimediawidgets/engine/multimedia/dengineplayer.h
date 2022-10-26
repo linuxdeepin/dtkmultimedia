@@ -1,14 +1,13 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef DEnginePlayer_H
-#define DEnginePlayer_H
+#ifndef DENGINEPLAYER_H
+#define DENGINEPLAYER_H
 
 #include <DPlatformMediaPlayer>
 #include <DPlayerBackend>
-#include "DAudioOutput"
+#include <DAudioOutput>
 #include <dtkmultimedia.h>
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
@@ -19,27 +18,22 @@ struct MovieInfo {
     QString resolution;
     QString filePath;
     QString creation;
-
-    // rotation in metadata, this affects width/height
-    int raw_rotate;
+    int rawRotate;
     qint64 fileSize;
     qint64 duration;
     int width = -1;
     int height = -1;
-    //3.4添加视频信息
-    //视频流信息
     int vCodecID;
     qint64 vCodeRate;
     int fps;
     float proportion;
-    //音频流信息
     int aCodeID;
     qint64 aCodeRate;
     int aDigit;
     int channels;
     int sampling;
 #ifdef _MOVIE_USE_
-    QString strFmtName; // 文件封装名
+    QString strFmtName;
 #endif
 };
 enum PlayMode {
@@ -55,7 +49,6 @@ class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer
 public:
     DEnginePlayer(QMediaPlayer *parent = nullptr);
     ~DEnginePlayer();
-public:
     virtual qint64 duration() const;
     virtual qint64 position() const;
     virtual void setPosition(qint64 position);
@@ -71,12 +64,8 @@ public:
     virtual void play();
     virtual void pause();
     virtual void stop();
-
     virtual void setVideoSink(DVideoSink * /*sink*/);
     virtual void setPlayer(QWidget * Player);
-
-
-public:
     void setPlaySpeed(double times);
     void changeSoundMode(const DPlayerBackend::SoundMode &sm);
     void nextFrame();
@@ -93,7 +82,7 @@ public:
     bool loadSubtitle(const QFileInfo &fi);
     bool addPlayFile(const QUrl &url);
     const struct MovieInfo &movieInfo();
-
+    
 public slots:
     void positionProxyChanged();
 

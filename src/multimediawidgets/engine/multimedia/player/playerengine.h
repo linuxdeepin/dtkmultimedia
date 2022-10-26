@@ -1,17 +1,17 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_PLAYER_ENINE_H
-#define _DMR_PLAYER_ENINE_H
+#ifndef DPLAYER_ENINE_H
+#define DPLAYER_ENINE_H
 
 
 #include <QtWidgets>
+#include <QNetworkConfigurationManager>
 #include <dplaylistmodel.h>
 #include <DPlayerBackend>
-#include <onlinesub.h>
-#include <QNetworkConfigurationManager>
 #include <DMpvProxy>
+#include <onlinesub.h>
 #include <dtkmultimedia.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -246,4 +246,4 @@ private:
 };
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_PLAYER_ENINE_H */
+#endif /* ifndef DPLAYER_ENINE_H */

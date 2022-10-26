@@ -1,10 +1,9 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_QTPLAYER_GLWIDGET_H
-#define _DMR_QTPLAYER_GLWIDGET_H
+#ifndef DQTPLAYER_GLWIDGET_H
+#define DQTPLAYER_GLWIDGET_H
 
 #include <QtWidgets>
 #undef Bool
@@ -101,5 +100,5 @@ private:
 
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_MPV_GLWIDGET_H */
+#endif /* ifndef DQTPLAYER_GLWIDGET_H */
 

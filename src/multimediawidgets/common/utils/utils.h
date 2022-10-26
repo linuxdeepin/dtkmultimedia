@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_UTILS_H
-#define _DMR_UTILS_H
+#ifndef DUTILS_H
+#define DUTILS_H
 
 #include <QtGui>
 #include "dtkmultimedia.h"
@@ -57,4 +57,4 @@ void getPlayProperty(const char *path, QMap<QString, QString> *&proMap);
 }
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_UTILS_H */
+#endif /* ifndef DUTILS_H */
