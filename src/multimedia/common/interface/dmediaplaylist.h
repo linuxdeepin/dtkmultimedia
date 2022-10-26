@@ -1,10 +1,9 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef QMediaPlaylist_H
-#define QMediaPlaylist_H
+#ifndef DMEDIAPLAYLIST_H
+#define DMEDIAPLAYLIST_H
 
 #include <QMediaPlaylist>
 #include <dtkmultimedia.h>
@@ -16,12 +15,11 @@ class Q_MULTIMEDIA_EXPORT DMediaPlaylist : public QMediaPlaylist
 public:
     DMediaPlaylist(QMediaPlaylist *parent = nullptr);
     ~DMediaPlaylist();
+    
 public Q_SLOTS:
     void shuffle();
-
     void next();
     void previous();
-
     void setCurrentIndex(int index);
 };
 DMULTIMEDIA_END_NAMESPACE

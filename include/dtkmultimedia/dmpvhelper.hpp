@@ -1,24 +1,9 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-/* Copyright (C) 2017 the mpv developers	
- *	
- * Permission to use, copy, modify, and/or distribute this software for any	
- * purpose with or without fee is hereby granted, provided that the above	
- * copyright notice and this permission notice appear in all copies.	
- *	
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES	
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF	
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR	
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES	
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN	
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF	
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.	
- */	
-
-#ifndef MPV_CLIENT_API_QTHELPER_H_	
-#define MPV_CLIENT_API_QTHELPER_H_	
+#ifndef DMPV_CLIENT_API_QTHELPER_H_
+#define DMPV_CLIENT_API_QTHELPER_H_
 
 #include <mpv/client.h>	
 
@@ -26,13 +11,6 @@
 #error "This helper is deprecated. Copy it into your project instead."	
 #else	
 
-/**	
- * Note: these helpers are provided for convenience for C++/Qt applications.	
- * This is based on the public API in client.h, and it does not encode any	
- * knowledge that is not known or guaranteed outside of the C client API. You	
- * can even copy and modify this code as you like, or implement similar things	
- * for other languages.	
- */	
 
 #include <cstring>	
 
@@ -45,7 +23,6 @@
 #include "dtkmultimedia.h"
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-// Wrapper around mpv_handle. Does refcounting under the hood.	
 class Handle	
 {	
     struct container {	
@@ -55,21 +32,12 @@ class Handle
     };	
     QSharedPointer<container> sptr;	
 public:	
-    // Construct a new Handle from a raw mpv_handle with refcount 1. If the	
-    // last Handle goes out of scope, the mpv_handle will be destroyed with	
-    // mpv_terminate_destroy().	
-    // Never destroy the mpv_handle manually when using this wrapper. You	
-    // will create dangling pointers. Just let the wrapper take care of	
-    // destroying the mpv_handle.	
-    // Never create multiple wrappers from the same raw mpv_handle; copy the	
-    // wrapper instead (that's what it's for).	
     static Handle FromRawHandle(mpv_handle *handle) {	
         Handle h;	
         h.sptr = QSharedPointer<container>(new container(handle));	
         return h;	
     }	
 
-    // Return the raw handle; for use with the libmpv C API.	
     operator mpv_handle*() const { return sptr ? (*sptr).mpv : 0; }	
 };	
 
@@ -100,7 +68,7 @@ static inline QVariant node_to_variant(const mpv_node *node)
         }	
         return QVariant(qmap);	
     }	
-    default: // MPV_FORMAT_NONE, unknown values (e.g. future extensions)	
+    default: 	
         return QVariant();	
     }	
 }	
@@ -142,11 +110,7 @@ private:
             std::memcpy(r, b.data(), b.size() + 1);	
         return r;	
     }	
-    bool test_type(const QVariant &v, QMetaType::Type t) {	
-        // The Qt docs say: "Although this function is declared as returning	
-        // "QVariant::Type(obsolete), the return value should be interpreted	
-        // as QMetaType::Type."	
-        // So a cast really seems to be needed to avoid warnings (urgh).	
+    bool test_type(const QVariant &v, QMetaType::Type t) {		
         return static_cast<int>(v.type()) == static_cast<int>(t);	
     }	
     void set(mpv_node *dst, const QVariant &src) {	
@@ -224,9 +188,6 @@ private:
     }	
 };	
 
-/**	
- * RAII wrapper that calls mpv_free_node_contents() on the pointer.	
- */	
 struct node_autofree {	
     mpv_node *ptr;	
     explicit node_autofree(mpv_node *a_ptr) : ptr(a_ptr) {}
@@ -235,14 +196,6 @@ struct node_autofree {
 
 #if MPV_ENABLE_DEPRECATED	
 
-/**	
- * Return the given property as mpv_node converted to QVariant, or QVariant()	
- * on error.	
- *	
- * @deprecated use get_property() instead	
- *	
- * @param name the property name	
- */	
 static inline QVariant get_property_variant(mpv_handle *ctx, const QString &name)	
 {	
     mpv_node node;	
@@ -252,10 +205,6 @@ static inline QVariant get_property_variant(mpv_handle *ctx, const QString &name
     return node_to_variant(&node);	
 }	
 
-/**	
- * Set the given property as mpv_node converted from the QVariant argument.	
- * @deprecated use set_property() instead	
- */	
 static inline int set_property_variant(mpv_handle *ctx, const QString &name,	
                                        const QVariant &v)	
 {	
@@ -263,11 +212,6 @@ static inline int set_property_variant(mpv_handle *ctx, const QString &name,
     return mpv_set_property(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());	
 }	
 
-/**	
- * Set the given option as mpv_node converted from the QVariant argument.	
- *	
- * @deprecated use set_property() instead	
- */	
 static inline int set_option_variant(mpv_handle *ctx, const QString &name,	
                                      const QVariant &v)	
 {	
@@ -275,12 +219,6 @@ static inline int set_option_variant(mpv_handle *ctx, const QString &name,
     return mpv_set_option(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());	
 }	
 
-/**	
- * mpv_command_node() equivalent. Returns QVariant() on error (and	
- * unfortunately, the same on success).	
- *	
- * @deprecated use command() instead	
- */	
 static inline QVariant command_variant(mpv_handle *ctx, const QVariant &args)	
 {	
     node_builder node(args);	
@@ -293,30 +231,14 @@ static inline QVariant command_variant(mpv_handle *ctx, const QVariant &args)
 
 #endif	
 
-/**	
- * This is used to return error codes wrapped in QVariant for functions which	
- * return QVariant.	
- *	
- * You can use get_error() or is_error() to extract the error status from a	
- * QVariant value.	
- */	
 struct ErrorReturn	
 {	
-    /**	
-     * enum mpv_error value (or a value outside of it if ABI was extended)	
-     */	
     int error;	
 
     ErrorReturn() : error(0) {}	
     explicit ErrorReturn(int err) : error(err) {}	
 };	
 
-/**	
- * Return the mpv error code packed into a QVariant, or 0 (success) if it's not	
- * an error value.	
- *	
- * @return error code (<0) or success (>=0)	
- */	
 static inline int get_error(const QVariant &v)	
 {	
     if (!v.canConvert<ErrorReturn>())	
@@ -324,21 +246,11 @@ static inline int get_error(const QVariant &v)
     return v.value<ErrorReturn>().error;	
 }	
 
-/**	
- * Return whether the QVariant carries a mpv error code.	
- */	
 static inline bool is_error(const QVariant &v)	
 {	
     return get_error(v) < 0;	
 }	
 
-/**	
- * Return the given property as mpv_node converted to QVariant, or QVariant()	
- * on error.	
- *	
- * @param name the property name	
- * @return the property value, or an ErrorReturn with the error code	
- */	
 static inline QVariant get_property(mpv_handle *ctx, const QString &name)	
 {	
     mpv_node node;	
@@ -349,11 +261,6 @@ static inline QVariant get_property(mpv_handle *ctx, const QString &name)
     return node_to_variant(&node);	
 }	
 
-/**	
- * Set the given property as mpv_node converted from the QVariant argument.	
- *	
- * @return mpv error code (<0 on error, >= 0 on success)	
- */	
 static inline int set_property(mpv_handle *ctx, const QString &name,	
                                        const QVariant &v)	
 {	
@@ -361,12 +268,6 @@ static inline int set_property(mpv_handle *ctx, const QString &name,
     return mpv_set_property(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());	
 }	
 
-/**	
- * mpv_command_node() equivalent.	
- *	
- * @param args command arguments, with args[0] being the command name as string	
- * @return the property value, or an ErrorReturn with the error code	
- */	
 static inline QVariant command(mpv_handle *ctx, const QVariant &args)	
 {	
     node_builder node(args);	
@@ -382,6 +283,6 @@ DMULTIMEDIA_END_NAMESPACE
 
 Q_DECLARE_METATYPE(DMULTIMEDIA_NAMESPACE::ErrorReturn)
 
-#endif /* else #if MPV_ENABLE_DEPRECATED */	
+#endif
 
 #endif

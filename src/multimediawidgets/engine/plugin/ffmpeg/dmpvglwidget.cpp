@@ -1,7 +1,6 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "config.h"
 
@@ -177,6 +176,23 @@ void main() {
 )";
 
 DMULTIMEDIA_BEGIN_NAMESPACE
+    static QString libPath(const QString &sLib)
+    {
+        QDir dir;
+        QString path  = QLibraryInfo::location(QLibraryInfo::LibrariesPath);
+        dir.setPath(path);
+        QStringList list = dir.entryList(QStringList() << (sLib + "*"), QDir::NoDotAndDotDot | QDir::Files); //filter name with strlib
+        if (list.contains(sLib)) {
+            return sLib;
+        } else {
+            list.sort();
+        }
+
+        if(list.size() > 0)
+            return list.last();
+        else
+            return QString();
+    }
     static void* GLAPIENTRY glMPGetNativeDisplay(const char* name) {
         qWarning() << __func__ << name;
         if (!strcmp(name, "x11") || !strcmp(name, "X11")) {
@@ -981,16 +997,6 @@ DMULTIMEDIA_BEGIN_NAMESPACE
         update();
     }
 
-    /*not used yet*/
-    /*void DMpvGLWidget::setMiniMode(bool val)
-    {
-        if (m_bInMiniMode != val) {
-            m_bInMiniMode = val;
-            updateVbo();
-            updateVboCorners();
-            update();
-        }
-    }*/
 
     void DMpvGLWidget::initMpvFuns()
     {

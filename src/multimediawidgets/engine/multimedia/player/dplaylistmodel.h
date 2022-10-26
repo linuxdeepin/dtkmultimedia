@@ -1,19 +1,19 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_PLAYLIST_MODEL_H
-#define _DMR_PLAYLIST_MODEL_H
+#ifndef DPLAYLISTMODEL_H
+#define DPLAYLISTMODEL_H
 
 #include <QtWidgets>
 //#include <QtConcurrent>
 #include <DApplicationHelper>
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
-#include "utils.h"
 #include <QNetworkReply>
 #include <QMutex>
 #include <dtkmultimedia.h>
+#include "utils.h"
 
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
@@ -42,7 +42,7 @@ struct ModeMovieInfo {
     QString creation;
 
     // rotation in metadata, this affects width/height
-    int raw_rotate;
+    int rawRotate;
     qint64 fileSize;
     qint64 duration;
     int width = -1;
@@ -64,7 +64,7 @@ struct ModeMovieInfo {
 #endif
     ModeMovieInfo() {
         valid = false;
-        raw_rotate = -1;
+        rawRotate = -1;
         fileSize = -1;
         duration = -1;
         width = -1;
@@ -393,5 +393,5 @@ private:
 
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_PLAYLIST_MODEL_H */
+#endif /* ifndef DPLAYLISTMODEL_H */
 

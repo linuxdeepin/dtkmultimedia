@@ -1,10 +1,9 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef DMediaPlayer_H
-#define DMediaPlayer_H
+#ifndef DMEDIAPLAYER_H
+#define DMEDIAPLAYER_H
 
 #include <QMediaPlayer>
 #include <dtkmultimedia.h>
@@ -23,16 +22,12 @@ public Q_SLOTS:
     void play();
     void pause();
     void stop();
-
     void setPosition(qint64 position);
     void setVolume(int volume);
     void setMuted(bool muted);
-
     void setPlaybackRate(qreal rate);
-
     void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
     void setPlaylist(QMediaPlaylist *playlist);
-
     void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);
     void setVideoOutput(QVideoWidget *);
     void setPlayer(DPlatformMediaPlayer *player);

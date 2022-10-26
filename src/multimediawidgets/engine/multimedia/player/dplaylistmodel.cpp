@@ -1,7 +1,6 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "dplaylistmodel.h"
 #include "playerengine.h"
@@ -51,7 +50,7 @@ QDataStream &operator<< (QDataStream &st, const ModeMovieInfo &mi)
     st << mi.resolution;
     st << mi.filePath;
     st << mi.creation;
-    st << mi.raw_rotate;
+    st << mi.rawRotate;
     st << mi.fileSize;
     st << mi.duration;
     st << mi.width;
@@ -79,7 +78,7 @@ QDataStream &operator>> (QDataStream &st, ModeMovieInfo &mi)
     st >> mi.resolution;
     st >> mi.filePath;
     st >> mi.creation;
-    st >> mi.raw_rotate;
+    st >> mi.rawRotate;
     st >> mi.fileSize;
     st >> mi.duration;
     st >> mi.width;
@@ -1640,8 +1639,8 @@ ModeMovieInfo ModeMovieInfo::parseFromFile(const QFileInfo &fi, bool *ok)
     AVStream *st = av_ctx->streams[stream_id];
     while ((tag = g_mvideo_av_dict_get(st->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)) != NULL) {
         if (tag->key && strcmp(tag->key, "rotate") == 0) {
-            mi.raw_rotate = QString(tag->value).toInt();
-            auto vr = (mi.raw_rotate + 360) % 360;
+            mi.rawRotate = QString(tag->value).toInt();
+            auto vr = (mi.rawRotate + 360) % 360;
             if (vr == 90 || vr == 270) {
                 auto tmp = mi.height;
                 mi.height = mi.width;

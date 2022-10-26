@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_MOVIE_CONFIGURATION_H
-#define _DMR_MOVIE_CONFIGURATION_H 
+#ifndef DMOVIE_CONFIGURATION_H
+#define DMOVIE_CONFIGURATION_H
 
 #include <QtCore>
 #include <dtkmultimedia.h>
@@ -59,5 +59,5 @@ private:
 using ConfigKnownKey = MovieConfiguration::KnownKey;
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_MOVIE_CONFIGURATION_H */
+#endif /* ifndef DMOVIE_CONFIGURATION_H */
 

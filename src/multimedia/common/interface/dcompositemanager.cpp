@@ -1,7 +1,6 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 //#include "config.h"
 #include "dcompositemanager.h"
@@ -145,7 +144,7 @@ bool DCompositeManager::hascard()
 }
 #endif
 
-static OpenGLInteropKind _interopKind = OpenGLInteropKind::INTEROP_NONE;
+static OpenGLInteropKind _interopKind = OpenGLInteropKind::InteropNone;
 
 bool DCompositeManager::runningOnVmwgfx()
 {
@@ -405,6 +404,25 @@ void DCompositeManager::overrideCompositeMode(bool useCompositing)
         qInfo() << "override composited = " << useCompositing;
         m_composited = useCompositing;
     }
+}
+
+bool DCompositeManager::composited() const
+{
+    return m_composited;
+}
+
+Platform DCompositeManager::platform() const
+{
+    return m_platform;
+}
+
+bool DCompositeManager::isTestFlag() const
+{
+    return m_isCoreFlag;
+}
+void DCompositeManager::setTestFlag(bool flag)
+{
+    m_isCoreFlag = flag;
 }
 
 using namespace std;

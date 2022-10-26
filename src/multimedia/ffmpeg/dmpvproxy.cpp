@@ -1,7 +1,6 @@
-// Copyright (C) 2020 ~ 2021, Deepin Technology Co., Ltd. <support@deepin.org>
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "config.h"
 #include "dmpvproxy.h"
@@ -80,8 +79,53 @@ typedef struct  {
   uint32_t max_macroblocks;//最大宏块大小
   char ret_info[RET_INFO_LENTH_MAX];//支持的列表
 }VDP_Decoder_t;
+struct nodeAutofree {
+    mpv_node *pNode;
+    explicit nodeAutofree(mpv_node *pValue) : pNode(pValue) {}
+    ~nodeAutofree()
+    {
+        mpv_freeNode_contents(pNode);
+    }
+};
 //返回值大于0表示支持硬解， index 视频格式解码请求值， result 返回解码支持信息
 typedef unsigned int (*gpu_decoderInfo)(decoder_profile index, VDP_Decoder_t *result );
+
+static QString libPath(const QString &sLib)
+{
+    QDir dir;
+    QString path  = QLibraryInfo::location(QLibraryInfo::LibrariesPath);
+    dir.setPath(path);
+    QStringList list = dir.entryList(QStringList() << (sLib + "*"), QDir::NoDotAndDotDot | QDir::Files); //filter name with strlib
+    if (list.contains(sLib)) {
+        return sLib;
+    } else {
+        list.sort();
+    }
+
+    if(list.size() > 0)
+        return list.last();
+    else
+        return QString();
+}
+
+
+MpvHandle::container::container(mpv_handle *pHandle) : m_pHandle(pHandle) 
+{
+
+}
+
+MpvHandle::container::~container()
+{
+    mpv_terminateDestroy func = (mpv_terminateDestroy)QLibrary::resolve(libPath("libmpv.so.1"), "mpv_terminate_destroy");
+    func(m_pHandle);
+}
+
+MpvHandle MpvHandle::fromRawHandle(mpv_handle *pHandle)
+{
+    MpvHandle mpvHandle;
+    mpvHandle.sptr = QSharedPointer<container>(new container(pHandle));
+    return mpvHandle;
+}
 
 static void mpv_callback(void *d)
 {
@@ -466,6 +510,11 @@ void DMpvProxy::pollingEndOfPlayback()
 const PlayingMovieInfo &DMpvProxy::playingMovieInfo()
 {
     return m_movieInfo;
+}
+
+bool DMpvProxy::isPlayable() const
+{
+    return true;
 }
 
 bool DMpvProxy::isSurportHardWareDecode(const QString sDecodeName, const int &nVideoWidth, const int &nVideoHeight)
@@ -1136,7 +1185,7 @@ QVariant DMpvProxy::my_get_property_variant(mpv_handle *pHandle, const QString &
     mpv_node node;
     if (m_getProperty(pHandle, sName.toUtf8().data(), MPV_FORMAT_NODE, &node) < 0)
         return QVariant();
-    my_node_autofree f(&node);
+    nodeAutofree f(&node);
     return node_to_variant(&node);
 }
 

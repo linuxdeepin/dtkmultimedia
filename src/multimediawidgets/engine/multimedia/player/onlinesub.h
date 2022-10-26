@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef _DMR_ONLINE_SUB_H
-#define _DMR_ONLINE_SUB_H 
+#ifndef DONLINE_SUB_H
+#define DONLINE_SUB_H
 
 #include <QFileInfo>
 #include <QNetworkAccessManager>
@@ -62,4 +62,4 @@ private:
 };
 DMULTIMEDIA_END_NAMESPACE
 
-#endif /* ifndef _DMR_ONLINE_SUB_H */
+#endif /* ifndef DONLINE_SUB_H */
