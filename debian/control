@@ -6,7 +6,7 @@ Build-Depends:
  debhelper-compat (= 12),
  cmake,
  librsvg2-dev,
- qtbase5-dev, pkg-config, qttools5-dev-tools,
+ qtbase5-dev, pkg-config, qhelpgenerator-qt5 |qttools5-dev-tools, doxygen,
                 libqt5svg5-dev, qtmultimedia5-dev, qttools5-dev,
                 libqt5x11extras5-dev, libdtkcore5-bin, libdtkwidget-dev,
                 libqt5sql5-sqlite,
@@ -23,7 +23,7 @@ Standards-Version: 4.5.0
 Package: libdtkmultimedia
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Deepin Tool dtkmultimedia library
+Description: Development Tool Kit multimedia library
  libdtkmultimedia is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
@@ -31,7 +31,7 @@ Description: Deepin Tool dtkmultimedia library
 Package: libdtkmultimediawidgets
 Architecture: any
 Depends: ${misc:Depends}, libdtkmultimedia( =${binary:Version})
-Description: Deepin Tool dtkmultimediawidgets library
+Description: Development Tool Kit multimediawidgets library
  libdtkmultimediawidgets is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
@@ -39,7 +39,7 @@ Description: Deepin Tool dtkmultimediawidgets library
 Package: libdtkmultimedia-dev
 Architecture: any
 Depends:${misc:Depends}, libdtkmultimedia( =${binary:Version}), libdtkmultimediawidgets( =${binary:Version})
-Description: Deepin Tool dtkmultimedia devel library
+Description: Development Tool Kit multimedia devel library
  libdtkmultimedia-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.

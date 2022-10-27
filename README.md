@@ -1,6 +1,6 @@
-## Deepin Tool Kit Multimedia
+## Development Tool Kit Multimedia
 
-Deepin Tool Kit (DtkMultimedia) is the base development tool of all C++/Qt Developer work on Deepin.
+Development Tool Kit (DtkMultimedia) is the base development tool of all C++/Qt Developer work on Deepin.
 
 You should read the <a href=docs/Specification.md>Deepin Application Specification</a> firstly.
 
@@ -9,6 +9,12 @@ You should read the <a href=docs/Specification.md>Deepin Application Specificati
 ### Build dependencies
 
 * Qt >= 5.10
+* libgstreamer1.0-dev
+* libgstreamer-plugins-base1.0-dev
+* libavcodec-dev
+* libavformat-dev
+* libavutil-dev
+* libmpv-dev
 
 ## Installation
 

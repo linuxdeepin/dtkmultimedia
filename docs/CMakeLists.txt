@@ -21,13 +21,14 @@ set (DOXYGEN_TAGFILES "qtcore.tags=qthelp://doc.qt.io/qt-5/" CACHE STRING "Doxyg
 set (DOXYGEN_MACRO_EXPANSION "YES")
 set (DOXYGEN_EXPAND_ONLY_PREDEF "YES")
 set (DOXYGEN_PREDEFINED
-    "\"DDEMO_BEGIN_NAMESPACE=namespace Dtk { namespace Demo {\""
-    "\"DDEMO_END_NAMESPACE=}}\""
-    "\"DDEMO_USE_NAMESPACE=using namespace Dtk::Demo;\""
+    "DMULTIMEDIA_BEGIN_NAMESPACE=namespace Dtk { namespace Multimedia {"
+    "DMULTIMEDIA_END_NAMESPACE=}}"
+    "DMULTIMEDIA_USE_NAMESPACE=using namespace Dtk::Multimedia;"
 )
 
 doxygen_add_docs (doxygen
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/dtkmultimedia
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/dtkmultimediawidgets
     ${CMAKE_CURRENT_SOURCE_DIR}/../docs
     ALL
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../

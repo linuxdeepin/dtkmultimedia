@@ -1,6 +1,6 @@
-## Deepin Tool Kit Multimedia
+## Development Tool Kit Multimedia
 
-Deepin Tool Kit Core(DtkMultimedia) 是所有C++/Qt开发人员在Deepin上工作的基础开发工具.
+Development Tool Kit Core(DtkMultimedia) 是所有C++/Qt开发人员在Deepin上工作的基础开发工具.
 
 您应该首先阅读 <a href=docs/Specification.md>Deepin应用程序规范</a>.
 
@@ -9,6 +9,12 @@ Deepin Tool Kit Core(DtkMultimedia) 是所有C++/Qt开发人员在Deepin上工�
 ### 编译依赖
 
 * Qt >= 5.10
+* libgstreamer1.0-dev
+* libgstreamer-plugins-base1.0-dev
+* libavcodec-dev
+* libavformat-dev
+* libavutil-dev
+* libmpv-dev
 
 ## 安装
 

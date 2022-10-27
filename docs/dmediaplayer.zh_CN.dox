@@ -1,0 +1,28 @@
+/*!
+@~chinese
+@file dmediaplayer.h
+
+这里是 dmediaplayer.h 的描述
+
+@class Dtk::Multimedia::DMediaPlayer dmediaplayer.h
+@brief dmediaplayer class.
+
+DMediaPlayer 的详情.
+
+@fn int DMediaPlayer::play()
+@brief 视频播放.
+
+@fn int DMediaPlayer::pause()
+@brief 视频暂停.
+
+@fn int DMediaPlayer::stop()
+@brief 视频停止.
+
+@fn int DMediaPlayer::setPosition(qint64 position)
+@brief 设置播放位置.
+
+函数的详细描述
+
+@param position 视频播放位置.
+
+*/
