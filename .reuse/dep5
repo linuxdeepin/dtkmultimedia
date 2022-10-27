@@ -8,15 +8,10 @@ Files: .clang-format misc/*.in config.sh
 Copyright: None
 License: CC0-1.0
 
-# Readme
-Files: README*.md
-Copyright: None
-License: CC0-1.0
-
 # docs
-Files: docs/*.md
+Files: *.md *.dox
 Copyright: None
-License: CC0-1.0
+License: CC-BY-4.0
 
 # debian
 Files: debian/*
