@@ -30,12 +30,12 @@ set_target_properties(${BIN_NAME} PROPERTIES
 
 target_compile_definitions(${BIN_NAME} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}")
 
-find_package(Qt5GuiPrivate)
+find_package(Qt5Gui)
 find_package(Qt5X11Extras)
 find_package(Qt5Multimedia)
 
 
-set(TARGET_LIBS Qt5::X11Extras Qt5::Multimedia Qt5::GuiPrivate)
+set(TARGET_LIBS Qt5::X11Extras Qt5::Multimedia Qt5::Gui)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
