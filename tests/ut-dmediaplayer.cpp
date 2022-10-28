@@ -5,7 +5,7 @@
 #include "mockdemo/mockdemo.h"
 #include "gtest/gtest.h"
 #include "3rdparty/cpp-stub/src/stub.h"
-#include "DMediaPlayer"
+#include <DMediaPlayer>
 #include "dtkmultimedia.h"
 
 DMULTIMEDIA_USE_NAMESPACE
@@ -26,26 +26,66 @@ public:
     DMediaPlayer *m_player = nullptr;
 };
 
-TEST_F(ut_DMediaPlayer, add)
+TEST_F(ut_DMediaPlayer, play)
 {
     m_player->play();
-//    EXPECT_EQ(3, m_demo->add(1, 2));
 }
 
-//TEST_F(ut_DMediaPlayer, svg2png)
-//{
-//    Stub stub;
-//    stub.set(rsvg_handle_new_from_file, rsvg_handle_new_from_file_stub);
-//    stub.set(rsvg_handle_get_dimensions, rsvg_handle_get_dimensions_stub);
-//    stub.set(cairo_image_surface_create_for_data, cairo_image_surface_create_for_data_stub);
-//    stub.set(cairo_create, cairo_create_stub);
-//    stub.set(cairo_scale, cairo_scale_stub);
-//    stub.set(cairo_translate, cairo_translate_stub);
-//    stub.set(rsvg_handle_render_cairo, rsvg_handle_render_cairo_stub);
-//    stub.set(cairo_surface_destroy, cairo_surface_destroy_stub);
-//    stub.set(cairo_destroy, cairo_destroy_stub);
-//    stub.set(g_object_unref, g_object_unref_stub);
+TEST_F(ut_DMediaPlayer, pause)
+{
+    m_player->pause();
+}
 
-//    EXPECT_TRUE(m_demo->svg2png("/no/exist/svg", "/tmp/test.png"));
-//}
+TEST_F(ut_DMediaPlayer, stop)
+{
+    m_player->stop();
+}
 
+TEST_F(ut_DMediaPlayer, setVolume)
+{
+    int volume = 50;
+    m_player->setVolume(volume);
+}
+
+TEST_F(ut_DMediaPlayer, setMuted)
+{
+    bool muted = true;
+    m_player->setMuted(muted);
+}
+
+
+TEST_F(ut_DMediaPlayer, setPlaybackRate)
+{
+    qreal rate = 1.0;
+    m_player->setPlaybackRate(rate);
+}
+
+TEST_F(ut_DMediaPlayer, setMedia)
+{
+    QMediaContent content(QUrl(""));
+    m_player->setMedia(content, nullptr);
+}
+
+TEST_F(ut_DMediaPlayer, setPlaylist)
+{
+    QMediaPlaylist *playList = nullptr;
+    m_player->setPlaylist(playList);
+}
+
+TEST_F(ut_DMediaPlayer, setNetworkConfigurations)
+{
+    QList<QNetworkConfiguration> configList;
+    m_player->setNetworkConfigurations(configList);
+}
+
+TEST_F(ut_DMediaPlayer, setVideoOutput)
+{
+    QVideoWidget *videoWgt = nullptr;
+    m_player->setVideoOutput(videoWgt);
+}
+
+TEST_F(ut_DMediaPlayer, setPlayer)
+{
+    DPlatformMediaPlayer *player = nullptr;
+    m_player->setPlayer(player);
+}
