@@ -792,7 +792,8 @@ void DMpvProxy::savePlaybackPosition()
 
 void DMpvProxy::setPlaySpeed(double dTimes)
 {
-    my_set_property_async(m_handle, "speed", dTimes, AsyncReplyTag::SPEED);
+    if(m_handle)
+        my_set_property_async(m_handle, "speed", dTimes, AsyncReplyTag::SPEED);
 }
 
 void DMpvProxy::selectSubtitle(int nId)

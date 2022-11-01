@@ -4,7 +4,6 @@
 
 #include "mockdemo/mockdemo.h"
 #include "gtest/gtest.h"
-#include "3rdparty/cpp-stub/src/stub.h"
 #include <DAudioOutput>
 #include "dtkmultimedia.h"
 

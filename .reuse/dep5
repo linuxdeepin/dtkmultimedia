@@ -23,6 +23,16 @@ Files: .github/* .gitignore
 Copyright: None
 License: CC0-1.0
 
+# cpp-stub
+Files: tests/3rdparty/cpp-stub/*
+Copyright: 2019 coolxv
+License: MIT
+
+# stub-ext
+Files: tests/3rdparty/stub-ext/*
+Copyright: 2020 Zhang Yu
+License: MIT
+
 # include
 Files: include/*
 Copyright: UnionTech Software Technology Co., Ltd.
@@ -30,11 +40,6 @@ License: LGPL-3.0-or-later
 
 # src
 Files: src/*
-Copyright: UnionTech Software Technology Co., Ltd.
-License: LGPL-3.0-or-later
-
-# tests
-Files: tests/*
 Copyright: UnionTech Software Technology Co., Ltd.
 License: LGPL-3.0-or-later
 

@@ -5,7 +5,7 @@
 set(BIN_NAME ${CMAKE_PROJECT_NAME}widgets)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
-file(GLOB_RECURSE INCLUDE_FILES "./*.h")
+file(GLOB_RECURSE INCLUDE_FILES "./*.h"  "${INSTALL_INCLUDE_FILES}")
 file(GLOB_RECURSE SRCS
     "./*.h"
     "./*.cpp"

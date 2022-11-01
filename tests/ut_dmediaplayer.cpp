@@ -2,18 +2,16 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include "dtkmultimedia.h"
 #include "mockdemo/mockdemo.h"
 #include "gtest/gtest.h"
-#include "3rdparty/cpp-stub/src/stub.h"
 #include <DMediaPlayer>
 #include <DMediaPlaylist>
-#include "dtkmultimedia.h"
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DMediaPlayer : public testing::Test
-{
-public:
+class ut_DMediaPlayer : public testing::Test {
+  public:
     void SetUp() override
     {
         m_player = new DMediaPlayer;
@@ -23,7 +21,8 @@ public:
         delete m_player;
         m_player = nullptr;
     }
-public:
+
+  public:
     DMediaPlayer *m_player = nullptr;
 };
 //此单元测试测试播放器中播放指针为空时覆盖。
@@ -79,8 +78,7 @@ TEST_F(ut_DMediaPlayer, setPlaylist)
     DMediaPlaylist *playList = new DMediaPlaylist();
     m_player->setPlaylist(playList);
     EXPECT_EQ(playList, m_player->getPlaylist());
-    if(playList)
-        delete playList;
+    if(playList) delete playList;
 }
 
 TEST_F(ut_DMediaPlayer, setNetworkConfigurations)

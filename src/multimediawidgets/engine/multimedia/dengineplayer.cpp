@@ -76,7 +76,8 @@ QUrl DEnginePlayer::media() const
 
 const QIODevice *DEnginePlayer::mediaStream() const
 {
-
+    //TODO
+    return nullptr;
 }
 
 void DEnginePlayer::setMedia(const QUrl &media, QIODevice *stream)
@@ -237,6 +238,13 @@ void DEnginePlayer::setPlayMode(const PlayMode &pm)
     }
 }
 
+PlayMode DEnginePlayer::playMode() const
+{
+    if(m_engine) {
+        return static_cast<PlayMode>(m_engine->playlist().playMode());
+    }
+}
+
 void DEnginePlayer::playByName(const QUrl &url)
 {
     if(m_engine) {
@@ -247,26 +255,32 @@ void DEnginePlayer::playByName(const QUrl &url)
 bool DEnginePlayer::loadSubtitle(const QFileInfo &fi)
 {
     if(m_engine) {
-        m_engine->loadSubtitle(fi);
+        return m_engine->loadSubtitle(fi);
     }
+    return false;
 }
 
 bool DEnginePlayer::addPlayFile(const QUrl &url)
 {
     if(m_engine) {
-        m_engine->addPlayFile(url);
+        return m_engine->addPlayFile(url);
     }
+    return false;
 }
 
 const MovieInfo &DEnginePlayer::movieInfo()
 {
     PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(m_pPlayer)->engine();
     if(engine) {
-        MovieInfo info;
-        memcpy(&info, &(engine->movieInfo()), sizeof (MovieInfo));
-        return info;
+        memcpy(&m_movieInfo, &(engine->movieInfo()), sizeof (MovieInfo));
+        return m_movieInfo;
     }
-    return MovieInfo();
+    return m_movieInfo = MovieInfo();
+}
+
+DAudioOutput *DEnginePlayer::audioOut()
+{
+    return m_audioOutput;
 }
 
 void DEnginePlayer::positionProxyChanged()
