@@ -29,32 +29,43 @@ public:
 TEST_F(ut_DAudioOutput, setDevice)
 {
     DAudioDevice device;
+    device.setDevice("test");
     m_audioOut->setDevice(device);
+    EXPECT_EQ("test", m_audioOut->device().device());
 }
 
 TEST_F(ut_DAudioOutput, setVolume)
 {
     float volume = 50.f;
     m_audioOut->setVolume(volume);
+    EXPECT_EQ(volume, m_audioOut->volume());
 }
 
 TEST_F(ut_DAudioOutput, setMuted)
 {
     bool muted = false;
     m_audioOut->setMuted(muted);
+    EXPECT_EQ(muted, m_audioOut->isMuted());
 }
 
 TEST_F(ut_DAudioOutput, device)
 {
-    m_audioOut->device();
+    DAudioDevice device;
+    device.setDevice("testdevice");
+    m_audioOut->setDevice(device);
+    EXPECT_EQ("testdevice", m_audioOut->device().device());
 }
 
 TEST_F(ut_DAudioOutput, volume)
 {
-    EXPECT_EQ(0.f, m_audioOut->volume());
+    float volume = 100.f;
+    m_audioOut->setVolume(volume);
+    EXPECT_EQ(volume, m_audioOut->volume());
 }
 
 TEST_F(ut_DAudioOutput, isMuted)
 {
-    EXPECT_EQ(false, m_audioOut->isMuted());
+    bool muted = true;
+    m_audioOut->setMuted(muted);
+    EXPECT_EQ(muted, m_audioOut->isMuted());
 }

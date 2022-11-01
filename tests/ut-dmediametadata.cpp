@@ -35,12 +35,14 @@ TEST_F(ut_DMediaMetaData, value)
 TEST_F(ut_DMediaMetaData, insert)
 {
     m_mediaMetaData->insert(DMediaMetaData::Author, "test");
+    EXPECT_EQ("test", m_mediaMetaData->value(DMediaMetaData::Author));
 }
 
 TEST_F(ut_DMediaMetaData, remove)
 {
     m_mediaMetaData->insert(DMediaMetaData::Author, "test");
     m_mediaMetaData->remove(DMediaMetaData::Author);
+    EXPECT_EQ(true, m_mediaMetaData->isEmpty());
 }
 
 TEST_F(ut_DMediaMetaData, keys)
@@ -64,11 +66,13 @@ TEST_F(ut_DMediaMetaData, key_operation)
 TEST_F(ut_DMediaMetaData, clear)
 {
     m_mediaMetaData->clear();
+    EXPECT_EQ(true, m_mediaMetaData->isEmpty());
 }
 
 TEST_F(ut_DMediaMetaData, isEmpty)
 {
-    m_mediaMetaData->isEmpty();
+    m_mediaMetaData->clear();
+    EXPECT_EQ(true, m_mediaMetaData->isEmpty());
 }
 
 TEST_F(ut_DMediaMetaData, stringValue)
@@ -79,5 +83,6 @@ TEST_F(ut_DMediaMetaData, stringValue)
 
 TEST_F(ut_DMediaMetaData, metaDataKeyToString)
 {
-    m_mediaMetaData->metaDataKeyToString(DMediaMetaData::Language);
+    QString str = m_mediaMetaData->metaDataKeyToString(DMediaMetaData::Language);
+    EXPECT_EQ(false, str.isEmpty());
 }

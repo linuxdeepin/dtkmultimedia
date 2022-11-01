@@ -47,10 +47,14 @@ TEST_F(ut_DVideoWidget, getPlayer)
 
 TEST_F(ut_DVideoWidget, setPlatformMediaPlayer)
 {
-    m_videoWgt->setPlatformMediaPlayer(nullptr);
+    DEnginePlayer* player = new DEnginePlayer(m_player);
+    m_videoWgt->setPlatformMediaPlayer(player);
+    EXPECT_NE(nullptr, m_videoWgt->getPlayer());
+    if(player) delete player;
 }
 
 TEST_F(ut_DVideoWidget, slotFullScreenChanged)
 {
     m_videoWgt->slotFullScreenChanged(false);
+    EXPECT_EQ(false, m_videoWgt->isVisible());
 }

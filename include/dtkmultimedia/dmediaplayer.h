@@ -17,6 +17,9 @@ class Q_MULTIMEDIA_EXPORT DMediaPlayer : public QMediaPlayer
 public:
     DMediaPlayer(QObject *parent = nullptr);
     ~DMediaPlayer();
+    DPlatformMediaPlayer *getPlayer();
+    QVideoWidget *getVideoOutput();
+    QMediaPlaylist *getPlaylist();
 
 public Q_SLOTS:
     void play();
