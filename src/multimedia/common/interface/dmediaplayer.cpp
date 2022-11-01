@@ -32,6 +32,21 @@ DMediaPlayer::~DMediaPlayer()
 
 }
 
+DPlatformMediaPlayer *DMediaPlayer::getPlayer()
+{
+    return m_pPlayer;
+}
+
+QVideoWidget *DMediaPlayer::getVideoOutput()
+{
+    return m_videoWidget;
+}
+
+QMediaPlaylist *DMediaPlayer::getPlaylist()
+{
+    return m_pPlayList;
+}
+
 void DMediaPlayer::play()
 {
     if(!m_pPlayer || !m_pPlayList|| m_pPlayList->isEmpty()) return;
