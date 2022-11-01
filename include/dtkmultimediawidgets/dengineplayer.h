@@ -78,10 +78,12 @@ public:
     void setMute(bool bMute);
     void seekAbsolute(int pos);
     void setPlayMode(const PlayMode &pm);
+    PlayMode playMode() const;
     void playByName(const QUrl &url);
     bool loadSubtitle(const QFileInfo &fi);
     bool addPlayFile(const QUrl &url);
     const struct MovieInfo &movieInfo();
+    DAudioOutput *audioOut();
     
 public slots:
     void positionProxyChanged();
@@ -90,8 +92,9 @@ private:
     QWidget *m_pPlayer = nullptr;
     QMediaPlayer *m_mediaPlayer = nullptr;
     QUrl m_media;
-    PlayerEngine *m_engine;
-    DAudioOutput *m_audioOutput;
+    PlayerEngine *m_engine = nullptr;
+    DAudioOutput *m_audioOutput = nullptr;
+    MovieInfo m_movieInfo;
 };
 DMULTIMEDIA_END_NAMESPACE
 

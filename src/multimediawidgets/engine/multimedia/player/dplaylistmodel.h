@@ -306,6 +306,8 @@ private:
     QList<QUrl> m_loadFile;
     bool m_initFFmpeg {false};
     bool m_bInitThumb {false};
+    PlayItemInfo m_currentInfo;
+
 
     void reshuffle();
     void appendSingle(const QUrl &);

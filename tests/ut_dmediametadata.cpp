@@ -2,17 +2,15 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include "dtkmultimedia.h"
 #include "mockdemo/mockdemo.h"
 #include "gtest/gtest.h"
-#include "3rdparty/cpp-stub/src/stub.h"
 #include <DMediaMetaData>
-#include "dtkmultimedia.h"
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DMediaMetaData : public testing::Test
-{
-public:
+class ut_DMediaMetaData : public testing::Test {
+  public:
     void SetUp() override
     {
         m_mediaMetaData = new DMediaMetaData;
@@ -22,7 +20,8 @@ public:
         delete m_mediaMetaData;
         m_mediaMetaData = nullptr;
     }
-public:
+
+  public:
     DMediaMetaData *m_mediaMetaData = nullptr;
 };
 

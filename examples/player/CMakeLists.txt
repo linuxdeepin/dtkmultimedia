@@ -21,7 +21,8 @@ AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 SET(SRC_PATH ${DIR_SRCS})
 
 # 6.add executable file，添加要编译的可执行文件
-ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_PATH})
+file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
+ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_PATH} ${INCLUDE_FILES})
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC

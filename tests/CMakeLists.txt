@@ -10,10 +10,11 @@ set(BIN_NAME ut-dtkmultimedia)
 
 include(./dbus/fakeInterface.cmake)
 
-file(GLOB_RECURSE INCLUDE_FILES "../src/multimediawidgets/*.h")
+file(GLOB_RECURSE INCLUDE_FILES "../include/*.h")
 file(GLOB_RECURSE SRCS
     "../src/multimediawidgets/*.h"
     "../src/multimediawidgets/*.cpp"
+    "${INCLUDE_FILES}"
 )
 file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
 
@@ -21,6 +22,8 @@ include_directories(
     "../include/dtkmultimedia"
     "../include/dtkmultimediawidgets"
     "../src/multimediawidgets/dbus"
+    "3rdparty/cpp-stub"
+    "3rdparty/stub-ext"
 )
 
 include_directories(../src/multimediawidgets/common/utils)

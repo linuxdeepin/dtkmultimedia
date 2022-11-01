@@ -1269,9 +1269,7 @@ void DPlaylistModel::switchPosition(int src, int target)
 
 PlayItemInfo &DPlaylistModel::currentInfo()
 {
-    //Q_ASSERT (_infos.size() > 0 && _current >= 0);
-    Q_ASSERT(m_infos.size() > 0);
-
+    if(m_infos.size() == 0) return m_currentInfo;
     if (m_current >= 0)
         return m_infos[m_current];
     if (m_last >= 0 && m_last < m_infos.size())
