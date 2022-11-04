@@ -25,16 +25,16 @@ DVideoWidget::DVideoWidget(QWidget *parent, DPlatformMediaPlayer *mediaPlayer)
         format.setDefaultFormat(format);
 #endif
     }
-    d->m_mediaPlayer = mediaPlayer;
+    d->mediaPlayer = mediaPlayer;
     auto l           = new QVBoxLayout(this);
-    d->m_player      = new PlayerWidget;
-    d->m_player->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    l->addWidget(d->m_player);
+    d->player      = new PlayerWidget;
+    d->player->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    l->addWidget(d->player);
     setLayout(l);
     connect(this, &QVideoWidget::fullScreenChanged, this, &DVideoWidget::slotFullScreenChanged);
 
-    if(d->m_mediaPlayer) {
-        static_cast<DEnginePlayer *>(d->m_mediaPlayer)->setPlayer(d->m_player);
+    if(d->mediaPlayer) {
+        static_cast<DEnginePlayer *>(d->mediaPlayer)->setPlayer(d->player);
     }
 }
 
@@ -45,27 +45,27 @@ DVideoWidget::~DVideoWidget()
 QWidget *DVideoWidget::getPlayer()
 {
     Q_D(DVideoWidget);
-    return d->m_player;
+    return d->player;
 }
 
 void DVideoWidget::setPlatformMediaPlayer(DPlatformMediaPlayer *mediaPlayer)
 {
     Q_D(DVideoWidget);
-    d->m_mediaPlayer = mediaPlayer;
-    if(d->m_mediaPlayer) {
-        ((DEnginePlayer *) d->m_mediaPlayer)->setPlayer(d->m_player);
+    d->mediaPlayer = mediaPlayer;
+    if(d->mediaPlayer) {
+        ((DEnginePlayer *) d->mediaPlayer)->setPlayer(d->player);
     }
 }
 
 void DVideoWidget::showEvent(QShowEvent *pEvent)
 {
     Q_D(DVideoWidget);
-    d->m_player->show();
+    d->player->show();
 }
 
 void DVideoWidget::slotFullScreenChanged(bool fullScreen)
 {
     Q_D(DVideoWidget);
-    d->m_player->raise();
-    d->m_player->show();
+    d->player->raise();
+    d->player->show();
 }

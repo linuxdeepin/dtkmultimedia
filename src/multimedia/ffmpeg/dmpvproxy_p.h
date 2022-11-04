@@ -13,7 +13,7 @@ typedef mpv_event *(*mpv_waitEvent)(mpv_handle *ctx, double timeout);
 typedef int (*mpv_set_optionString)(mpv_handle *ctx, const char *name, const char *data);
 typedef int (*mpv_setProperty)(mpv_handle *ctx, const char *name, mpv_format format, void *data);
 typedef int (*mpv_setProperty_async)(
-    mpv_handle *ctx, uint64_t reply_userdata, const char *name, mpv_format format, void *data);
+        mpv_handle *ctx, uint64_t reply_userdata, const char *name, mpv_format format, void *data);
 typedef int (*mpv_commandNode)(mpv_handle *ctx, mpv_node *args, mpv_node *result);
 typedef int (*mpv_commandNode_async)(mpv_handle *ctx, uint64_t reply_userdata, mpv_node *args);
 typedef int (*mpv_getProperty)(mpv_handle *ctx, const char *name, mpv_format format, void *data);
@@ -29,15 +29,17 @@ typedef void (*mpv_terminateDestroy)(mpv_handle *ctx);
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-class DMpvProxyPrivate : public QObject {
+class DMpvProxyPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DMpvProxy)
-  public:
-    explicit DMpvProxyPrivate(DMpvProxy *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DMpvProxyPrivate(DMpvProxy *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  public:
+public:
     mpv_handle *mpv_init();
     void processPropertyChange(mpv_event_property *pEvent);
     void processLogMessage(mpv_event_log_message *pEvent);
@@ -53,44 +55,42 @@ class DMpvProxyPrivate : public QObject {
     QVariant my_get_property_variant(mpv_handle *pHandle, const QString &sName);
     QVariant my_command(mpv_handle *pHandle, const QVariant &args);
 
-  private:
+private:
     DMpvProxy *q_ptr;
-    mpv_waitEvent m_waitEvent;
-    mpv_set_optionString m_setOptionString;
-    mpv_setProperty m_setProperty;
-    mpv_setProperty_async m_setPropertyAsync;
-    mpv_commandNode m_commandNode;
-    mpv_commandNode_async m_commandNodeAsync;
-    mpv_getProperty m_getProperty;
-    mpv_observeProperty m_observeProperty;
-    mpv_eventName m_eventName;
-    mpvCreate m_creat;
-    mpv_requestLog_messages m_requestLogMessage;
-    mpv_setWakeup_callback m_setWakeupCallback;
-    mpvinitialize m_initialize;
-    mpv_freeNode_contents m_freeNodecontents;
-    void *m_gpuInfo;
-    MpvHandle m_handle;
-    PlayingMovieInfo m_movieInfo;
-    QString m_sInitVo;
-    QVariant m_posBeforeBurst;
-    QList<qint64> m_listBurstPoints;
-    qint64 m_nBurstStart;
-    bool m_bPendingSeek;
-    bool m_bInBurstShotting;
-    bool m_bPolling;
-    bool m_bConnectStateChange;
-    bool m_bPauseOnStart;
-    bool m_bIsJingJia;
-    bool m_bInited;
-    bool m_bHwaccelAuto;
-    bool m_bLastIsSpecficFormat;
-    QMap<QString, QVariant> m_mapWaitSet;
-    QVector<QVariant> m_vecWaitCommand;
-    QMap<QString, QString> *m_pConfig;
-    DecodeMode m_decodeMode{DecodeMode::AUTO};
+    mpv_waitEvent waitEvent = nullptr;
+    mpv_set_optionString setOptionString = nullptr;
+    mpv_setProperty setProperty = nullptr;
+    mpv_setProperty_async setPropertyAsync = nullptr;
+    mpv_commandNode commandNode = nullptr;
+    mpv_commandNode_async commandNodeAsync = nullptr;
+    mpv_getProperty getProperty = nullptr;
+    mpv_observeProperty observeProperty = nullptr;
+    mpv_eventName eventName = nullptr;
+    mpvCreate creat = nullptr;
+    mpv_requestLog_messages requestLogMessage = nullptr;
+    mpv_setWakeup_callback setWakeupCallback = nullptr;
+    mpvinitialize initialize = nullptr;
+    mpv_freeNode_contents freeNodecontents = nullptr;
+    void *gpuInfo = nullptr;
+    MpvHandle handle;
+    PlayingMovieInfo movieInfo;
+    QString sInitVo;
+    QVariant posBeforeBurst;
+    QList<qint64> listBurstPoints;
+    qint64 nBurstStart;
+    bool bPendingSeek = false;
+    bool bInBurstShotting = false;
+    bool bPolling = false;
+    bool bConnectStateChange = false;
+    bool bPauseOnStart = false;
+    bool bIsJingJia = false;
+    bool bInited = false;
+    bool bHwaccelAuto = false;
+    bool bLastIsSpecficFormat = false;
+    QMap<QString, QVariant> mapWaitSet;
+    QVector<QVariant> vecWaitCommand;
+    DecodeMode decodeMode { DecodeMode::AUTO };
 };
-
 
 DMULTIMEDIA_END_NAMESPACE
 

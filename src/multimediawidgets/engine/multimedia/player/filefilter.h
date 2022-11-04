@@ -26,7 +26,7 @@ extern "C" {
 }
 
 typedef int (*mvideo_avformat_open_input)(
-    AVFormatContext **ps, const char *url, AVInputFormat *fmt, AVDictionary **options);
+        AVFormatContext **ps, const char *url, AVInputFormat *fmt, AVDictionary **options);
 typedef int (*mvideo_avformat_find_stream_info)(AVFormatContext *ic, AVDictionary **options);
 typedef void (*mvideo_avformat_close_input)(AVFormatContext **s);
 
@@ -43,12 +43,16 @@ typedef GList *(*mvideo_gst_discoverer_info_get_video_streams)(GstDiscovererInfo
 typedef GList *(*mvideo_gst_discoverer_info_get_audio_streams)(GstDiscovererInfo *info);
 typedef GList *(*mvideo_gst_discoverer_info_get_subtitle_streams)(GstDiscovererInfo *info);
 
-class FileFilter : public QObject {
+class FileFilter : public QObject
+{
     Q_OBJECT
 
-    enum MediaType { Audio = 0, Video, Subtitle, Other };
+    enum MediaType { Audio = 0,
+                     Video,
+                     Subtitle,
+                     Other };
 
-  public:
+public:
     ~FileFilter();
 
     static FileFilter *instance();
@@ -67,22 +71,22 @@ class FileFilter : public QObject {
 
     void stopThread();
 
-  private:
+private:
     FileFilter();
 
     QString libPath(const QString &strlib);
 
-  private:
+private:
     static FileFilter *m_pFileFilter;
     QMap<QUrl, bool> m_mapCheckAudio;
-    mvideo_avformat_open_input g_mvideo_avformat_open_input             = nullptr;
+    mvideo_avformat_open_input g_mvideo_avformat_open_input = nullptr;
     mvideo_avformat_find_stream_info g_mvideo_avformat_find_stream_info = nullptr;
-    mvideo_avformat_close_input g_mvideo_avformat_close_input           = nullptr;
+    mvideo_avformat_close_input g_mvideo_avformat_close_input = nullptr;
 
-    mvideo_gst_init g_mvideo_gst_init                                                   = nullptr;
-    mvideo_gst_discoverer_new g_mvideo_gst_discoverer_new                               = nullptr;
-    mvideo_gst_discoverer_start g_mvideo_gst_discoverer_start                           = nullptr;
-    mvideo_gst_discoverer_stop g_mvideo_gst_discoverer_stop                             = nullptr;
+    mvideo_gst_init g_mvideo_gst_init = nullptr;
+    mvideo_gst_discoverer_new g_mvideo_gst_discoverer_new = nullptr;
+    mvideo_gst_discoverer_start g_mvideo_gst_discoverer_start = nullptr;
+    mvideo_gst_discoverer_stop g_mvideo_gst_discoverer_stop = nullptr;
     mvideo_gst_discoverer_discover_uri_async g_mvideo_gst_discoverer_discover_uri_async = nullptr;
 
     QMimeDatabase m_mimeDB;
@@ -93,4 +97,4 @@ class FileFilter : public QObject {
     MediaType m_miType;
 };
 
-#endif // FILEFILTER_H
+#endif   // FILEFILTER_H

@@ -12,11 +12,11 @@ DMULTIMEDIA_USE_NAMESPACE
 DEnginePlayer::DEnginePlayer(QMediaPlayer *parent) : DPlatformMediaPlayer(parent), d_ptr(new DEnginePlayerPrivate(this))
 {
     Q_D(DEnginePlayer);
-    d->m_mediaPlayer = parent;
-    d->m_pPlayer     = nullptr;
-    d->m_audioOutput = nullptr;
-    if(d->m_mediaPlayer) {
-        (static_cast<DMediaPlayer *>(d->m_mediaPlayer))->setPlayer(this);
+    d->mediaPlayer = parent;
+    d->pPlayer     = nullptr;
+    d->audioOutput = nullptr;
+    if(d->mediaPlayer) {
+        (static_cast<DMediaPlayer *>(d->mediaPlayer))->setPlayer(this);
     }
 }
 
@@ -24,17 +24,17 @@ DEnginePlayer::~DEnginePlayer()
 {
     Q_D(DEnginePlayer);
 
-    if(d->m_audioOutput) {
-        delete d->m_audioOutput;
-        d->m_audioOutput = nullptr;
+    if(d->audioOutput) {
+        delete d->audioOutput;
+        d->audioOutput = nullptr;
     }
 }
 
 qint64 DEnginePlayer::duration() const
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        return d->m_engine->duration();
+    if(d->engine) {
+        return d->engine->duration();
     }
     return 0;
 }
@@ -42,8 +42,8 @@ qint64 DEnginePlayer::duration() const
 qint64 DEnginePlayer::position() const
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        return d->m_engine->elapsed();
+    if(d->engine) {
+        return d->engine->elapsed();
     }
     return 0;
 }
@@ -51,8 +51,8 @@ qint64 DEnginePlayer::position() const
 void DEnginePlayer::setPosition(qint64 position)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->seekAbsolute(position / 1000);
+    if(d->engine) {
+        d->engine->seekAbsolute(position / 1000);
     }
 }
 
@@ -74,15 +74,15 @@ qreal DEnginePlayer::playbackRate() const
 void DEnginePlayer::setPlaybackRate(qreal rate)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->setPlaySpeed(rate);
+    if(d->engine) {
+        d->engine->setPlaySpeed(rate);
     }
 }
 
 QUrl DEnginePlayer::media() const
 {
     Q_D(const DEnginePlayer);
-    return d->m_media;
+    return d->media;
 }
 
 const QIODevice *DEnginePlayer::mediaStream() const
@@ -94,7 +94,7 @@ const QIODevice *DEnginePlayer::mediaStream() const
 void DEnginePlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
     Q_D(DEnginePlayer);
-    d->m_media = media;
+    d->media = media;
 }
 
 void DEnginePlayer::setVolume(float volume)
@@ -105,33 +105,33 @@ void DEnginePlayer::setVolume(float volume)
 void DEnginePlayer::setMuted(bool muted)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->setMute(muted);
-        d->m_audioOutput->setMuted(muted);
+    if(d->engine) {
+        d->engine->setMute(muted);
+        d->audioOutput->setMuted(muted);
     }
 }
 
 void DEnginePlayer::play()
 {
     Q_D(DEnginePlayer);
-    if(!d->m_engine || !d->m_pPlayer) return;
-    PlayerWidget *player = dynamic_cast<PlayerWidget *>(d->m_pPlayer);
-    if(d->m_engine->isPlayableFile(d->m_media)) player->play(d->m_media);
+    if(!d->engine || !d->pPlayer) return;
+    PlayerWidget *player = dynamic_cast<PlayerWidget *>(d->pPlayer);
+    if(d->engine->isPlayableFile(d->media)) player->play(d->media);
 }
 
 void DEnginePlayer::pause()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->pauseResume();
+    if(d->engine) {
+        d->engine->pauseResume();
     }
 }
 
 void DEnginePlayer::stop()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->stop();
+    if(d->engine) {
+        d->engine->stop();
     }
 }
 
@@ -143,10 +143,10 @@ void DEnginePlayer::setPlayer(QWidget *Player)
 {
     Q_D(DEnginePlayer);
     if(!Player) return;
-    d->m_pPlayer         = Player;
-    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->m_pPlayer)->engine();
-    d->m_audioOutput     = new DAudioOutput(Player);
-    d->m_engine          = engine;
+    d->pPlayer         = Player;
+    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->pPlayer)->engine();
+    d->audioOutput     = new DAudioOutput(Player);
+    d->engine          = engine;
     connect(engine, &PlayerEngine::durationChanged, this, &DEnginePlayer::durationChanged);
     connect(engine, &PlayerEngine::elapsedChanged, this, &DEnginePlayer::positionProxyChanged);
     connect(engine, &PlayerEngine::stateChanged, [=]() {
@@ -161,56 +161,56 @@ void DEnginePlayer::setPlayer(QWidget *Player)
             stateChanged(QMediaPlayer::PausedState);
             break;
         }
-        connect(d->m_audioOutput, &DAudioOutput::volumeChanged, this, &DEnginePlayer::volumeChanged);
-        connect(d->m_audioOutput, &DAudioOutput::mutedChanged, this, &DEnginePlayer::mutedChanged);
+        connect(d->audioOutput, &DAudioOutput::volumeChanged, this, &DEnginePlayer::volumeChanged);
+        connect(d->audioOutput, &DAudioOutput::mutedChanged, this, &DEnginePlayer::mutedChanged);
     });
 }
 
 void DEnginePlayer::setPlaySpeed(double times)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->setPlaySpeed(times);
+    if(d->engine) {
+        d->engine->setPlaySpeed(times);
     }
 }
 
 void DEnginePlayer::changeSoundMode(const DPlayerBackend::SoundMode &sm)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->changeSoundMode(sm);
+    if(d->engine) {
+        d->engine->changeSoundMode(sm);
     }
 }
 
 void DEnginePlayer::nextFrame()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->nextFrame();
+    if(d->engine) {
+        d->engine->nextFrame();
     }
 }
 
 void DEnginePlayer::previousFrame()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->previousFrame();
+    if(d->engine) {
+        d->engine->previousFrame();
     }
 }
 
 void DEnginePlayer::setDecodeModel(const DPlayerBackend::hwaccelMode &hwaccelMode)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->changehwaccelMode(hwaccelMode);
+    if(d->engine) {
+        d->engine->changehwaccelMode(hwaccelMode);
     }
 }
 
 QImage DEnginePlayer::takeScreenshot()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        return d->m_engine->takeScreenshot();
+    if(d->engine) {
+        return d->engine->takeScreenshot();
     }
     return QImage();
 }
@@ -218,74 +218,74 @@ QImage DEnginePlayer::takeScreenshot()
 void DEnginePlayer::burstScreenshot()
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->burstScreenshot();
+    if(d->engine) {
+        d->engine->burstScreenshot();
     }
 }
 
 void DEnginePlayer::setVideoRotation(int degree)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->setVideoRotation(degree);
+    if(d->engine) {
+        d->engine->setVideoRotation(degree);
     }
 }
 
 void DEnginePlayer::changeVolume(int val)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->changeVolume(val);
-        d->m_audioOutput->setVolume(val);
+    if(d->engine) {
+        d->engine->changeVolume(val);
+        d->audioOutput->setVolume(val);
     }
 }
 
 void DEnginePlayer::setMute(bool bMute)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->setMute(bMute);
-        d->m_audioOutput->setMuted(bMute);
+    if(d->engine) {
+        d->engine->setMute(bMute);
+        d->audioOutput->setMuted(bMute);
     }
 }
 
 void DEnginePlayer::seekAbsolute(int pos)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->seekAbsolute(pos);
+    if(d->engine) {
+        d->engine->seekAbsolute(pos);
     }
 }
 
 void DEnginePlayer::setPlayMode(const PlayMode &pm)
 {
     Q_D(DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->playlist().setPlayMode((DPlaylistModel::PlayMode) pm);
+    if(d->engine) {
+        d->engine->playlist().setPlayMode((DPlaylistModel::PlayMode) pm);
     }
 }
 
 PlayMode DEnginePlayer::playMode() const
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        return static_cast<PlayMode>(d->m_engine->playlist().playMode());
+    if(d->engine) {
+        return static_cast<PlayMode>(d->engine->playlist().playMode());
     }
 }
 
 void DEnginePlayer::playByName(const QUrl &url)
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        d->m_engine->playByName(url);
+    if(d->engine) {
+        d->engine->playByName(url);
     }
 }
 
 bool DEnginePlayer::loadSubtitle(const QFileInfo &fi)
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        return d->m_engine->loadSubtitle(fi);
+    if(d->engine) {
+        return d->engine->loadSubtitle(fi);
     }
     return false;
 }
@@ -293,8 +293,8 @@ bool DEnginePlayer::loadSubtitle(const QFileInfo &fi)
 bool DEnginePlayer::addPlayFile(const QUrl &url)
 {
     Q_D(const DEnginePlayer);
-    if(d->m_engine) {
-        return d->m_engine->addPlayFile(url);
+    if(d->engine) {
+        return d->engine->addPlayFile(url);
     }
     return false;
 }
@@ -302,25 +302,25 @@ bool DEnginePlayer::addPlayFile(const QUrl &url)
 const MovieInfo &DEnginePlayer::movieInfo()
 {
     Q_D(DEnginePlayer);
-    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->m_pPlayer)->engine();
+    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->pPlayer)->engine();
     if(engine) {
-        memcpy(&d->m_movieInfo, &(engine->movieInfo()), sizeof(MovieInfo));
-        return d->m_movieInfo;
+        memcpy(&d->movieInfo, &(engine->movieInfo()), sizeof(MovieInfo));
+        return d->movieInfo;
     }
-    return d->m_movieInfo = MovieInfo();
+    return d->movieInfo = MovieInfo();
 }
 
 DAudioOutput *DEnginePlayer::audioOut()
 {
     Q_D(DEnginePlayer);
-    return d->m_audioOutput;
+    return d->audioOutput;
 }
 
 void DEnginePlayer::positionProxyChanged()
 {
     Q_D(DEnginePlayer);
-    if(!d->m_pPlayer) return;
-    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->m_pPlayer)->engine();
+    if(!d->pPlayer) return;
+    PlayerEngine *engine = &dynamic_cast<PlayerWidget *>(d->pPlayer)->engine();
     qint64 nElapsed      = engine->elapsed() * 1000;
     positionChanged(nElapsed);
 }

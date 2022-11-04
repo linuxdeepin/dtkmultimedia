@@ -9,42 +9,43 @@
 #include <QObject>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
-class DGstPlayerProxyPrivate : public QObject {
+class DGstPlayerProxyPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DGstPlayerProxy)
-  public:
+public:
     explicit DGstPlayerProxyPrivate(DGstPlayerProxy *parent = nullptr)
         : QObject(parent), q_ptr(parent)
     {
+        initMember();
     }
 
-  protected:
+protected:
     void initMember();
 
-  private:
+private:
     void updatePlayingMovieInfo();
     void setState(DPlayerBackend::PlayState state);
     int volumeCorrection(int);
 
-  private:
+private:
     DGstPlayerProxy *q_ptr;
-    QMediaPlayer *m_pPlayer;
-    VideoSurface *m_pVideoSurface;
-    PlayingMovieInfo m_movieInfo;
-    QVariant m_posBeforeBurst;
-    QList<qint64> m_listBurstPoints;
-    qint64 m_nBurstStart;
-    bool m_bInBurstShotting;
-    bool m_bExternalSubJustLoaded;
-    bool m_bConnectStateChange;
-    bool m_bPauseOnStart;
-    bool m_bInited;
-    bool m_bHwaccelAuto;
-    bool m_bLastIsSpecficFormat;
-    QMap<QString, QVariant> m_mapWaitSet;
-    QVector<QVariant> m_vecWaitCommand;
-    QMap<QString, QString> *m_pConfig;
-    QImage m_currentImage;
+    QMediaPlayer *pPlayer = nullptr;
+    VideoSurface *pVideoSurface = nullptr;
+    PlayingMovieInfo movieInfo;
+    QVariant posBeforeBurst;
+    QList<qint64> listBurstPoints;
+    qint64 nBurstStart = 0;
+    bool bInBurstShotting = false;
+    bool bExternalSubJustLoaded = false;
+    bool bConnectStateChange = false;
+    bool bPauseOnStart = false;
+    bool bInited = false;
+    bool bHwaccelAuto = false;
+    bool bLastIsSpecficFormat = false;
+    QMap<QString, QVariant> mapWaitSet;
+    QVector<QVariant> vecWaitCommand;
+    QImage currentImage;
 };
 
 DMULTIMEDIA_END_NAMESPACE

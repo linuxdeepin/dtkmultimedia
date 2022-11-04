@@ -11,7 +11,8 @@
 #include <dtkmultimedia.h>
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
-struct MovieInfo {
+struct MovieInfo
+{
     bool valid;
     QString title;
     QString fileType;
@@ -21,7 +22,7 @@ struct MovieInfo {
     int rawRotate;
     qint64 fileSize;
     qint64 duration;
-    int width  = -1;
+    int width = -1;
     int height = -1;
     int vCodecID;
     qint64 vCodeRate;
@@ -44,11 +45,12 @@ enum PlayMode {
     ListLoop,
 };
 class DEnginePlayerPrivate;
-class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer {
+class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DEnginePlayer)
 
-  public:
+public:
     DEnginePlayer(QMediaPlayer *parent = nullptr);
     ~DEnginePlayer();
     virtual qint64 duration() const;
@@ -87,10 +89,10 @@ class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer {
     const struct MovieInfo &movieInfo();
     DAudioOutput *audioOut();
 
-  public slots:
+public slots:
     void positionProxyChanged();
 
-  protected:
+protected:
     QScopedPointer<DEnginePlayerPrivate> d_ptr;
 };
 DMULTIMEDIA_END_NAMESPACE

@@ -10,16 +10,17 @@
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
 
-class PlayerWidget : public QWidget {
+class PlayerWidget : public QWidget
+{
     Q_OBJECT
-  public:
+public:
     explicit PlayerWidget(QWidget *parent = nullptr);
     virtual ~PlayerWidget();
 
     PlayerEngine &engine();
     void play(const QUrl &url);
 
-  protected:
-    PlayerEngine *m_engine{nullptr};
+protected:
+    PlayerEngine *m_engine { nullptr };
 };
 DMULTIMEDIA_END_NAMESPACE

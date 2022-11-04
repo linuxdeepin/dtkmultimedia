@@ -24,7 +24,6 @@ typedef int (*mpv_renderContext_create)(mpv_render_context **res, mpv_handle *mp
 typedef int (*mpv_renderContext_render)(mpv_render_context *ctx, mpv_render_param *params);
 typedef uint64_t (*mpv_renderContext_update)(mpv_render_context *ctx);
 
-
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DMpvGLWidget : public QOpenGLWidget
 {
@@ -34,22 +33,10 @@ public:
 
     DMpvGLWidget(QWidget *parent, MpvHandle h);
     virtual ~DMpvGLWidget();
-
-    /**
-     * rounded clipping consumes a lot of resources, and performs bad on 4K video
-     */
     void toggleRoundedClip(bool bFalse);
-    //add by heyi
-    /**
-     * @brief setHandle 设置句柄
-     * @param h 传入的句柄
-     */
     void setHandle(MpvHandle h);
 
 protected:
-    /**
-     * @brief opengl初始化 cppcheck误报
-     */
     void initializeGL() override;
     void resizeGL(int nWidth, int nHeight) override;
     void paintGL() override;
@@ -57,13 +44,8 @@ protected:
 public:
     void setPlaying(bool);
     void setMiniMode(bool);
-    //add by heyi
-    /**
-     * @brief initMpvFuns 第一次播放需要初库始化函数指针
-     */
     void initMpvFuns();
 #ifdef __x86_64__
-    //更新全屏时影院播放进度
     void updateMovieProgress(qint64 duration, qint64 pos);
 #endif
     void setRawFormatFlag(bool bRawFormat);
@@ -87,49 +69,46 @@ private:
     void prepareSplashImages();
 
 private:
-    MpvHandle m_handle;                //mpv句柄
-    mpv_render_context *m_pRenderCtx;  //mpv渲染上下文
+    MpvHandle m_handle;
+    mpv_render_context *m_pRenderCtx = { nullptr };
 
-    bool m_bPlaying;                   //记录播放状态
-    bool m_bInMiniMode;                //是否是最小化
-    bool m_bDoRoundedClipping;         //
+    bool m_bPlaying = false;
+    bool m_bInMiniMode = false;
+    bool m_bDoRoundedClipping = false;
 
-    QOpenGLVertexArrayObject m_vao;    //顶点数组对象
-    QOpenGLBuffer m_vbo;               //顶点缓冲对象
-    QOpenGLTexture *m_pDarkTex;        //深色主题背景纹理
-    QOpenGLTexture *m_pLightTex;       //浅色主题背景纹理
-    QOpenGLShaderProgram *m_pGlProg;
+    QOpenGLVertexArrayObject m_vao;
+    QOpenGLBuffer m_vbo;
+    QOpenGLTexture *m_pDarkTex = { nullptr };
+    QOpenGLTexture *m_pLightTex = { nullptr };
+    QOpenGLShaderProgram *m_pGlProg = { nullptr };
 
     QOpenGLVertexArrayObject m_vaoBlend;
     QOpenGLBuffer m_vboBlend;
-    QOpenGLShaderProgram *m_pGlProgBlend;
-    QOpenGLFramebufferObject *m_pFbo;
-    QOpenGLShaderProgram *m_pGlProgBlendCorners;
+    QOpenGLShaderProgram *m_pGlProgBlend = { nullptr };
+    QOpenGLFramebufferObject *m_pFbo = { nullptr };
+    QOpenGLShaderProgram *m_pGlProgBlendCorners = { nullptr };
 
-    //textures for corner
     QOpenGLVertexArrayObject m_vaoCorner;
-    QOpenGLTexture *m_pCornerMasks[4];
+    QOpenGLTexture *m_pCornerMasks[4] = { nullptr };
     QOpenGLBuffer m_vboCorners[4];
-    QOpenGLShaderProgram *m_pGlProgCorner; //着色器程序
+    QOpenGLShaderProgram *m_pGlProgCorner;
 
-    QImage m_imgBgDark;                    //深色主题背景图
-    QImage m_imgBgLight;                   //浅色主题背景图
+    QImage m_imgBgDark;
+    QImage m_imgBgLight;
 
-    //add by heyi
-    mpv_render_contextSet_update_callback m_callback;
-    mpv_render_contextReport_swap m_context_report;
-    mpv_renderContext_free m_renderContex;
-    mpv_renderContext_create m_renderCreat;
-    mpv_renderContext_render m_renderContexRender;
-    mpv_renderContext_update m_renderContextUpdate;
+    mpv_render_contextSet_update_callback m_callback = { nullptr };
+    mpv_render_contextReport_swap m_context_report = { nullptr };
+    mpv_renderContext_free m_renderContex = { nullptr };
+    mpv_renderContext_create m_renderCreat = { nullptr };
+    mpv_renderContext_render m_renderContexRender = { nullptr };
+    mpv_renderContext_update m_renderContextUpdate = { nullptr };
 #ifdef __x86_64__
-    qreal m_pert; //影院播放进度
-    QString m_strPlayTime; //播放时间显示；
+    qreal m_pert;
+    QString m_strPlayTime;
 #endif
-    bool m_bRawFormat;     // 播放内容为原始格式文件标志
+    bool m_bRawFormat = false;
 };
 
 DMULTIMEDIA_END_NAMESPACE
 
 #endif /* ifndef DMPV_GLWIDGET_H */
-

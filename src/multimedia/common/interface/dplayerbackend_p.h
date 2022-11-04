@@ -7,23 +7,25 @@
 #include <QObject>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
-class DPlayerBackendPrivate : public QObject {
+class DPlayerBackendPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DPlayerBackend)
-  public:
-    explicit DPlayerBackendPrivate(DPlayerBackend *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DPlayerBackendPrivate(DPlayerBackend *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  private:
+private:
     DPlayerBackend *q_ptr;
 
-  protected:
-    DPlayerBackend::PlayState m_state{DPlayerBackend::PlayState::Stopped};
-    QString m_dvdDevice;
-    QUrl m_file;
-    static DPlayerBackend::DebugLevel m_debugLevel;
-    qint64 m_winId;
+protected:
+    DPlayerBackend::PlayState state { DPlayerBackend::PlayState::Stopped };
+    QString dvdDevice;
+    QUrl file;
+    static DPlayerBackend::DebugLevel debugLevel;
+    qint64 winId = -1;
 };
 DMULTIMEDIA_END_NAMESPACE
 #endif

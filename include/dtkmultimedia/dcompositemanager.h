@@ -13,7 +13,11 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-enum Platform { Unknown, X86, Mips, Alpha, Arm64 };
+enum Platform { Unknown,
+                X86,
+                Mips,
+                Alpha,
+                Arm64 };
 
 enum OpenGLInteropKind {
     InteropNone,
@@ -23,15 +27,16 @@ enum OpenGLInteropKind {
     InteropVdpauGLX,
 };
 
-using PlayerOption     = QPair<QString, QString>;
+using PlayerOption = QPair<QString, QString>;
 using PlayerOptionList = QList<PlayerOption>;
 class DCompositeManagerPrivate;
 
-class DCompositeManager : public QObject {
+class DCompositeManager : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DCompositeManager)
 
-  public:
+public:
     DCompositeManager();
     static DCompositeManager &get();
     virtual ~DCompositeManager();
@@ -62,10 +67,10 @@ class DCompositeManager : public QObject {
     bool first_check_wayland_env();
     bool check_wayland_env();
 
-  signals:
+signals:
     void compositingChanged(bool);
 
-  protected:
+protected:
     QScopedPointer<DCompositeManagerPrivate> d_ptr;
 };
 DMULTIMEDIA_END_NAMESPACE

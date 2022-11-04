@@ -14,11 +14,12 @@ DMULTIMEDIA_BEGIN_NAMESPACE
 class VideoSurface;
 class DGstPlayerProxyPrivate;
 
-class DGstPlayerProxy : public DPlayerBackend {
+class DGstPlayerProxy : public DPlayerBackend
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DGstPlayerProxy)
 
-  public:
+public:
     explicit DGstPlayerProxy(QObject *parent = 0);
     virtual ~DGstPlayerProxy();
     void firstInit();
@@ -34,7 +35,7 @@ class DGstPlayerProxy : public DPlayerBackend {
     void setPlaySpeed(double dTimes) override;
     void savePlaybackPosition() override;
 
-  public slots:
+public slots:
     void play() override;
     void pauseResume() override;
     void stop() override;
@@ -76,13 +77,13 @@ class DGstPlayerProxy : public DPlayerBackend {
     void makeCurrent();
     void changehwaccelMode(hwaccelMode hwaccelMode);
 
-  protected slots:
+protected slots:
     void slotStateChanged(QMediaPlayer::State newState);
     void slotMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void slotPositionChanged(qint64 position);
     void slotMediaError(QMediaPlayer::Error error);
 
-  protected:
+protected:
     QScopedPointer<DGstPlayerProxyPrivate> d_ptr;
 };
 

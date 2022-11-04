@@ -5,24 +5,24 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-class DEnginePlayerPrivate : public QObject {
+class DEnginePlayerPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DEnginePlayer)
-  public:
-    explicit DEnginePlayerPrivate(DEnginePlayer *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DEnginePlayerPrivate(DEnginePlayer *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  private:
+private:
     DEnginePlayer *q_ptr;
-
-  private:
-    QWidget *m_pPlayer          = nullptr;
-    QMediaPlayer *m_mediaPlayer = nullptr;
-    QUrl m_media;
-    PlayerEngine *m_engine      = nullptr;
-    DAudioOutput *m_audioOutput = nullptr;
-    MovieInfo m_movieInfo;
+    QWidget *pPlayer = nullptr;
+    QMediaPlayer *mediaPlayer = nullptr;
+    QUrl media;
+    PlayerEngine *engine = nullptr;
+    DAudioOutput *audioOutput = nullptr;
+    MovieInfo movieInfo;
 };
 
 DMULTIMEDIA_END_NAMESPACE

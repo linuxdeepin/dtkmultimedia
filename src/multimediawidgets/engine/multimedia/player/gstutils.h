@@ -40,35 +40,37 @@ typedef guint (*mvideo_gst_discoverer_audio_info_get_bitrate)(const GstDiscovere
 typedef guint (*mvideo_gst_discoverer_audio_info_get_channels)(const GstDiscovererAudioInfo *info);
 typedef guint (*mvideo_gst_discoverer_audio_info_get_depth)(const GstDiscovererAudioInfo *info);
 
-typedef struct CustomData {
+typedef struct CustomData
+{
     GstDiscoverer *discoverer;
     GMainLoop *loop;
 } CustomData;
 
-class GstUtils {
+class GstUtils
+{
 
-  public:
+public:
     ~GstUtils();
     static GstUtils *get();
     static void discovered(GstDiscoverer *discoverer, GstDiscovererInfo *info, GError *err, CustomData *data);
     static void finished(GstDiscoverer *discoverer, CustomData *data);
     ModeMovieInfo parseFileByGst(const QFileInfo &fi);
 
-  private:
+private:
     GstUtils();
     QString libPath(const QString &strlib);
 
-  private:
+private:
     static ModeMovieInfo m_movieInfo;
     static GstUtils *m_pGstUtils;
     CustomData m_gstData;
 
-    mvideo_gst_init g_mvideo_gst_init                                                   = nullptr;
-    mvideo_gst_discoverer_new g_mvideo_gst_discoverer_new                               = nullptr;
-    mvideo_gst_discoverer_start g_mvideo_gst_discoverer_start                           = nullptr;
-    mvideo_gst_discoverer_stop g_mvideo_gst_discoverer_stop                             = nullptr;
+    mvideo_gst_init g_mvideo_gst_init = nullptr;
+    mvideo_gst_discoverer_new g_mvideo_gst_discoverer_new = nullptr;
+    mvideo_gst_discoverer_start g_mvideo_gst_discoverer_start = nullptr;
+    mvideo_gst_discoverer_stop g_mvideo_gst_discoverer_stop = nullptr;
     mvideo_gst_discoverer_discover_uri_async g_mvideo_gst_discoverer_discover_uri_async = nullptr;
 };
 DMULTIMEDIA_END_NAMESPACE
 
-#endif // GSTUTILS_H
+#endif   // GSTUTILS_H

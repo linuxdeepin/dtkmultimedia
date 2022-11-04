@@ -14,34 +14,35 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-enum AsyncReplyTag { SEEK, CHANNEL, SPEED };
+enum AsyncReplyTag { SEEK,
+                     CHANNEL,
+                     SPEED };
 
-DGstPlayerProxy::DGstPlayerProxy(QObject *parent) : DPlayerBackend(parent), d_ptr(new DGstPlayerProxyPrivate(this))
+DGstPlayerProxy::DGstPlayerProxy(QObject *parent)
+    : DPlayerBackend(parent), d_ptr(new DGstPlayerProxyPrivate(this))
 {
     Q_D(DGstPlayerProxy);
-    d->m_pPlayer       = new QMediaPlayer(this);
-    d->m_pVideoSurface = new VideoSurface;
-    d->m_pPlayer->setVideoOutput(d->m_pVideoSurface);
+    d->pPlayer = new QMediaPlayer(this);
+    d->pVideoSurface = new VideoSurface;
+    d->pPlayer->setVideoOutput(d->pVideoSurface);
 
-    connect(d->m_pPlayer, &QMediaPlayer::stateChanged, this, &DGstPlayerProxy::slotStateChanged);
-    connect(d->m_pPlayer, &QMediaPlayer::mediaStatusChanged, this, &DGstPlayerProxy::slotMediaStatusChanged);
-    connect(d->m_pPlayer, &QMediaPlayer::positionChanged, this, &DGstPlayerProxy::slotPositionChanged);
-    connect(d->m_pPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(slotMediaError(QMediaPlayer::Error)));
-    connect(d->m_pVideoSurface, &VideoSurface::frameAvailable, this, &DGstPlayerProxy::processFrame);
+    connect(d->pPlayer, &QMediaPlayer::stateChanged, this, &DGstPlayerProxy::slotStateChanged);
+    connect(d->pPlayer, &QMediaPlayer::mediaStatusChanged, this, &DGstPlayerProxy::slotMediaStatusChanged);
+    connect(d->pPlayer, &QMediaPlayer::positionChanged, this, &DGstPlayerProxy::slotPositionChanged);
+    connect(d->pPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(slotMediaError(QMediaPlayer::Error)));
+    connect(d->pVideoSurface, &VideoSurface::frameAvailable, this, &DGstPlayerProxy::processFrame);
 }
-
 
 DGstPlayerProxy::~DGstPlayerProxy()
 {
     Q_D(DGstPlayerProxy);
-    if(DCompositeManager::get().composited()) {
+    if (DCompositeManager::get().composited()) {
         disconnect(this, &DGstPlayerProxy::stateChanged, nullptr, nullptr);
     }
 
-    d->m_pVideoSurface->deleteLater();
-    d->m_pVideoSurface = nullptr;
+    d->pVideoSurface->deleteLater();
+    d->pVideoSurface = nullptr;
 }
-
 
 void DGstPlayerProxy::firstInit()
 {
@@ -55,13 +56,13 @@ void DGstPlayerProxy::updateRoundClip(bool roundClip)
 void DGstPlayerProxy::setCurrentFrame(const QImage &img)
 {
     Q_D(DGstPlayerProxy);
-    d->m_currentImage = img;
+    d->currentImage = img;
 }
 
 void DGstPlayerProxyPrivate::setState(DPlayerBackend::PlayState state)
 {
     Q_Q(DGstPlayerProxy);
-    if(q->state() != state) {
+    if (q->state() != state) {
         q->setState(state);
         emit q->stateChanged();
     }
@@ -70,7 +71,7 @@ void DGstPlayerProxyPrivate::setState(DPlayerBackend::PlayState state)
 void DGstPlayerProxy::pollingEndOfPlayback()
 {
     Q_D(DGstPlayerProxy);
-    if(state() != DPlayerBackend::Stopped) {
+    if (state() != DPlayerBackend::Stopped) {
         stop();
         d->setState(DPlayerBackend::Stopped);
         return;
@@ -80,7 +81,7 @@ void DGstPlayerProxy::pollingEndOfPlayback()
 const PlayingMovieInfo &DGstPlayerProxy::playingMovieInfo()
 {
     Q_D(DGstPlayerProxy);
-    return d->m_movieInfo;
+    return d->movieInfo;
 }
 
 bool DGstPlayerProxy::isPlayable() const
@@ -91,7 +92,7 @@ bool DGstPlayerProxy::isPlayable() const
 void DGstPlayerProxy::slotStateChanged(QMediaPlayer::State newState)
 {
     Q_D(DGstPlayerProxy);
-    switch(newState) {
+    switch (newState) {
     case QMediaPlayer::StoppedState:
         d->setState(PlayState::Stopped);
         break;
@@ -107,7 +108,7 @@ void DGstPlayerProxy::slotStateChanged(QMediaPlayer::State newState)
 void DGstPlayerProxy::slotMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
     Q_D(DGstPlayerProxy);
-    switch(status) {
+    switch (status) {
     case QMediaPlayer::BufferedMedia:
         d->setState(PlayState::Playing);
         emit fileLoaded();
@@ -125,7 +126,7 @@ void DGstPlayerProxy::slotPositionChanged(qint64 position)
 
 void DGstPlayerProxy::slotMediaError(QMediaPlayer::Error error)
 {
-    switch(error) {
+    switch (error) {
     case QMediaPlayer::ResourceError:
     case QMediaPlayer::FormatError:
     case QMediaPlayer::NetworkError:
@@ -140,7 +141,7 @@ void DGstPlayerProxy::slotMediaError(QMediaPlayer::Error error)
 
 void DGstPlayerProxy::savePlaybackPosition()
 {
-    if(state() == PlayState::Stopped) {
+    if (state() == PlayState::Stopped) {
         return;
     }
 }
@@ -148,21 +149,21 @@ void DGstPlayerProxy::savePlaybackPosition()
 void DGstPlayerProxy::setPlaySpeed(double dTimes)
 {
     Q_D(DGstPlayerProxy);
-    d->m_pPlayer->setPlaybackRate(dTimes);
+    d->pPlayer->setPlaybackRate(dTimes);
 
-    d->m_pPlayer->setPosition(d->m_pPlayer->position());
+    d->pPlayer->setPosition(d->pPlayer->position());
 }
 
 void DGstPlayerProxy::volumeUp()
 {
-    if(volume() >= 200) return;
+    if (volume() >= 200) return;
 
     changeVolume(volume() + 10);
 }
 
 void DGstPlayerProxy::volumeDown()
 {
-    if(volume() <= 0) return;
+    if (volume() <= 0) return;
 
     changeVolume(volume() - 10);
 }
@@ -170,13 +171,13 @@ void DGstPlayerProxy::volumeDown()
 void DGstPlayerProxy::changeVolume(int nVol)
 {
     Q_D(DGstPlayerProxy);
-    d->m_pPlayer->setVolume(nVol);
+    d->pPlayer->setVolume(nVol);
 }
 
 int DGstPlayerProxy::volume() const
 {
     Q_D(const DGstPlayerProxy);
-    int nActualVol  = d->m_pPlayer->volume();
+    int nActualVol = d->pPlayer->volume();
     int nDispalyVol = static_cast<int>((nActualVol - 40) / 60.0 * 200.0);
     return nDispalyVol;
 }
@@ -184,7 +185,7 @@ int DGstPlayerProxy::volume() const
 bool DGstPlayerProxy::muted() const
 {
     Q_D(const DGstPlayerProxy);
-    return d->m_pPlayer->isMuted();
+    return d->pPlayer->isMuted();
 }
 
 void DGstPlayerProxy::toggleMute()
@@ -192,14 +193,14 @@ void DGstPlayerProxy::toggleMute()
     Q_D(DGstPlayerProxy);
     bool bMute = false;
 
-    bMute = d->m_pPlayer->isMuted();
-    d->m_pPlayer->setMuted(!bMute);
+    bMute = d->pPlayer->isMuted();
+    d->pPlayer->setMuted(!bMute);
 }
 
 void DGstPlayerProxy::setMute(bool bMute)
 {
     Q_D(DGstPlayerProxy);
-    d->m_pPlayer->setMuted(bMute);
+    d->pPlayer->setMuted(bMute);
 }
 
 void DGstPlayerProxy::updateSubStyle(const QString &font, int sz)
@@ -295,29 +296,29 @@ void DGstPlayerProxy::setVideoRotation(int degree)
 QImage DGstPlayerProxy::takeScreenshot() const
 {
     Q_D(const DGstPlayerProxy);
-    return d->m_currentImage;
+    return d->currentImage;
 }
 
 void DGstPlayerProxy::burstScreenshot()
 {
     Q_D(DGstPlayerProxy);
-    int nCurrentPos = static_cast<int>(d->m_pPlayer->position());
-    int nDuration   = static_cast<int>(d->m_pPlayer->duration() / 15);
-    int nTime       = 0;
+    int nCurrentPos = static_cast<int>(d->pPlayer->position());
+    int nDuration = static_cast<int>(d->pPlayer->duration() / 15);
+    int nTime = 0;
 
     std::random_device rd;
     std::mt19937 g(rd());
     std::uniform_int_distribution<int> uniform_dist(0, nDuration);
-    for(int i = 0; i < 15; i++) {
+    for (int i = 0; i < 15; i++) {
         nTime = nDuration * i + uniform_dist(g) - 200;
-        d->m_pPlayer->setPosition(nTime);
+        d->pPlayer->setPosition(nTime);
         QEventLoop loop;
         QTimer::singleShot(200, &loop, SLOT(quit()));
         loop.exec();
-        emit notifyScreenshot(d->m_currentImage, nTime / 1000);
+        emit notifyScreenshot(d->currentImage, nTime / 1000);
     }
 
-    d->m_pPlayer->setPosition(nCurrentPos);
+    d->pPlayer->setPosition(nCurrentPos);
 }
 
 void DGstPlayerProxy::stopBurstScreenshot()
@@ -353,62 +354,55 @@ void DGstPlayerProxy::changehwaccelMode(DPlayerBackend::hwaccelMode hwaccelMode)
 void DGstPlayerProxyPrivate::initMember()
 {
 
-    m_nBurstStart = 0;
-
-    m_bInBurstShotting       = false;
-    m_posBeforeBurst         = false;
-    m_bExternalSubJustLoaded = false;
-    m_bConnectStateChange    = false;
-    m_bPauseOnStart          = false;
-    m_bInited                = false;
-    m_bHwaccelAuto           = false;
-    m_bLastIsSpecficFormat   = false;
-
-    m_listBurstPoints.clear();
-    m_mapWaitSet.clear();
-    m_vecWaitCommand.clear();
-
-    m_pConfig = nullptr;
+    nBurstStart = 0;
+    bInBurstShotting = false;
+    posBeforeBurst = false;
+    bExternalSubJustLoaded = false;
+    bConnectStateChange = false;
+    bPauseOnStart = false;
+    bInited = false;
+    bHwaccelAuto = false;
+    bLastIsSpecficFormat = false;
+    listBurstPoints.clear();
+    mapWaitSet.clear();
+    vecWaitCommand.clear();
 }
 
 void DGstPlayerProxy::play()
 {
     Q_D(DGstPlayerProxy);
 
-    if(urlFile().isLocalFile()) {
+    if (urlFile().isLocalFile()) {
         QString strFilePath = QFileInfo(urlFile().toLocalFile()).absoluteFilePath();
-        d->m_pPlayer->setMedia(QMediaContent(QUrl::fromLocalFile(strFilePath)));
+        d->pPlayer->setMedia(QMediaContent(QUrl::fromLocalFile(strFilePath)));
+    } else {
+        d->pPlayer->setMedia(QMediaContent(urlFile()));
     }
-    else {
-        d->m_pPlayer->setMedia(QMediaContent(urlFile()));
-    }
-    d->m_pPlayer->play();
+    d->pPlayer->play();
 }
 
 void DGstPlayerProxy::pauseResume()
 {
     Q_D(DGstPlayerProxy);
-    if(state() == PlayState::Playing) {
-        d->m_pPlayer->pause();
-    }
-    else if(state() == PlayState::Paused) {
-        d->m_pPlayer->play();
+    if (state() == PlayState::Playing) {
+        d->pPlayer->pause();
+    } else if (state() == PlayState::Paused) {
+        d->pPlayer->play();
     }
 }
 
 void DGstPlayerProxy::stop()
 {
     Q_D(DGstPlayerProxy);
-    d->m_pPlayer->stop();
+    d->pPlayer->stop();
 }
 
 int DGstPlayerProxyPrivate::volumeCorrection(int displayVol)
 {
     int realVol = 0;
-    if(DCompositeManager::get().check_wayland_env()) {
+    if (DCompositeManager::get().check_wayland_env()) {
         realVol = displayVol > 100 ? 100 + (displayVol - 100) / 10 * 5 : displayVol;
-    }
-    else {
+    } else {
         realVol = static_cast<int>((displayVol / 200.0) * 60.0 + 40);
     }
     return (realVol == 40 ? 0 : realVol);
@@ -419,11 +413,11 @@ void DGstPlayerProxy::seekForward(int nSecs)
     Q_D(DGstPlayerProxy);
     qint64 nPosition = 0;
 
-    nPosition = d->m_pPlayer->position();
+    nPosition = d->pPlayer->position();
     nPosition = nPosition + nSecs * 1000;
 
-    if(state() != PlayState::Stopped) {
-        d->m_pPlayer->setPosition(nPosition);
+    if (state() != PlayState::Stopped) {
+        d->pPlayer->setPosition(nPosition);
     }
 }
 
@@ -432,18 +426,18 @@ void DGstPlayerProxy::seekBackward(int nSecs)
     Q_D(DGstPlayerProxy);
     qint64 nPosition = 0;
 
-    nPosition = d->m_pPlayer->position();
+    nPosition = d->pPlayer->position();
     nPosition = nPosition - nSecs * 1000;
 
-    if(state() != PlayState::Stopped) {
-        d->m_pPlayer->setPosition(nPosition);
+    if (state() != PlayState::Stopped) {
+        d->pPlayer->setPosition(nPosition);
     }
 }
 
 void DGstPlayerProxy::seekAbsolute(int nPos)
 {
     Q_D(DGstPlayerProxy);
-    if(state() != PlayState::Stopped) d->m_pPlayer->setPosition(nPos * 1000);
+    if (state() != PlayState::Stopped) d->pPlayer->setPosition(nPos * 1000);
 }
 
 QSize DGstPlayerProxy::videoSize() const
@@ -454,18 +448,17 @@ QSize DGstPlayerProxy::videoSize() const
 qint64 DGstPlayerProxy::duration() const
 {
     Q_D(const DGstPlayerProxy);
-    return d->m_pPlayer->duration() / 1000;
+    return d->pPlayer->duration() / 1000;
 }
-
 
 qint64 DGstPlayerProxy::elapsed() const
 {
     Q_D(const DGstPlayerProxy);
-    return d->m_pPlayer->position() / 1000;
+    return d->pPlayer->position() / 1000;
 }
 
 void DGstPlayerProxyPrivate::updatePlayingMovieInfo()
 {
 }
 
-DMULTIMEDIA_END_NAMESPACE // end of namespace
+DMULTIMEDIA_END_NAMESPACE   // end of namespace

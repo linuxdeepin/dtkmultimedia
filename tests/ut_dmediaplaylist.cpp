@@ -8,8 +8,9 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DMediaPlaylist : public testing::Test {
-  public:
+class ut_DMediaPlaylist : public testing::Test
+{
+public:
     void SetUp() override
     {
         m_playList = new DMediaPlaylist;
@@ -20,7 +21,7 @@ class ut_DMediaPlaylist : public testing::Test {
         m_playList = nullptr;
     }
 
-  public:
+public:
     DMediaPlaylist *m_playList = nullptr;
 };
 //此单元测试测试播放器中播放列表为空。

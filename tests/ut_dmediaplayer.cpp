@@ -9,8 +9,9 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DMediaPlayer : public testing::Test {
-  public:
+class ut_DMediaPlayer : public testing::Test
+{
+public:
     void SetUp() override
     {
         m_player = new DMediaPlayer;
@@ -21,7 +22,7 @@ class ut_DMediaPlayer : public testing::Test {
         m_player = nullptr;
     }
 
-  public:
+public:
     DMediaPlayer *m_player = nullptr;
 };
 //此单元测试测试播放器中播放指针为空时覆盖。
@@ -57,7 +58,6 @@ TEST_F(ut_DMediaPlayer, setMuted)
     EXPECT_EQ(nullptr, m_player->getPlayer());
 }
 
-
 TEST_F(ut_DMediaPlayer, setPlaybackRate)
 {
     qreal rate = 1.0;
@@ -77,7 +77,7 @@ TEST_F(ut_DMediaPlayer, setPlaylist)
     DMediaPlaylist *playList = new DMediaPlaylist();
     m_player->setPlaylist(playList);
     EXPECT_EQ(playList, m_player->getPlaylist());
-    if(playList) delete playList;
+    if (playList) delete playList;
 }
 
 TEST_F(ut_DMediaPlayer, setNetworkConfigurations)

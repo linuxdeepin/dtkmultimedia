@@ -8,8 +8,9 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DMediaMetaData : public testing::Test {
-  public:
+class ut_DMediaMetaData : public testing::Test
+{
+public:
     void SetUp() override
     {
         m_mediaMetaData = new DMediaMetaData;
@@ -20,7 +21,7 @@ class ut_DMediaMetaData : public testing::Test {
         m_mediaMetaData = nullptr;
     }
 
-  public:
+public:
     DMediaMetaData *m_mediaMetaData = nullptr;
 };
 

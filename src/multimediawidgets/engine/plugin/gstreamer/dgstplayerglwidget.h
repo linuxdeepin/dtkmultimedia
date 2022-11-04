@@ -10,8 +10,6 @@
 #include <DGuiApplicationHelper>
 #include <dtkmultimedia.h>
 
-
-
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DGstPlayerGLWidget : public QOpenGLWidget
 {
@@ -62,43 +60,40 @@ private:
     void prepareSplashImages();
 
 private:
+    bool m_bPlaying = false;
+    bool m_bInMiniMode = false;
+    bool m_bDoRoundedClipping = false;
 
-    bool m_bPlaying;                   //记录播放状态
-    bool m_bInMiniMode;                //是否是最小化
-    bool m_bDoRoundedClipping;         //
-
-    QOpenGLVertexArrayObject m_vao;    //顶点数组对象
-    QOpenGLBuffer m_vbo;               //顶点缓冲对象
-    QOpenGLTexture *m_pDarkTex;        //深色主题背景纹理
-    QOpenGLTexture *m_pLightTex;       //浅色主题背景纹理
-    QOpenGLShaderProgram *m_pGlProg;
+    QOpenGLVertexArrayObject m_vao;
+    QOpenGLBuffer m_vbo;
+    QOpenGLTexture *m_pDarkTex = { nullptr };
+    QOpenGLTexture *m_pLightTex = { nullptr };
+    QOpenGLShaderProgram *m_pGlProg = { nullptr };
 
     QOpenGLVertexArrayObject m_vaoBlend;
     QOpenGLBuffer m_vboBlend;
     QOpenGLShaderProgram *m_pGlProgBlend;
-    QOpenGLFramebufferObject *m_pFbo;
-    QOpenGLShaderProgram *m_pGlProgBlendCorners;
+    QOpenGLFramebufferObject *m_pFbo = { nullptr };
+    QOpenGLShaderProgram *m_pGlProgBlendCorners = { nullptr };
 
-    //textures for corner
     QOpenGLVertexArrayObject m_vaoCorner;
-    QOpenGLTexture *m_pCornerMasks[4];
+    QOpenGLTexture *m_pCornerMasks[4] = { nullptr };
     QOpenGLBuffer m_vboCorners[4];
-    QOpenGLShaderProgram *m_pGlProgCorner; //着色器程序
+    QOpenGLShaderProgram *m_pGlProgCorner;
 
-    QImage m_imgBgDark;                    //深色主题背景图
-    QImage m_imgBgLight;                   //浅色主题背景图
+    QImage m_imgBgDark;
+    QImage m_imgBgLight;
 
-    QOpenGLTexture* m_pVideoTex;
+    QOpenGLTexture *m_pVideoTex = { nullptr };
     int m_currWidth;
     int m_currHeight;
 #ifdef __x86_64__
-    qreal m_pert; // 影院播放进度
-    QString m_strPlayTime; // 播放时间显示；
+    qreal m_pert;
+    QString m_strPlayTime;
 #endif
-    bool m_bRawFormat;
+    bool m_bRawFormat = false;
 };
 
 DMULTIMEDIA_END_NAMESPACE
 
 #endif /* ifndef DQTPLAYER_GLWIDGET_H */
-

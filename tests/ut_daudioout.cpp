@@ -8,8 +8,9 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DAudioOutput : public testing::Test {
-  public:
+class ut_DAudioOutput : public testing::Test
+{
+public:
     void SetUp() override
     {
         m_audioOut = new DAudioOutput;
@@ -20,7 +21,7 @@ class ut_DAudioOutput : public testing::Test {
         m_audioOut = nullptr;
     }
 
-  public:
+public:
     DAudioOutput *m_audioOut = nullptr;
 };
 
