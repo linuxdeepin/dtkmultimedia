@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "dplatformmediaplayer.h"
+#include "dplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 
 DMULTIMEDIA_USE_NAMESPACE
@@ -12,184 +12,191 @@ DPlatformMediaPlayer::~DPlatformMediaPlayer()
 }
 
 DPlatformMediaPlayer::DPlatformMediaPlayer(QMediaPlayer *parent)
-        : m_player(parent), QObject(parent)
+    : QObject(parent), d_ptr(new DPlatformMediaPlayerPrivate(this))
 {
-
+    Q_D(DPlatformMediaPlayer);
+    d->m_player = parent;
 }
 
 void DPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
 {
-    if (newState == m_state)
-        return;
-    m_state = newState;
-    m_player->stateChanged(newState);
+    Q_D(DPlatformMediaPlayer);
+    if(newState == d->m_state) return;
+    d->m_state = newState;
+    d->m_player->stateChanged(newState);
 }
 
 void DPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
-    if (m_status == status)
-        return;
-    m_status = status;
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_status == status) return;
+    d->m_status = status;
 }
 
 
-QMediaPlayer::State DPlatformMediaPlayer::state() const 
+QMediaPlayer::State DPlatformMediaPlayer::state() const
 {
-        return m_state;
+    Q_D(const DPlatformMediaPlayer);
+    return d->m_state;
 }
 
-QMediaPlayer::MediaStatus DPlatformMediaPlayer::mediaStatus() const 
-{ 
-    return m_status; 
-}
-
-bool DPlatformMediaPlayer::isAudioAvailable() const 
-{ 
-    return m_audioAvailable;
-}
-
-bool DPlatformMediaPlayer::isVideoAvailable() const 
-{ 
-    return m_videoAvailable; 
-}
-
-bool DPlatformMediaPlayer::isSeekable() const 
-{ 
-    return m_seekable; 
-}
-
-bool DPlatformMediaPlayer::streamPlaybackSupported() const 
-{ 
-    return false; 
-}
-
-void DPlatformMediaPlayer::setAudioOutput(QPlatformAudioOutput *) 
+QMediaPlayer::MediaStatus DPlatformMediaPlayer::mediaStatus() const
 {
+    Q_D(const DPlatformMediaPlayer);
+    return d->m_status;
+}
 
+bool DPlatformMediaPlayer::isAudioAvailable() const
+{
+    Q_D(const DPlatformMediaPlayer);
+    return d->m_audioAvailable;
+}
+
+bool DPlatformMediaPlayer::isVideoAvailable() const
+{
+    Q_D(const DPlatformMediaPlayer);
+    return d->m_videoAvailable;
+}
+
+bool DPlatformMediaPlayer::isSeekable() const
+{
+    Q_D(const DPlatformMediaPlayer);
+    return d->m_seekable;
+}
+
+bool DPlatformMediaPlayer::streamPlaybackSupported() const
+{
+    return false;
+}
+
+void DPlatformMediaPlayer::setAudioOutput(QPlatformAudioOutput *)
+{
 }
 
 DMediaMetaData DPlatformMediaPlayer::metaData() const
-{ 
+{
     return {};
 }
 
-int DPlatformMediaPlayer::trackCount(TrackType) 
-{ 
+int DPlatformMediaPlayer::trackCount(TrackType)
+{
     return 0;
 }
 
-DMediaMetaData DPlatformMediaPlayer::trackMetaData(TrackType , int ) 
-{ 
-    return DMediaMetaData(); 
-}
-
-int DPlatformMediaPlayer::activeTrack(TrackType) 
-{ 
-    return -1; 
-}
-
-void DPlatformMediaPlayer::setActiveTrack(TrackType, int ) 
+DMediaMetaData DPlatformMediaPlayer::trackMetaData(TrackType, int)
 {
-
+    return DMediaMetaData();
 }
 
-void DPlatformMediaPlayer::durationChanged(qint64 duration) 
+int DPlatformMediaPlayer::activeTrack(TrackType)
 {
-    m_player->durationChanged(duration);
+    return -1;
 }
 
-void DPlatformMediaPlayer::positionChanged(qint64 position) 
-{ 
-    m_player->positionChanged(position); 
-}
-
-void DPlatformMediaPlayer::audioAvailableChanged(bool audioAvailable) 
+void DPlatformMediaPlayer::setActiveTrack(TrackType, int)
 {
-    if (m_audioAvailable == audioAvailable)
-        return;
-    m_audioAvailable = audioAvailable;
 }
 
-void DPlatformMediaPlayer::videoAvailableChanged(bool videoAvailable) 
+void DPlatformMediaPlayer::durationChanged(qint64 duration)
 {
-    if (m_videoAvailable == videoAvailable)
-        return;
-    m_videoAvailable = videoAvailable;
+    Q_D(DPlatformMediaPlayer);
+    d->m_player->durationChanged(duration);
 }
 
-void DPlatformMediaPlayer::seekableChanged(bool seekable) 
+void DPlatformMediaPlayer::positionChanged(qint64 position)
 {
-    if (m_seekable == seekable)
-        return;
-    m_seekable = seekable;
-    m_player->seekableChanged(seekable);
+    Q_D(DPlatformMediaPlayer);
+    d->m_player->positionChanged(position);
 }
 
-void DPlatformMediaPlayer::volumeChanged(int volume) 
+void DPlatformMediaPlayer::audioAvailableChanged(bool audioAvailable)
 {
-    if (m_volume == volume)
-        return;
-    m_volume = volume;
-    m_player->volumeChanged(volume);
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_audioAvailable == audioAvailable) return;
+    d->m_audioAvailable = audioAvailable;
 }
 
-void DPlatformMediaPlayer::mutedChanged(bool muted) 
+void DPlatformMediaPlayer::videoAvailableChanged(bool videoAvailable)
 {
-    if (m_muted == muted)
-        return;
-    m_muted = muted;
-    m_player->mutedChanged(muted);
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_videoAvailable == videoAvailable) return;
+    d->m_videoAvailable = videoAvailable;
 }
 
-void DPlatformMediaPlayer::playbackRateChanged(qreal rate) 
-{ 
-    m_player->playbackRateChanged(rate); 
-}
-
-void DPlatformMediaPlayer::bufferProgressChanged(float progress) 
-{ 
-
-}
-
-void DPlatformMediaPlayer::metaDataChanged() 
-{ 
-    m_player->metaDataChanged(); 
-}
-
-void DPlatformMediaPlayer::tracksChanged() 
+void DPlatformMediaPlayer::seekableChanged(bool seekable)
 {
-
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_seekable == seekable) return;
+    d->m_seekable = seekable;
+    d->m_player->seekableChanged(seekable);
 }
 
-void DPlatformMediaPlayer::activeTracksChanged() 
+void DPlatformMediaPlayer::volumeChanged(int volume)
 {
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_volume == volume) return;
+    d->m_volume = volume;
+    d->m_player->volumeChanged(volume);
+}
 
+void DPlatformMediaPlayer::mutedChanged(bool muted)
+{
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_muted == muted) return;
+    d->m_muted = muted;
+    d->m_player->mutedChanged(muted);
+}
+
+void DPlatformMediaPlayer::playbackRateChanged(qreal rate)
+{
+    Q_D(DPlatformMediaPlayer);
+    d->m_player->playbackRateChanged(rate);
+}
+
+void DPlatformMediaPlayer::bufferProgressChanged(float progress)
+{
+}
+
+void DPlatformMediaPlayer::metaDataChanged()
+{
+    Q_D(DPlatformMediaPlayer);
+    d->m_player->metaDataChanged();
+}
+
+void DPlatformMediaPlayer::tracksChanged()
+{
+}
+
+void DPlatformMediaPlayer::activeTracksChanged()
+{
 }
 
 
 void DPlatformMediaPlayer::error(int error, const QString &errorString)
 {
-
 }
 
-void DPlatformMediaPlayer::resetCurrentLoop() 
-{ 
-    m_currentLoop = 0; 
-}
-
-bool DPlatformMediaPlayer::doLoop() 
+void DPlatformMediaPlayer::resetCurrentLoop()
 {
-    return isSeekable() && (m_loops < 0 || ++m_currentLoop < m_loops);
+    Q_D(DPlatformMediaPlayer);
+    d->m_currentLoop = 0;
 }
 
-int DPlatformMediaPlayer::loops() 
-{ 
-    return m_loops; 
-}
-
-void DPlatformMediaPlayer::setLoops(int loops) 
+bool DPlatformMediaPlayer::doLoop()
 {
-    if (m_loops == loops)
-        return;
-    m_loops = loops;
+    Q_D(DPlatformMediaPlayer);
+    return isSeekable() && (d->m_loops < 0 || ++d->m_currentLoop < d->m_loops);
+}
+
+int DPlatformMediaPlayer::loops()
+{
+    Q_D(DPlatformMediaPlayer);
+    return d->m_loops;
+}
+
+void DPlatformMediaPlayer::setLoops(int loops)
+{
+    Q_D(DPlatformMediaPlayer);
+    if(d->m_loops == loops) return;
+    d->m_loops = loops;
 }

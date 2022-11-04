@@ -11,17 +11,19 @@ DMULTIMEDIA_BEGIN_NAMESPACE
 
 class DPlatformMediaPlayer;
 class DMediaPlaylist;
-class Q_MULTIMEDIA_EXPORT DMediaPlayer : public QMediaPlayer
-{
+class DMediaPlayerPrivate;
+class Q_MULTIMEDIA_EXPORT DMediaPlayer : public QMediaPlayer {
     Q_OBJECT
-public:
+    Q_DECLARE_PRIVATE(DMediaPlayer)
+
+  public:
     DMediaPlayer(QObject *parent = nullptr);
     ~DMediaPlayer();
     DPlatformMediaPlayer *getPlayer();
     QVideoWidget *getVideoOutput();
     QMediaPlaylist *getPlaylist();
 
-public Q_SLOTS:
+  public Q_SLOTS:
     void play();
     void pause();
     void stop();
@@ -35,10 +37,8 @@ public Q_SLOTS:
     void setVideoOutput(QVideoWidget *);
     void setPlayer(DPlatformMediaPlayer *player);
 
-private:
-    DPlatformMediaPlayer *m_pPlayer = nullptr;
-    QVideoWidget *m_videoWidget = nullptr;
-    QMediaPlaylist *m_pPlayList = nullptr;
+  protected:
+    QScopedPointer<DMediaPlayerPrivate> d_ptr;
 };
 
 DMULTIMEDIA_END_NAMESPACE

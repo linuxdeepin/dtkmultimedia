@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "dtkmultimedia.h"
-#include "mockdemo/mockdemo.h"
 #include "gtest/gtest.h"
 #include <DMediaPlayer>
 #include <DMediaPlaylist>

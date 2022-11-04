@@ -6,20 +6,19 @@
 #define DPLAYER_ENINE_H
 
 
-#include <QtWidgets>
-#include <QNetworkConfigurationManager>
-#include <dplaylistmodel.h>
-#include <DPlayerBackend>
+#include "dplayerbackend.h"
 #include <DMpvProxy>
-#include <onlinesub.h>
+#include <QNetworkConfigurationManager>
+#include <QtWidgets>
+#include <dplaylistmodel.h>
 #include <dtkmultimedia.h>
+#include <onlinesub.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DPlaylistModel;
 struct PlayingMovieInfo;
 
-class PlayerEngine: public QWidget
-{
+class PlayerEngine : public QWidget {
     Q_OBJECT
     Q_PROPERTY(qint64 duration READ duration)
     Q_PROPERTY(qint64 elapsed READ elapsed NOTIFY elapsedChanged)
@@ -27,7 +26,7 @@ class PlayerEngine: public QWidget
     Q_PROPERTY(bool paused READ paused)
 
     Q_PROPERTY(CoreState state READ state NOTIFY stateChanged)
-public:
+  public:
     enum CoreState {
         Idle,
         Playing,
@@ -35,7 +34,8 @@ public:
     };
     Q_ENUM(CoreState)
 
-    // filetypes supported by mpv: https://github.com/mpv-player/mpv/blob/master/player/external_files.c
+    // filetypes supported by mpv:
+    // https://github.com/mpv-player/mpv/blob/master/player/external_files.c
     const static QStringList audio_filetypes;
     const static QStringList video_filetypes;
 
@@ -54,7 +54,7 @@ public:
 
     // only the last dvd device set
     void setDVDDevice(const QString &path);
-    //add by heyi
+    // add by heyi
     //第一次播放需要初库始化函数指针
     void firstInit();
 
@@ -133,7 +133,7 @@ public:
         return *m_playlist;
     }
 
-    DPlayerBackend * getMpvProxy();
+    DPlayerBackend *getMpvProxy();
 
     DPlaylistModel *getplaylist()
     {
@@ -141,24 +141,22 @@ public:
     }
 
     QImage takeScreenshot();
-    void burstScreenshot(); //initial the start of burst screenshotting
+    void burstScreenshot();
     void stopBurstScreenshot();
 
     void savePlaybackPosition();
 
     void nextFrame();
     void previousFrame();
-    //只在wayland下opengl窗口使用
     void makeCurrent();
 
-    // use with caution
     void setBackendProperty(const QString &, const QVariant &);
     QVariant getBackendProperty(const QString &);
 
     void toggleRoundedClip(bool roundClip);
     bool currFileIsAudio();
 
-signals:
+  signals:
     void tracksChanged();
     void elapsedChanged();
     void durationChanged(qint64 duration);
@@ -172,10 +170,7 @@ signals:
     void subCodepageChanged();
 
     void loadOnlineSubtitlesFinished(const QUrl &url, bool success);
-    //add by heyi mpv函数加载完毕
     void mpvFunsLoadOver();
-
-    //emit during burst screenshotting
     void positionProxyChanged(const qint64 &position) const;
     void notifyScreenshot(const QImage &frame, qint64 time);
 
@@ -193,14 +188,14 @@ signals:
     void sigMediaError();
     void finishedAddFiles(QList<QUrl>);
 
-public slots:
+  public slots:
     void play();
     void pauseResume();
     void stop();
 
     void prev();
     void next();
-    void playSelected(int id); // id as in playlist indexes
+    void playSelected(int id);
     void playByName(const QUrl &url);
     void clearPlaylist();
 
@@ -214,30 +209,26 @@ public slots:
     void toggleMute();
     void setMute(bool bMute);
 
-protected slots:
+  protected slots:
     void onBackendStateChanged();
     void requestPlay(int id);
-    void onSubtitlesDownloaded(const QUrl &url, const QList<QString> &filenames,
-                               OnlineSubtitle::FailReason);
+    void onSubtitlesDownloaded(const QUrl &url, const QList<QString> &filenames, OnlineSubtitle::FailReason);
     void onPlaylistAsyncAppendFinished(const QList<PlayItemInfo> &);
     void processFrame(QVideoFrame &frame);
-protected:
-    DPlaylistModel *m_playlist {nullptr};
-    CoreState m_state { CoreState::Idle };
-    DPlayerBackend *m_current {nullptr};
 
+  protected:
+    DPlaylistModel *m_playlist{nullptr};
+    CoreState m_state{CoreState::Idle};
+    DPlayerBackend *m_current{nullptr};
     QUrl m_pendingPlayReq;
-
-    bool m_playingRequest {false};
-    //add by heyi
-    bool m_bMpvFunsLoad {false};
-
+    bool m_playingRequest{false};
+    bool m_bMpvFunsLoad{false};
     void savePreviousMovieState();
-
     void paintEvent(QPaintEvent *e) override;
     bool createOPenGLWgt(MpvHandle handle);
     bool showOpenGLWgt(QOpenGLWidget *pVideoWidget);
-private:
+
+  private:
     QNetworkConfigurationManager m_networkConfigMng;
     bool m_bAudio;
     bool m_stopRunningThread;

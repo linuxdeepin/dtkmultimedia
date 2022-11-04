@@ -6,11 +6,11 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-static CommandLineManager* _instance = nullptr;
+static CommandLineManager *_instance = nullptr;
 
-CommandLineManager& CommandLineManager::get()
+CommandLineManager &CommandLineManager::get()
 {
-    if (!_instance) {
+    if(!_instance) {
         _instance = new CommandLineManager();
     }
 
@@ -45,7 +45,6 @@ bool CommandLineManager::debug() const
 QString CommandLineManager::openglMode() const
 {
     return this->value("c");
-//    return "on";
 }
 
 QString CommandLineManager::overrideConfig() const
@@ -55,7 +54,7 @@ QString CommandLineManager::overrideConfig() const
 
 QString CommandLineManager::dvdDevice() const
 {
-    if (this->isSet("dvd-device")) {
+    if(this->isSet("dvd-device")) {
         return this->value("dvd-device").trimmed();
     }
 

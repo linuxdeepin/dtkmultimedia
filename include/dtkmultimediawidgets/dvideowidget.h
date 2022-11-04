@@ -5,26 +5,31 @@
 #ifndef DVIDEOWIDGET_H
 #define DVIDEOWIDGET_H
 
+#include <DPlatformMediaPlayer>
 #include <QVideoWidget>
 #include <dtkmultimedia.h>
-#include <DPlatformMediaPlayer>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
-class Q_MULTIMEDIA_EXPORT DVideoWidget : public QVideoWidget
-{
+
+class DVideoWidgetPrivate;
+class Q_MULTIMEDIA_EXPORT DVideoWidget : public QVideoWidget {
     Q_OBJECT
-public:
+    Q_DECLARE_PRIVATE(DVideoWidget)
+
+  public:
     DVideoWidget(QWidget *parent = nullptr, DPlatformMediaPlayer *mediaPlayer = nullptr);
     ~DVideoWidget();
     QWidget *getPlayer();
     void setPlatformMediaPlayer(DPlatformMediaPlayer *mediaPlayer = nullptr);
-public Q_SLOTS:
+
+  public Q_SLOTS:
     void slotFullScreenChanged(bool fullScreen);
-protected:
+
+  protected:
     void showEvent(QShowEvent *pEvent) override;
-private:
-    QWidget *m_player {nullptr};
-    DPlatformMediaPlayer *m_mediaPlayer;
+
+  protected:
+    QScopedPointer<DVideoWidgetPrivate> d_ptr;
 };
 
 DMULTIMEDIA_END_NAMESPACE
