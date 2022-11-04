@@ -10,21 +10,16 @@
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
 
-class PlayerWidget: public QWidget {
+class PlayerWidget : public QWidget {
     Q_OBJECT
-public:
+  public:
     explicit PlayerWidget(QWidget *parent = nullptr);
     virtual ~PlayerWidget();
 
-    /**
-     * engine is instantiated in constructor, and all interaction comes from
-     * engine
-     */
-    PlayerEngine& engine();
-    void play(const QUrl& url);
+    PlayerEngine &engine();
+    void play(const QUrl &url);
 
-protected:
-    PlayerEngine *m_engine {nullptr};
+  protected:
+    PlayerEngine *m_engine{nullptr};
 };
 DMULTIMEDIA_END_NAMESPACE
-

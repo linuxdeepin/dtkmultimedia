@@ -10,10 +10,10 @@
 #include <DApplicationHelper>
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
-#include <QNetworkReply>
-#include <QMutex>
-#include <dtkmultimedia.h>
 #include "utils.h"
+#include <QMutex>
+#include <QNetworkReply>
+#include <dtkmultimedia.h>
 
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
@@ -26,7 +26,8 @@ typedef void (*mvideo_thumbnailer_destroy)(video_thumbnailer *thumbnailer);
 typedef image_data *(*mvideo_thumbnailer_create_image_data)(void);
 /* destroy image_data structure */
 typedef void (*mvideo_thumbnailer_destroy_image_data)(image_data *data);
-typedef int (*mvideo_thumbnailer_generate_thumbnail_to_buffer)(video_thumbnailer *thumbnailer, const char *movie_filename, image_data *generated_image_data);
+typedef int (*mvideo_thumbnailer_generate_thumbnail_to_buffer)(
+    video_thumbnailer *thumbnailer, const char *movie_filename, image_data *generated_image_data);
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
@@ -45,39 +46,37 @@ struct ModeMovieInfo {
     int rawRotate;
     qint64 fileSize;
     qint64 duration;
-    int width = -1;
+    int width  = -1;
     int height = -1;
-    //3.4添加视频信息
-    //视频流信息
     int vCodecID;
     qint64 vCodeRate;
     int fps;
     float proportion;
-    //音频流信息
     int aCodeID;
     qint64 aCodeRate;
     int aDigit;
     int channels;
     int sampling;
 #ifdef _MOVIE_USE_
-    QString strFmtName; // 文件封装名
+    QString strFmtName;
 #endif
-    ModeMovieInfo() {
-        valid = false;
-        rawRotate = -1;
-        fileSize = -1;
-        duration = -1;
-        width = -1;
-        height = -1;
-        vCodecID = -1;
-        aCodeRate = -1;
-        fps = -1;
+    ModeMovieInfo()
+    {
+        valid      = false;
+        rawRotate  = -1;
+        fileSize   = -1;
+        duration   = -1;
+        width      = -1;
+        height     = -1;
+        vCodecID   = -1;
+        aCodeRate  = -1;
+        fps        = -1;
         proportion = -1.0;
-        aCodeID = -1;
-        aCodeRate = -1;
-        aDigit = -1;
-        channels = -1;
-        sampling = -1;
+        aCodeID    = -1;
+        aCodeRate  = -1;
+        aDigit     = -1;
+        channels   = -1;
+        sampling   = -1;
     }
 
     static struct ModeMovieInfo parseFromFile(const QFileInfo &fi, bool *ok = nullptr);
@@ -88,7 +87,7 @@ struct ModeMovieInfo {
 
     QString videoCodec() const
     {
-        return  utils::videoIndex2str(vCodecID);
+        return utils::videoIndex2str(vCodecID);
     }
 
     QString audioCodec() const
@@ -96,36 +95,27 @@ struct ModeMovieInfo {
         return utils::audioIndex2str(aCodeID);
     }
 
-    //获取字幕编码格式（备用）
-    /*QString subtitleCodec() const
-    {
-        return utils::subtitleIndex2str();
-    }*/
-
     QString sizeStr() const
     {
         auto K = 1024;
         auto M = 1024 * K;
         auto G = 1024 * M;
-        if (fileSize > G) {
-            return QString(QT_TR_NOOP("%1G")).arg((double)fileSize / G, 0, 'f', 1);
-        } else if (fileSize > M) {
-            return QString(QT_TR_NOOP("%1M")).arg((double)fileSize / M, 0, 'f', 1);
-        } else if (fileSize > K) {
-            return QString(QT_TR_NOOP("%1K")).arg((double)fileSize / K, 0, 'f', 1);
+        if(fileSize > G) {
+            return QString(QT_TR_NOOP("%1G")).arg((double) fileSize / G, 0, 'f', 1);
+        }
+        else if(fileSize > M) {
+            return QString(QT_TR_NOOP("%1M")).arg((double) fileSize / M, 0, 'f', 1);
+        }
+        else if(fileSize > K) {
+            return QString(QT_TR_NOOP("%1K")).arg((double) fileSize / K, 0, 'f', 1);
         }
         return QString(QT_TR_NOOP("%1")).arg(fileSize);
     }
-    /**
-     * @brief 判断是否是H.264裸流，因为没有时长等信息所以需要对此类型单独判断
-     * @return 是否是裸流
-     */
     bool isRawFormat() const
     {
         bool bFlag = false;
 #ifdef _MOVIE_USE_
-        if(strFmtName.contains("raw",Qt::CaseInsensitive))
-            bFlag = true;
+        if(strFmtName.contains("raw", Qt::CaseInsensitive)) bFlag = true;
 #endif
 
         return bFlag;
@@ -135,7 +125,7 @@ struct ModeMovieInfo {
 
 struct PlayItemInfo {
     bool valid;
-    bool loaded;  // if url is network, this is false until playback started
+    bool loaded;
     QUrl url;
     QFileInfo info;
     QPixmap thumbnail;
@@ -145,18 +135,17 @@ struct PlayItemInfo {
     bool refresh();
 };
 
-using AppendJob = QPair<QUrl, QFileInfo>; // async job
+using AppendJob        = QPair<QUrl, QFileInfo>;
 using PlayItemInfoList = QList<PlayItemInfo>;
-using UrlList = QList<QUrl>;
+using UrlList          = QList<QUrl>;
 
 
-class DPlaylistModel: public QObject
-{
+class DPlaylistModel : public QObject {
     Q_OBJECT
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(int current READ current WRITE changeCurrent NOTIFY currentChanged)
 
-public:
+  public:
     friend class PlayerEngine;
     enum PlayMode {
         OrderPlay,
@@ -176,14 +165,7 @@ public:
 
     qint64 getUrlFileTotalSize(QUrl url, int tryTimes) const;
 
-    /**
-     * @brief clear 清空播放列表
-     */
     void clear();
-    /**
-     * @brief remove 移除播放列表中的选定项
-     * @param pos 传入的删除项
-     */
     void remove(int pos);
     void append(const QUrl &);
 
@@ -208,10 +190,7 @@ public:
     PlayItemInfo &currentInfo();
     int size() const;
     int indexOf(const QUrl &url);
-
     void switchPosition(int p1, int p2);
-
-//    bool hasPendingAppends();
     void handleAsyncAppendResults(QList<PlayItemInfo> &pil);
     struct PlayItemInfo calculatePlayInfo(const QUrl &, const QFileInfo &fi, bool isDvd = false);
     bool getthreadstate();
@@ -222,32 +201,24 @@ public:
         return m_loadFile;
     };
     void loadPlaylist();
-    /**
-     * @brief getThumanbilRunning 获取加载线程是否运行
-     * @return 返回是否正在运行
-     */
     bool getThumanbilRunning();
 
-    //获取视频信息
     ModeMovieInfo getMovieInfo(const QUrl &url, bool *is);
 
-    //获取视频首帧图片
     QImage getMovieCover(const QUrl &url);
 
-public slots:
+  public slots:
     void changeCurrent(int);
     void delayedAppendAsync(const QList<QUrl> &);
-//    void deleteThread();
     void clearLoad();
 
-private slots:
-//    void onAsyncAppendFinished();
+  private slots:
     void onAsyncFinished();
     void onAsyncUpdate(PlayItemInfo);
     void slotStateChanged();
 
 
-signals:
+  signals:
     void countChanged();
     void currentChanged();
     void itemRemoved(int);
@@ -258,54 +229,53 @@ signals:
     void itemInfoUpdated(int id);
     void updateDuration();
 
-private:
+  private:
     void initThumb();
     void initFFmpeg();
     bool getMusicPix(const QFileInfo &fi, QPixmap &rImg);
     struct ModeMovieInfo parseFromFile(const QFileInfo &fi, bool *ok = nullptr);
     struct ModeMovieInfo parseFromFileByQt(const QFileInfo &fi, bool *ok = nullptr);
     QString libPath(const QString &strlib);
-    // when app starts, and the first time to load playlist
-    bool m_firstLoad {true};
-    int m_count {0};
-    int m_current {-1};
-    int m_last {-1};
+    bool m_firstLoad{true};
+    int m_count{0};
+    int m_current{-1};
+    int m_last{-1};
     bool m_hasNormalVideo{false};
-    PlayMode m_playMode {PlayMode::OrderPlay};
+    PlayMode m_playMode{PlayMode::OrderPlay};
     QList<PlayItemInfo> m_infos;
 
-    QList<int> m_playOrder; // for shuffle mode
-    int m_shufflePlayed {0}; // count currently played items in shuffle mode
-    int m_loopCount {0}; // loop count
+    QList<int> m_playOrder;
+    int m_shufflePlayed{0};
+    int m_loopCount{0};
 
-    QList<AppendJob> m_pendingJob; // async job
-    QSet<QString> m_urlsInJob;  // url list
+    QList<AppendJob> m_pendingJob;
+    QSet<QString> m_urlsInJob;
 
     QQueue<UrlList> m_pendingAppendReq;
 
-    bool m_userRequestingItem {false};
+    bool m_userRequestingItem{false};
 
     video_thumbnailer *m_video_thumbnailer = nullptr;
-    image_data *m_image_data = nullptr;
+    image_data *m_image_data               = nullptr;
 
-    mvideo_thumbnailer m_mvideo_thumbnailer = nullptr;
-    mvideo_thumbnailer_destroy m_mvideo_thumbnailer_destroy = nullptr;
-    mvideo_thumbnailer_create_image_data m_mvideo_thumbnailer_create_image_data = nullptr;
-    mvideo_thumbnailer_destroy_image_data m_mvideo_thumbnailer_destroy_image_data = nullptr;
+    mvideo_thumbnailer m_mvideo_thumbnailer                                                           = nullptr;
+    mvideo_thumbnailer_destroy m_mvideo_thumbnailer_destroy                                           = nullptr;
+    mvideo_thumbnailer_create_image_data m_mvideo_thumbnailer_create_image_data                       = nullptr;
+    mvideo_thumbnailer_destroy_image_data m_mvideo_thumbnailer_destroy_image_data                     = nullptr;
     mvideo_thumbnailer_generate_thumbnail_to_buffer m_mvideo_thumbnailer_generate_thumbnail_to_buffer = nullptr;
 
-    PlayerEngine *m_engine {nullptr};
+    PlayerEngine *m_engine{nullptr};
 
     QString m_playlistFile;
 
     LoadThread *m_ploadThread;
-    GetThumanbil *m_getThumanbil {nullptr};
+    GetThumanbil *m_getThumanbil{nullptr};
     QMutex *m_pdataMutex;
     bool m_brunning;
     QList<QUrl> m_tempList;
     QList<QUrl> m_loadFile;
-    bool m_initFFmpeg {false};
-    bool m_bInitThumb {false};
+    bool m_initFFmpeg{false};
+    bool m_bInitThumb{false};
     PlayItemInfo m_currentInfo;
 
 
@@ -315,33 +285,30 @@ private:
 };
 
 
-class LoadThread: public QThread
-{
+class LoadThread : public QThread {
     Q_OBJECT
 
-public:
+  public:
     LoadThread(DPlaylistModel *model, const QList<QUrl> &urls);
     ~LoadThread();
 
-public:
+  public:
     void run();
 
-private:
+  private:
     DPlaylistModel *m_pModel;
     QList<QUrl> m_urls;
-
-    QList<AppendJob> m_pendingJob; // async job
-    QSet<QString> m_urlsInJob;  // url list
+    QList<AppendJob> m_pendingJob;
+    QSet<QString> m_urlsInJob;
 };
 
-class GetThumanbil : public QThread
-{
+class GetThumanbil : public QThread {
     Q_OBJECT
-public:
-    GetThumanbil(DPlaylistModel *model, const QList<QUrl> &urls): m_model(model), m_urls(urls)
+  public:
+    GetThumanbil(DPlaylistModel *model, const QList<QUrl> &urls) : m_model(model), m_urls(urls)
     {
-//        m_model = model;
-//        m_urls = urls;
+        //        m_model = model;
+        //        m_urls = urls;
         m_mutex = new QMutex;
     };
     ~GetThumanbil()
@@ -350,7 +317,6 @@ public:
         delete m_mutex;
         m_mutex = nullptr;
     };
-    //QList<PlayItemInfo> getInfoList() {return m_itemInfo;}
     void stop()
     {
         m_stop = true;
@@ -364,7 +330,6 @@ public:
     void clearItem()
     {
         m_mutex->lock();
-        //m_itemInfo.clear();
         m_urls.clear();
         m_mutex->unlock();
     };
@@ -374,26 +339,23 @@ public:
         m_mutex->lock();
         QList<QUrl> urls = m_urls;
         m_mutex->unlock();
-        foreach (QUrl url, urls) {
+        foreach(QUrl url, urls) {
             QFileInfo info(url.path());
-            //m_itemInfo.append();
             emit updateItem(m_model->calculatePlayInfo(url, info, false));
-            if (m_stop)
-                break;
+            if(m_stop) break;
         }
     }
 
-signals:
+  signals:
     void updateItem(PlayItemInfo);
-private:
+
+  private:
     DPlaylistModel *m_model;
     QList<QUrl> m_urls;
-    //QList<PlayItemInfo> m_itemInfo;
     QMutex *m_mutex;
-    bool m_stop {false};
+    bool m_stop{false};
 };
 
 DMULTIMEDIA_END_NAMESPACE
 
 #endif /* ifndef DPLAYLISTMODEL_H */
-

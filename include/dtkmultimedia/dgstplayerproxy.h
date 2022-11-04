@@ -5,19 +5,20 @@
 #ifndef DGSTPLAYERPROXY_H
 #define DGSTPLAYERPROXY_H
 
-#include <QMediaPlayer>
-#include <QMediaContent>
-#include <QVideoFrame>
 #include "dplayerbackend.h"
+#include <QMediaContent>
+#include <QMediaPlayer>
+#include <QVideoFrame>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class VideoSurface;
+class DGstPlayerProxyPrivate;
 
-class DGstPlayerProxy: public DPlayerBackend
-{
+class DGstPlayerProxy : public DPlayerBackend {
     Q_OBJECT
+    Q_DECLARE_PRIVATE(DGstPlayerProxy)
 
-public:
+  public:
     explicit DGstPlayerProxy(QObject *parent = 0);
     virtual ~DGstPlayerProxy();
     void firstInit();
@@ -32,8 +33,8 @@ public:
     QSize videoSize() const override;
     void setPlaySpeed(double dTimes) override;
     void savePlaybackPosition() override;
-    
-public slots:
+
+  public slots:
     void play() override;
     void pauseResume() override;
     void stop() override;
@@ -65,53 +66,26 @@ public slots:
     double videoAspect() const;
     int videoRotation() const;
     void setVideoRotation(int degree);
-    QImage takeScreenshot();
+    QImage takeScreenshot() const;
     void burstScreenshot();
     void stopBurstScreenshot();
-    QVariant getProperty(const QString &);
+    QVariant getProperty(const QString &) const;
     void setProperty(const QString &, const QVariant &);
     void nextFrame();
     void previousFrame();
     void makeCurrent();
     void changehwaccelMode(hwaccelMode hwaccelMode);
 
-protected:
-    void initMember();
-
-protected slots:
+  protected slots:
     void slotStateChanged(QMediaPlayer::State newState);
     void slotMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void slotPositionChanged(qint64 position);
     void slotMediaError(QMediaPlayer::Error error);
 
-private:
-    void updatePlayingMovieInfo();
-    void setState(PlayState state);
-    int volumeCorrection(int);
-
-private:
-    QMediaPlayer* m_pPlayer;
-    VideoSurface* m_pVideoSurface;
-    PlayingMovieInfo m_movieInfo;
-    QVariant m_posBeforeBurst;
-    QList<qint64> m_listBurstPoints;
-    qint64 m_nBurstStart;
-    bool m_bInBurstShotting;
-    bool m_bExternalSubJustLoaded;
-    bool m_bConnectStateChange;
-    bool m_bPauseOnStart; 
-    bool m_bInited;    
-    bool m_bHwaccelAuto;  
-    bool m_bLastIsSpecficFormat; 
-    QMap<QString, QVariant> m_mapWaitSet; 
-    QVector<QVariant> m_vecWaitCommand; 
-    QMap<QString, QString> *m_pConfig;
-    QImage m_currentImage;
+  protected:
+    QScopedPointer<DGstPlayerProxyPrivate> d_ptr;
 };
 
 DMULTIMEDIA_END_NAMESPACE
 
 #endif /* ifndef DGSTPLAYERPROXY_H */
-
-
-

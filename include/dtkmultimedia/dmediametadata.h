@@ -5,20 +5,19 @@
 #ifndef DMEDIAMETADATA_H
 #define DMEDIAMETADATA_H
 
-#include <QtCore/qpair.h>
-#include <QtCore/qvariant.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qhash.h>
+#include <QHash>
+#include <QPair>
+#include <QString>
+#include <QVariant>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <dtkmultimedia.h>
 
 
 class QString;
 DMULTIMEDIA_BEGIN_NAMESPACE
-class Q_MULTIMEDIA_EXPORT DMediaMetaData
-{
+class Q_MULTIMEDIA_EXPORT DMediaMetaData {
     Q_GADGET
-public:
+  public:
     enum Key {
         Title,
         Author,
@@ -59,22 +58,48 @@ public:
 
     static constexpr int NumMetaData = Resolution + 1;
 
-    Q_INVOKABLE QVariant value(Key k) const { return data.value(k); }
-    Q_INVOKABLE void insert(Key k, const QVariant &value) { data.insert(k, value); }
-    Q_INVOKABLE void remove(Key k) { data.remove(k); }
-    Q_INVOKABLE QList<Key> keys() const { return data.keys(); }
-    QVariant &operator[](Key k) { return data[k]; }
-    Q_INVOKABLE void clear() { data.clear(); }
-    Q_INVOKABLE bool isEmpty() const { return data.isEmpty(); }
+    Q_INVOKABLE QVariant value(Key k) const
+    {
+        return data.value(k);
+    }
+    Q_INVOKABLE void insert(Key k, const QVariant &value)
+    {
+        data.insert(k, value);
+    }
+    Q_INVOKABLE void remove(Key k)
+    {
+        data.remove(k);
+    }
+    Q_INVOKABLE QList<Key> keys() const
+    {
+        return data.keys();
+    }
+    QVariant &operator[](Key k)
+    {
+        return data[k];
+    }
+    Q_INVOKABLE void clear()
+    {
+        data.clear();
+    }
+    Q_INVOKABLE bool isEmpty() const
+    {
+        return data.isEmpty();
+    }
     Q_INVOKABLE QString stringValue(Key k) const;
     Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
-protected:
+  protected:
     friend bool operator==(const DMediaMetaData &a, const DMediaMetaData &b)
-    { return a.data == b.data; }
+    {
+        return a.data == b.data;
+    }
     friend bool operator!=(const DMediaMetaData &a, const DMediaMetaData &b)
-    { return a.data != b.data; }
-protected:
+    {
+        return a.data != b.data;
+    }
+
+  protected:
     QHash<Key, QVariant> data;
 };
 

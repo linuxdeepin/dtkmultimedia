@@ -5,9 +5,9 @@
 #ifndef DENGINEPLAYER_H
 #define DENGINEPLAYER_H
 
+#include <DAudioOutput>
 #include <DPlatformMediaPlayer>
 #include <DPlayerBackend>
-#include <DAudioOutput>
 #include <dtkmultimedia.h>
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
@@ -21,7 +21,7 @@ struct MovieInfo {
     int rawRotate;
     qint64 fileSize;
     qint64 duration;
-    int width = -1;
+    int width  = -1;
     int height = -1;
     int vCodecID;
     qint64 vCodeRate;
@@ -43,29 +43,31 @@ enum PlayMode {
     SingleLoop,
     ListLoop,
 };
-class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer
-{
+class DEnginePlayerPrivate;
+class Q_MULTIMEDIA_EXPORT DEnginePlayer : public DPlatformMediaPlayer {
     Q_OBJECT
-public:
+    Q_DECLARE_PRIVATE(DEnginePlayer)
+
+  public:
     DEnginePlayer(QMediaPlayer *parent = nullptr);
     ~DEnginePlayer();
     virtual qint64 duration() const;
     virtual qint64 position() const;
     virtual void setPosition(qint64 position);
-    virtual float bufferProgress() const ;
+    virtual float bufferProgress() const;
     virtual QMediaTimeRange availablePlaybackRanges() const;
     virtual qreal playbackRate() const;
     virtual void setPlaybackRate(qreal rate);
     virtual QUrl media() const;
     virtual const QIODevice *mediaStream() const;
     virtual void setMedia(const QUrl &media, QIODevice *stream);
-    virtual void  setVolume (float volume);
-    virtual void  setMuted (bool muted);
+    virtual void setVolume(float volume);
+    virtual void setMuted(bool muted);
     virtual void play();
     virtual void pause();
     virtual void stop();
     virtual void setVideoSink(DVideoSink * /*sink*/);
-    virtual void setPlayer(QWidget * Player);
+    virtual void setPlayer(QWidget *Player);
     void setPlaySpeed(double times);
     void changeSoundMode(const DPlayerBackend::SoundMode &sm);
     void nextFrame();
@@ -84,17 +86,12 @@ public:
     bool addPlayFile(const QUrl &url);
     const struct MovieInfo &movieInfo();
     DAudioOutput *audioOut();
-    
-public slots:
+
+  public slots:
     void positionProxyChanged();
 
-private:
-    QWidget *m_pPlayer = nullptr;
-    QMediaPlayer *m_mediaPlayer = nullptr;
-    QUrl m_media;
-    PlayerEngine *m_engine = nullptr;
-    DAudioOutput *m_audioOutput = nullptr;
-    MovieInfo m_movieInfo;
+  protected:
+    QScopedPointer<DEnginePlayerPrivate> d_ptr;
 };
 DMULTIMEDIA_END_NAMESPACE
 

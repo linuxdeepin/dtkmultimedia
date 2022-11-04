@@ -2,17 +2,27 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "dplayerbackend.h"
+#include "dplayerbackend_p.h"
 
 DMULTIMEDIA_USE_NAMESPACE
-DPlayerBackend::DebugLevel DPlayerBackend::m_debugLevel = DPlayerBackend::DebugLevel::Info;
+DPlayerBackend::DebugLevel DPlayerBackendPrivate::m_debugLevel = DPlayerBackend::DebugLevel::Info;
+DPlayerBackend::DPlayerBackend(QObject *parent) : QObject(parent), d_ptr(new DPlayerBackendPrivate(this))
+{
+}
+
+DPlayerBackend::~DPlayerBackend()
+{
+}
+
 void DPlayerBackend::setPlayFile(const QUrl &url)
 {
-    m_file = url;
+    Q_D(DPlayerBackend);
+    d->m_file = url;
 }
 void DPlayerBackend::setDVDDevice(const QString &path)
 {
-    m_dvdDevice = path;
+    Q_D(DPlayerBackend);
+    d->m_dvdDevice = path;
 }
 
 qint64 DPlayerBackend::duration() const
@@ -27,21 +37,46 @@ qint64 DPlayerBackend::elapsed() const
 
 bool DPlayerBackend::paused()
 {
-    return m_state == PlayState::Paused;
+    Q_D(DPlayerBackend);
+    return d->m_state == PlayState::Paused;
 }
 
 DPlayerBackend::PlayState DPlayerBackend::state() const
 {
-    return m_state;
+    Q_D(const DPlayerBackend);
+    return d->m_state;
+}
+
+void DPlayerBackend::setState(PlayState state)
+{
+    Q_D(DPlayerBackend);
+    d->m_state = state;
 }
 
 void DPlayerBackend::setDebugLevel(DebugLevel lvl)
 {
-    m_debugLevel = lvl;
+    DPlayerBackendPrivate::m_debugLevel = lvl;
 }
 
-void DPlayerBackend::setWinID(const qint64 &winID) 
+DPlayerBackend::DebugLevel DPlayerBackend::debugLevel()
 {
-    m_winId = winID;
+    return DPlayerBackendPrivate::m_debugLevel;
 }
 
+QUrl DPlayerBackend::urlFile() const
+{
+    Q_D(const DPlayerBackend);
+    return d->m_file;
+}
+
+void DPlayerBackend::setWinID(const qint64 &winID)
+{
+    Q_D(DPlayerBackend);
+    d->m_winId = winID;
+}
+
+qint64 DPlayerBackend::winID() const
+{
+    Q_D(const DPlayerBackend);
+    return d->m_winId;
+}

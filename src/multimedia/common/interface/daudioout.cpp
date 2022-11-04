@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "daudioout.h"
+#include "daudioout_p.h"
 
 
 
@@ -11,45 +11,49 @@ DMULTIMEDIA_USE_NAMESPACE
 
 
 DAudioOutput::DAudioOutput(QObject *parent)
-    :QMediaObject(parent, NULL)
+    : QMediaObject(parent, NULL), d_ptr(new DAudioOutputPrivate(this))
 {
-
 }
 
 DAudioOutput::~DAudioOutput()
 {
-
 }
 
 void DAudioOutput::setDevice(const DAudioDevice &device)
 {
-    m_audioDevice = device;
+    Q_D(DAudioOutput);
+    d->m_audioDevice = device;
 }
 
 void DAudioOutput::setVolume(float volume)
 {
-    m_fVolume = volume;
+    Q_D(DAudioOutput);
+    d->m_fVolume = volume;
     volumeChanged(volume);
 }
 
 void DAudioOutput::setMuted(bool muted)
 {
-    m_bMuted = muted;
+    Q_D(DAudioOutput);
+    d->m_bMuted = muted;
     mutedChanged(muted);
 }
 
 
 DAudioDevice DAudioOutput::device() const
 {
-    return m_audioDevice;
+    Q_D(const DAudioOutput);
+    return d->m_audioDevice;
 }
 
 float DAudioOutput::volume() const
 {
-    return m_fVolume;
+    Q_D(const DAudioOutput);
+    return d->m_fVolume;
 }
 
 bool DAudioOutput::isMuted() const
 {
-    return m_bMuted;
+    Q_D(const DAudioOutput);
+    return d->m_bMuted;
 }
