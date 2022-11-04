@@ -16,38 +16,38 @@ DMULTIMEDIA_BEGIN_NAMESPACE
 class DMpvGLWidget;
 class PlayingMovieInfo;
 
-class MpvHandle {
-    struct container {
-      public:
+class MpvHandle
+{
+    struct container
+    {
+    public:
         explicit container(mpv_handle *pHandle);
         ~container();
         mpv_handle *m_pHandle;
     };
     QSharedPointer<container> sptr;
 
-  public:
+public:
     static MpvHandle fromRawHandle(mpv_handle *pHandle);
     operator mpv_handle *() const;
 };
 
+enum DecodeMode { AUTO = 0,
+                  HARDWARE,
+                  SOFTWARE };
 
-//解码模式
-enum DecodeMode { AUTO = 0, HARDWARE, SOFTWARE };
-
-/**
- * @file 封装mpv播放引擎
- */
 class DMpvProxyPrivate;
-class DMpvProxy : public DPlayerBackend {
+class DMpvProxy : public DPlayerBackend
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DMpvProxy)
 
-  signals:
+signals:
     void has_mpv_events();
     void crashCheck();
     void notifyCreateOpenGL(MpvHandle handle);
 
-  public:
+public:
     MpvHandle getMpvHandle();
     explicit DMpvProxy(QObject *parent = 0);
     virtual ~DMpvProxy();
@@ -95,7 +95,7 @@ class DMpvProxy : public DPlayerBackend {
     void changehwaccelMode(hwaccelMode hwaccelMode) override;
     void makeCurrent() override;
 
-  public slots:
+public slots:
     void play() override;
     void pauseResume() override;
     void stop() override;
@@ -109,17 +109,17 @@ class DMpvProxy : public DPlayerBackend {
     void setMute(bool bMute) override;
     void setWinID(const qint64 &winID) override;
 
-  protected:
+protected:
     void initMember();
     void initGpuInfoFuns();
     bool isSurportHardWareDecode(const QString sDecodeName, const int &nVideoWidth, const int &nVideoHeight);
     int getDecodeProbeValue(const QString sDecodeName);
 
-  protected slots:
+protected slots:
     void handle_mpv_events();
     void stepBurstScreenshot();
 
-  protected:
+protected:
     QScopedPointer<DMpvProxyPrivate> d_ptr;
 };
 

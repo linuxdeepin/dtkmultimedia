@@ -5,20 +5,20 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-class DVideoWidgetPrivate : public QObject {
+class DVideoWidgetPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DVideoWidget)
-  public:
-    explicit DVideoWidgetPrivate(DVideoWidget *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DVideoWidgetPrivate(DVideoWidget *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  private:
+private:
     DVideoWidget *q_ptr;
-
-  private:
-    QWidget *m_player                   = nullptr;
-    DPlatformMediaPlayer *m_mediaPlayer = nullptr;
+    QWidget *player = nullptr;
+    DPlatformMediaPlayer *mediaPlayer = nullptr;
 };
 
 DMULTIMEDIA_END_NAMESPACE

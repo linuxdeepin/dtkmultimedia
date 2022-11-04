@@ -9,19 +9,21 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-class DAudioOutputPrivate : public QObject {
+class DAudioOutputPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DAudioOutput)
-  public:
-    explicit DAudioOutputPrivate(DAudioOutput *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DAudioOutputPrivate(DAudioOutput *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  private:
+private:
     DAudioOutput *q_ptr;
-    DAudioDevice m_audioDevice;
-    bool m_bMuted   = false;
-    float m_fVolume = 0.f;
+    DAudioDevice audioDevice;
+    bool bMuted = false;
+    float fVolume = 0.f;
 };
 DMULTIMEDIA_END_NAMESPACE
 #endif

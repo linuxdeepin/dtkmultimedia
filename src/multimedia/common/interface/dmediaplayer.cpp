@@ -20,35 +20,34 @@ DMediaPlayer::~DMediaPlayer()
 DPlatformMediaPlayer *DMediaPlayer::getPlayer()
 {
     Q_D(DMediaPlayer);
-    return d->m_pPlayer;
+    return d->pPlayer;
 }
 
 QVideoWidget *DMediaPlayer::getVideoOutput()
 {
     Q_D(DMediaPlayer);
-    return d->m_videoWidget;
+    return d->videoWidget;
 }
 
 QMediaPlaylist *DMediaPlayer::getPlaylist()
 {
     Q_D(DMediaPlayer);
-    return d->m_pPlayList;
+    return d->pPlayList;
 }
 
 void DMediaPlayer::play()
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer || !d->m_pPlayList || d->m_pPlayList->isEmpty()) return;
-    QUrl url = d->m_pPlayList->currentMedia().canonicalUrl();
-    if(url.isEmpty()) {
-        d->m_pPlayList->setCurrentIndex(0);
-        url = d->m_pPlayList->media(0).canonicalUrl();
+    if (!d->pPlayer || !d->pPlayList || d->pPlayList->isEmpty()) return;
+    QUrl url = d->pPlayList->currentMedia().canonicalUrl();
+    if (url.isEmpty()) {
+        d->pPlayList->setCurrentIndex(0);
+        url = d->pPlayList->media(0).canonicalUrl();
     }
-    if((d->m_pPlayer->media() != url) || d->m_pPlayer->state() == QMediaPlayer::StoppedState) {
-        d->m_pPlayer->setMedia(url, nullptr);
-        d->m_pPlayer->play();
-    }
-    else if(d->m_pPlayer->state() == QMediaPlayer::PausedState) {
+    if ((d->pPlayer->media() != url) || d->pPlayer->state() == QMediaPlayer::StoppedState) {
+        d->pPlayer->setMedia(url, nullptr);
+        d->pPlayer->play();
+    } else if (d->pPlayer->state() == QMediaPlayer::PausedState) {
         pause();
     }
 }
@@ -56,44 +55,43 @@ void DMediaPlayer::play()
 void DMediaPlayer::pause()
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->pause();
+    if (!d->pPlayer) return;
+    d->pPlayer->pause();
 }
 
 void DMediaPlayer::stop()
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->stop();
+    if (!d->pPlayer) return;
+    d->pPlayer->stop();
 }
 
 void DMediaPlayer::setPosition(qint64 position)
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->setPosition(position);
+    if (!d->pPlayer) return;
+    d->pPlayer->setPosition(position);
 }
 
 void DMediaPlayer::setVolume(int volume)
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->setVolume(volume);
-    //    QMediaPlayer::setVolume(volume);
+    if (!d->pPlayer) return;
+    d->pPlayer->setVolume(volume);
 }
 
 void DMediaPlayer::setMuted(bool muted)
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->setMuted(muted);
+    if (!d->pPlayer) return;
+    d->pPlayer->setMuted(muted);
 }
 
 void DMediaPlayer::setPlaybackRate(qreal rate)
 {
     Q_D(DMediaPlayer);
-    if(!d->m_pPlayer) return;
-    d->m_pPlayer->setPlaybackRate(rate);
+    if (!d->pPlayer) return;
+    d->pPlayer->setPlaybackRate(rate);
 }
 
 void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
@@ -104,10 +102,10 @@ void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
 void DMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
 {
     Q_D(DMediaPlayer);
-    d->m_pPlayList = playlist;
+    d->pPlayList = playlist;
     connect(playlist, &QMediaPlaylist::currentIndexChanged, [=]() {
-        if(!d->m_pPlayer) return;
-        if(d->m_pPlayer->state() == QMediaPlayer::PlayingState) {
+        if (!d->pPlayer) return;
+        if (d->pPlayer->state() == QMediaPlayer::PlayingState) {
             play();
         }
     });
@@ -121,11 +119,11 @@ void DMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &
 void DMediaPlayer::setVideoOutput(QVideoWidget *videoWidget)
 {
     Q_D(DMediaPlayer);
-    d->m_videoWidget = videoWidget;
+    d->videoWidget = videoWidget;
 }
 
 void DMediaPlayer::setPlayer(DPlatformMediaPlayer *player)
 {
     Q_D(DMediaPlayer);
-    d->m_pPlayer = player;
+    d->pPlayer = player;
 }

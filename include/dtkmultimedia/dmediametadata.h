@@ -12,12 +12,12 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <dtkmultimedia.h>
 
-
 class QString;
 DMULTIMEDIA_BEGIN_NAMESPACE
-class Q_MULTIMEDIA_EXPORT DMediaMetaData {
+class Q_MULTIMEDIA_EXPORT DMediaMetaData
+{
     Q_GADGET
-  public:
+public:
     enum Key {
         Title,
         Author,
@@ -89,7 +89,7 @@ class Q_MULTIMEDIA_EXPORT DMediaMetaData {
     Q_INVOKABLE QString stringValue(Key k) const;
     Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
-  protected:
+protected:
     friend bool operator==(const DMediaMetaData &a, const DMediaMetaData &b)
     {
         return a.data == b.data;
@@ -99,7 +99,7 @@ class Q_MULTIMEDIA_EXPORT DMediaMetaData {
         return a.data != b.data;
     }
 
-  protected:
+protected:
     QHash<Key, QVariant> data;
 };
 
@@ -107,4 +107,4 @@ DMULTIMEDIA_END_NAMESPACE
 
 Q_DECLARE_METATYPE(DMULTIMEDIA_NAMESPACE::DMediaMetaData)
 
-#endif //
+#endif   //

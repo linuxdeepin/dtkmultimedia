@@ -7,19 +7,21 @@
 #include <QObject>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
-class DMediaPlayerPrivate : public QObject {
+class DMediaPlayerPrivate : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PUBLIC(DMediaPlayer)
-  public:
-    explicit DMediaPlayerPrivate(DMediaPlayer *parent = nullptr) : QObject(parent), q_ptr(parent)
+public:
+    explicit DMediaPlayerPrivate(DMediaPlayer *parent = nullptr)
+        : QObject(parent), q_ptr(parent)
     {
     }
 
-  private:
+private:
     DMediaPlayer *q_ptr;
-    DPlatformMediaPlayer *m_pPlayer = nullptr;
-    QVideoWidget *m_videoWidget     = nullptr;
-    QMediaPlaylist *m_pPlayList     = nullptr;
+    DPlatformMediaPlayer *pPlayer = nullptr;
+    QVideoWidget *videoWidget = nullptr;
+    QMediaPlaylist *pPlayList = nullptr;
 };
 DMULTIMEDIA_END_NAMESPACE
 #endif

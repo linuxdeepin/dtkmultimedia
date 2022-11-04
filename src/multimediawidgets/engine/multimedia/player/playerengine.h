@@ -5,7 +5,6 @@
 #ifndef DPLAYER_ENINE_H
 #define DPLAYER_ENINE_H
 
-
 #include "dplayerbackend.h"
 #include <DMpvProxy>
 #include <QNetworkConfigurationManager>
@@ -18,7 +17,8 @@ DMULTIMEDIA_BEGIN_NAMESPACE
 class DPlaylistModel;
 struct PlayingMovieInfo;
 
-class PlayerEngine : public QWidget {
+class PlayerEngine : public QWidget
+{
     Q_OBJECT
     Q_PROPERTY(qint64 duration READ duration)
     Q_PROPERTY(qint64 elapsed READ elapsed NOTIFY elapsedChanged)
@@ -26,7 +26,7 @@ class PlayerEngine : public QWidget {
     Q_PROPERTY(bool paused READ paused)
 
     Q_PROPERTY(CoreState state READ state NOTIFY stateChanged)
-  public:
+public:
     enum CoreState {
         Idle,
         Playing,
@@ -110,7 +110,7 @@ class PlayerEngine : public QWidget {
     bool loadSubtitle(const QFileInfo &fi);
     void toggleSubtitle();
     bool isSubVisible();
-    void selectSubtitle(int id); // id into PlayingMovieInfo.subs
+    void selectSubtitle(int id);   // id into PlayingMovieInfo.subs
     int sid();
     void setSubDelay(double secs);
     double subDelay() const;
@@ -119,7 +119,7 @@ class PlayerEngine : public QWidget {
     QString subCodepage();
     void addSubSearchPath(const QString &path);
 
-    void selectTrack(int id); // id into PlayingMovieInfo.audios
+    void selectTrack(int id);   // id into PlayingMovieInfo.audios
     int aid();
 
     void changeSoundMode(DPlayerBackend::SoundMode sm);
@@ -156,7 +156,7 @@ class PlayerEngine : public QWidget {
     void toggleRoundedClip(bool roundClip);
     bool currFileIsAudio();
 
-  signals:
+signals:
     void tracksChanged();
     void elapsedChanged();
     void durationChanged(qint64 duration);
@@ -188,7 +188,7 @@ class PlayerEngine : public QWidget {
     void sigMediaError();
     void finishedAddFiles(QList<QUrl>);
 
-  public slots:
+public slots:
     void play();
     void pauseResume();
     void stop();
@@ -209,26 +209,26 @@ class PlayerEngine : public QWidget {
     void toggleMute();
     void setMute(bool bMute);
 
-  protected slots:
+protected slots:
     void onBackendStateChanged();
     void requestPlay(int id);
     void onSubtitlesDownloaded(const QUrl &url, const QList<QString> &filenames, OnlineSubtitle::FailReason);
     void onPlaylistAsyncAppendFinished(const QList<PlayItemInfo> &);
     void processFrame(QVideoFrame &frame);
 
-  protected:
-    DPlaylistModel *m_playlist{nullptr};
-    CoreState m_state{CoreState::Idle};
-    DPlayerBackend *m_current{nullptr};
+protected:
+    DPlaylistModel *m_playlist { nullptr };
+    CoreState m_state { CoreState::Idle };
+    DPlayerBackend *m_current { nullptr };
     QUrl m_pendingPlayReq;
-    bool m_playingRequest{false};
-    bool m_bMpvFunsLoad{false};
+    bool m_playingRequest { false };
+    bool m_bMpvFunsLoad { false };
     void savePreviousMovieState();
     void paintEvent(QPaintEvent *e) override;
     bool createOPenGLWgt(MpvHandle handle);
     bool showOpenGLWgt(QOpenGLWidget *pVideoWidget);
 
-  private:
+private:
     QNetworkConfigurationManager m_networkConfigMng;
     bool m_bAudio;
     bool m_stopRunningThread;

@@ -9,8 +9,9 @@
 #include "ddemointerface.h"
 #include "dfakeinterface.h"
 
-class ut_DDemoInterface : public testing::Test {
-  public:
+class ut_DDemoInterface : public testing::Test
+{
+public:
     // 在测试套件的第一个测试用例开始前，SetUpTestCase 函数会被调用
     static void SetUpTestCase()
     {
@@ -56,7 +57,7 @@ TEST_F(ut_DDemoInterface, ListUsers)
     UserPathList list;
     EXPECT_EQ(list, m_demoInterface->ListUsers());
 
-    list.push_back({1000, QDBusObjectPath("/org/freedesktop/login1/user/_1000")});
+    list.push_back({ 1000, QDBusObjectPath("/org/freedesktop/login1/user/_1000") });
 
     m_fakeInterface->setListUsers(list);
 

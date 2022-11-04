@@ -11,12 +11,13 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DVideoWidget : public testing::Test {
-  public:
+class ut_DVideoWidget : public testing::Test
+{
+public:
     void SetUp() override
     {
-        m_player       = new DMediaPlayer();
-        m_playlist     = new DMediaPlaylist();
+        m_player = new DMediaPlayer();
+        m_playlist = new DMediaPlaylist();
         m_enginePlayer = new DEnginePlayer(m_player);
         m_player->setPlaylist(m_playlist);
         m_videoWgt = new DVideoWidget(nullptr, m_enginePlayer);
@@ -34,10 +35,10 @@ class ut_DVideoWidget : public testing::Test {
         m_player = nullptr;
     }
 
-  public:
-    DVideoWidget *m_videoWgt      = nullptr;
-    DMediaPlayer *m_player        = nullptr;
-    DMediaPlaylist *m_playlist    = nullptr;
+public:
+    DVideoWidget *m_videoWgt = nullptr;
+    DMediaPlayer *m_player = nullptr;
+    DMediaPlaylist *m_playlist = nullptr;
     DEnginePlayer *m_enginePlayer = nullptr;
 };
 
@@ -51,7 +52,7 @@ TEST_F(ut_DVideoWidget, setPlatformMediaPlayer)
     DEnginePlayer *player = new DEnginePlayer(m_player);
     m_videoWgt->setPlatformMediaPlayer(player);
     EXPECT_NE(nullptr, m_videoWgt->getPlayer());
-    if(player) delete player;
+    if (player) delete player;
 }
 
 TEST_F(ut_DVideoWidget, slotFullScreenChanged)

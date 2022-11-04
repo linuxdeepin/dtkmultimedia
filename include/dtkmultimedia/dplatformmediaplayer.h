@@ -15,41 +15,46 @@ DMULTIMEDIA_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
 class QPlatformAudioOutput;
-class DVideoSink {
+class DVideoSink
+{
 };
 
 class DPlatformMediaPlayerPrivate;
-class Q_MULTIMEDIA_EXPORT DPlatformMediaPlayer : public QObject {
+class Q_MULTIMEDIA_EXPORT DPlatformMediaPlayer : public QObject
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DPlatformMediaPlayer)
 
-  public:
+public:
     virtual ~DPlatformMediaPlayer();
     virtual QMediaPlayer::State state() const;
     virtual QMediaPlayer::MediaStatus mediaStatus() const;
-    virtual qint64 duration() const           = 0;
-    virtual qint64 position() const           = 0;
+    virtual qint64 duration() const = 0;
+    virtual qint64 position() const = 0;
     virtual void setPosition(qint64 position) = 0;
-    virtual float bufferProgress() const      = 0;
+    virtual float bufferProgress() const = 0;
     virtual bool isAudioAvailable() const;
     virtual bool isVideoAvailable() const;
     virtual bool isSeekable() const;
-    virtual QMediaTimeRange availablePlaybackRanges() const     = 0;
-    virtual qreal playbackRate() const                          = 0;
-    virtual void setPlaybackRate(qreal rate)                    = 0;
-    virtual QUrl media() const                                  = 0;
-    virtual const QIODevice *mediaStream() const                = 0;
+    virtual QMediaTimeRange availablePlaybackRanges() const = 0;
+    virtual qreal playbackRate() const = 0;
+    virtual void setPlaybackRate(qreal rate) = 0;
+    virtual QUrl media() const = 0;
+    virtual const QIODevice *mediaStream() const = 0;
     virtual void setMedia(const QUrl &media, QIODevice *stream) = 0;
-    virtual void setVolume(float volume)                        = 0;
-    virtual void setMuted(bool muted)                           = 0;
-    virtual void play()                                         = 0;
-    virtual void pause()                                        = 0;
-    virtual void stop()                                         = 0;
+    virtual void setVolume(float volume) = 0;
+    virtual void setMuted(bool muted) = 0;
+    virtual void play() = 0;
+    virtual void pause() = 0;
+    virtual void stop() = 0;
     virtual bool streamPlaybackSupported() const;
     virtual void setAudioOutput(QPlatformAudioOutput *);
     virtual DMediaMetaData metaData() const;
     virtual void setVideoSink(DVideoSink *) = 0;
-    enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
+    enum TrackType { VideoStream,
+                     AudioStream,
+                     SubtitleStream,
+                     NTrackTypes };
     virtual int trackCount(TrackType);
     virtual DMediaMetaData trackMetaData(TrackType, int);
     virtual int activeTrack(TrackType);
@@ -74,14 +79,13 @@ class Q_MULTIMEDIA_EXPORT DPlatformMediaPlayer : public QObject {
     int loops();
     void setLoops(int loops);
 
-  protected:
+protected:
     explicit DPlatformMediaPlayer(QMediaPlayer *parent = nullptr);
 
-  protected:
+protected:
     QScopedPointer<DPlatformMediaPlayerPrivate> d_ptr;
 };
 
 DMULTIMEDIA_END_NAMESPACE
 
-
-#endif //
+#endif   //

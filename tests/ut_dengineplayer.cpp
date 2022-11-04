@@ -11,15 +11,16 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
-class ut_DEnginePlayer : public testing::Test {
-  public:
+class ut_DEnginePlayer : public testing::Test
+{
+public:
     void SetUp() override
     {
-        m_player   = new DMediaPlayer();
+        m_player = new DMediaPlayer();
         m_playlist = new DMediaPlaylist();
         m_player->setPlaylist(m_playlist);
         m_enginePlayer = new DEnginePlayer(m_player);
-        m_videoWgt     = new DVideoWidget(nullptr, m_enginePlayer);
+        m_videoWgt = new DVideoWidget(nullptr, m_enginePlayer);
         m_player->setVideoOutput(m_videoWgt);
     }
     void TearDown() override
@@ -34,10 +35,10 @@ class ut_DEnginePlayer : public testing::Test {
         m_player = nullptr;
     }
 
-  public:
-    DVideoWidget *m_videoWgt      = nullptr;
-    DMediaPlayer *m_player        = nullptr;
-    DMediaPlaylist *m_playlist    = nullptr;
+public:
+    DVideoWidget *m_videoWgt = nullptr;
+    DMediaPlayer *m_player = nullptr;
+    DMediaPlaylist *m_playlist = nullptr;
     DEnginePlayer *m_enginePlayer = nullptr;
 };
 

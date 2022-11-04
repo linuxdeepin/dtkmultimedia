@@ -9,8 +9,9 @@
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
-class DAudioDevice {
-  public:
+class DAudioDevice
+{
+public:
     QString device()
     {
         return m_device;
@@ -20,19 +21,20 @@ class DAudioDevice {
         m_device = device;
     }
 
-  private:
+private:
     QString m_device;
 };
 class DAudioOutputPrivate;
 
-class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaObject {
+class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaObject
+{
     Q_OBJECT
     Q_PROPERTY(DAudioDevice device READ device WRITE setDevice NOTIFY deviceChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_DECLARE_PRIVATE(DAudioOutput)
 
-  public:
+public:
     DAudioOutput(QObject *parent = nullptr);
     ~DAudioOutput();
     void setDevice(const DAudioDevice &device);
@@ -42,12 +44,12 @@ class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaObject {
     float volume() const;
     bool isMuted() const;
 
-  signals:
+signals:
     void deviceChanged();
     void volumeChanged(float volume);
     void mutedChanged(bool muted);
 
-  protected:
+protected:
     QScopedPointer<DAudioOutputPrivate> d_ptr;
 };
 

@@ -12,23 +12,24 @@
 DMULTIMEDIA_BEGIN_NAMESPACE
 
 class DVideoWidgetPrivate;
-class Q_MULTIMEDIA_EXPORT DVideoWidget : public QVideoWidget {
+class Q_MULTIMEDIA_EXPORT DVideoWidget : public QVideoWidget
+{
     Q_OBJECT
     Q_DECLARE_PRIVATE(DVideoWidget)
 
-  public:
+public:
     DVideoWidget(QWidget *parent = nullptr, DPlatformMediaPlayer *mediaPlayer = nullptr);
     ~DVideoWidget();
     QWidget *getPlayer();
     void setPlatformMediaPlayer(DPlatformMediaPlayer *mediaPlayer = nullptr);
 
-  public Q_SLOTS:
+public Q_SLOTS:
     void slotFullScreenChanged(bool fullScreen);
 
-  protected:
+protected:
     void showEvent(QShowEvent *pEvent) override;
 
-  protected:
+protected:
     QScopedPointer<DVideoWidgetPrivate> d_ptr;
 };
 
