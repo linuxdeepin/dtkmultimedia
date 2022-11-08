@@ -136,7 +136,7 @@ DCompositeManager::~DCompositeManager()
 bool DCompositeManager::hascard()
 {
     Q_D(DCompositeManager);
-    return d->m_bHasCard;
+    return d->bHasCard;
 }
 #endif
 

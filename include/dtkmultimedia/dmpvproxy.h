@@ -59,7 +59,6 @@ public:
     const PlayingMovieInfo &playingMovieInfo() override;
     bool isPlayable() const override;
     void pollingEndOfPlayback();
-    void pollingStartOfPlayback();
     qint64 duration() const override;
     qint64 elapsed() const override;
     QSize videoSize() const override;
