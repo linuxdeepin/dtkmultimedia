@@ -1,0 +1,21 @@
+/*!
+@~chinese
+@file dmediaplaylist.h
+
+@class Dtk::Multimedia::DMediaPlaylist dmediaplaylist.h
+    @brief DMediaPlaylist类提供要播放的媒体内容列表.
+
+@fn void DMediaPlaylist::shuffle()
+    @brief 随机选择列表中一个媒体.
+
+@fn void DMediaPlaylist::next()
+    @brief 下一个媒体.
+
+@fn void DMediaPlaylist::previous()
+    @brief 上一个媒体.
+
+@fn void DMediaPlaylist::setCurrentIndex(int index);
+    @brief 设置当前媒体索引.
+    @param[in] index 索引值.
+
+*/
