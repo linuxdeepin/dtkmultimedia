@@ -12,7 +12,8 @@ Build-Depends:
                 libmpv-dev, libffmpegthumbnailer-dev,libxtst-dev,
                 libavcodec-dev, libavformat-dev,libavutil-dev,
                 libpulse-dev, libdvdnav-dev, libdbusextended-qt5-dev,
-                libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev
+                libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev,
+		libavdevice-dev
 Standards-Version: 4.5.0
 
 Package: libdtkmultimedia
