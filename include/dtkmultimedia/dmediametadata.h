@@ -6,8 +6,6 @@
 #define DMEDIAMETADATA_H
 
 #include <QHash>
-#include <QPair>
-#include <QString>
 #include <QVariant>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <dtkmultimedia.h>

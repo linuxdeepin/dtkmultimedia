@@ -8,8 +8,6 @@
 
 #include <QtCore>
 #include <dtkmultimedia.h>
-#include <string>
-#include <vector>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
