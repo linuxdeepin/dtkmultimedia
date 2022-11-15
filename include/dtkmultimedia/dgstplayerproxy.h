@@ -6,9 +6,7 @@
 #define DGSTPLAYERPROXY_H
 
 #include "dplayerbackend.h"
-#include <QMediaContent>
 #include <QMediaPlayer>
-#include <QVideoFrame>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class VideoSurface;

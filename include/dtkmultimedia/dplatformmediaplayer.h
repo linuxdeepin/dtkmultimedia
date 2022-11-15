@@ -6,7 +6,6 @@
 #define DPLATFFORMMEDIAPLAYER_H
 
 #include "dmediametadata.h"
-#include <QtCore/qpair.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
 #include <dtkmultimedia.h>
