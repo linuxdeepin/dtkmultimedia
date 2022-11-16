@@ -16,6 +16,7 @@ extern "C" {
 #include <libavdevice/avdevice.h>
 #include <libavutil/audio_fifo.h>
 }
+#include <thread>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
@@ -31,13 +32,13 @@ public:
 
 private:
     DAudioEncoderInterface *q_ptr;
-    QString deviceName { "default" };
-    QString inputFormat { "pulse" };
-    QUrl outFilePath { "outAudioFile.aac" };
-    QString codec { "aac" };
-    int sampleRate { 48000 };
-    int channels { 2 };
-    int bitRate { 32000 };
+
+    QLibrary libavutil;
+    QLibrary libavcodec;
+    QLibrary libavformat;
+    QLibrary libavfilter;
+    QLibrary libswresample;
+    QLibrary libavdevice;
 
     decltype(av_find_input_format) *d_av_find_input_format { nullptr };
     decltype(avformat_open_input) *d_avformat_open_input { nullptr };
@@ -90,24 +91,30 @@ private:
 
     decltype(avdevice_register_all) *d_avdevice_register_all { nullptr };
 
-    QLibrary libavutil;
-    QLibrary libavcodec;
-    QLibrary libavformat;
-    QLibrary libavfilter;
-    QLibrary libswscale;
-    QLibrary libswresample;
-    QLibrary libavdevice;
-
     AVFormatContext *audioInFormatCtx { nullptr };
     AVStream *audioInStream { nullptr };
     AVCodecContext *audioInCodecCtx { nullptr };
-
     SwrContext *audioConverter { nullptr };
     AVAudioFifo *audioFifo { nullptr };
-
     AVFormatContext *audioOutFormatCtx { nullptr };
     AVStream *audioOutStream { nullptr };
     AVCodecContext *audioOutCodecCtx { nullptr };
+
+    QString deviceName { "default" };
+    QString inputFormat { "pulse" };
+    QUrl outFilePath { "outAudioFile.aac" };
+    QString codec { "aac" };
+    int sampleRate { 48000 };
+    int channels { 2 };
+    int bitRate { 32000 };
+
+    QMediaRecorder::State state { QMediaRecorder::StoppedState };
+    std::thread *audioRecorderThread { nullptr };
+    std::atomic_bool isRecording { false };
+
+    bool isLoadFunction { false };
+    bool isOpenInputAudioCtx { false };
+    bool isOpenOutputAudioCtx { false };
 };
 
 DMULTIMEDIA_END_NAMESPACE
