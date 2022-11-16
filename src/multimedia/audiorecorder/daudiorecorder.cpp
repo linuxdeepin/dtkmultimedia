@@ -92,6 +92,12 @@ bool DAudioRecorder::setOutputLocation(const QUrl &location)
     return d->encoderInterface->setOutputLocation(location);
 }
 
+QMediaRecorder::State DAudioRecorder::state() const
+{
+    Q_D(const DAudioRecorder);
+    return d->encoderInterface->state();
+}
+
 void DAudioRecorder::record()
 {
     Q_D(DAudioRecorder);

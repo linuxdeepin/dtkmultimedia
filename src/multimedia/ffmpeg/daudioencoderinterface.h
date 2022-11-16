@@ -6,6 +6,7 @@
 #define DAUDIOENCODERINTERFACE_H
 
 #include <dtkmultimedia.h>
+#include <QMediaRecorder>
 #include <QObject>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -40,14 +41,16 @@ public:
     bool setOutputLocation(const QUrl &location);
 
 public:
-    bool loadFunction();
-    bool openInputAudioCtx();
-    bool openOutputAudioCtx();
     void startEncode();
     void stopEncode();
     void pauseEncode();
 
+    QMediaRecorder::State state() const;
+
 private:
+    bool loadFunction();
+    bool openInputAudioCtx();
+    bool openOutputAudioCtx();
     void encodeWork();
 
 public slots:

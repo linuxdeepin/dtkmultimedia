@@ -38,6 +38,8 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
+    State state() const;
+
 public Q_SLOTS:
     void record();
     void pause();
