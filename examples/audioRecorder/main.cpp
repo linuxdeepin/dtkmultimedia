@@ -13,9 +13,13 @@ int main(int argc, char *argv[])
     Q_UNUSED(argv);
 
     DAudioRecorder recoder;
+    recoder.setOutputLocation(QUrl("out.aac"));
+    recoder.setBitRate(80000);
+    recoder.setChannelCount(DAudioRecorder::CHANNELS_ID_MONO);
     recoder.record();
+    qDebug() << recoder.state();
     QThread::sleep(15);
     recoder.stop();
-
+    qDebug() << recoder.state();
     return 0;
 }

@@ -39,7 +39,7 @@ DAudioEncoderInterface::DAudioEncoderInterface(QObject *parent)
 DAudioEncoderInterface::~DAudioEncoderInterface()
 {
     Q_D(DAudioEncoderInterface);
-    if (d->state == QMediaRecorder::RecordingState) {
+    if (d->state != QMediaRecorder::StoppedState) {
         stopEncode();
     }
 
@@ -77,13 +77,13 @@ void DAudioEncoderInterface::setBitRate(int bitrate)
     d->bitRate = bitrate;
 }
 
-int DAudioEncoderInterface::channelCount() const
+DAudioRecorder::AChannelsID DAudioEncoderInterface::channelCount() const
 {
     Q_D(const DAudioEncoderInterface);
     return d->channels;
 }
 
-void DAudioEncoderInterface::setChannelCount(int channels)
+void DAudioEncoderInterface::setChannelCount(DAudioRecorder::AChannelsID channels)
 {
     Q_D(DAudioEncoderInterface);
     d->channels = channels;
@@ -126,16 +126,53 @@ bool DAudioEncoderInterface::setOutputLocation(const QUrl &location)
     return true;
 }
 
-QString DAudioEncoderInterface::codec() const
+DAudioRecorder::ACodecID DAudioEncoderInterface::codec() const
 {
     Q_D(const DAudioEncoderInterface);
-    return d->codec;
+
+    DAudioRecorder::ACodecID aCodec;
+    switch (d->codec) {
+    case AV_CODEC_ID_AAC: {
+        aCodec = DAudioRecorder::CODEC_ID_AAC;
+        break;
+    }
+    case AV_CODEC_ID_MP3: {
+        aCodec = DAudioRecorder::CODEC_ID_MP3;
+        break;
+    }
+    case AV_CODEC_ID_AC3: {
+        aCodec = DAudioRecorder::CODEC_ID_AC3;
+        break;
+    }
+    default: {
+        aCodec = DAudioRecorder::CODEC_ID_NO;
+    }
+    }
+
+    return aCodec;
 }
 
-void DAudioEncoderInterface::setCodec(const QString &codec)
+void DAudioEncoderInterface::setCodec(const DAudioRecorder::ACodecID &codec)
 {
     Q_D(DAudioEncoderInterface);
-    d->codec = codec;
+
+    switch (codec) {
+    case DAudioRecorder::CODEC_ID_AAC: {
+        d->codec = AV_CODEC_ID_AAC;
+        break;
+    }
+    case DAudioRecorder::CODEC_ID_MP3: {
+        d->codec = AV_CODEC_ID_MP3;
+        break;
+    }
+    case DAudioRecorder::CODEC_ID_AC3: {
+        d->codec = AV_CODEC_ID_AC3;
+        break;
+    }
+    default: {
+        d->codec = AV_CODEC_ID_NONE;
+    }
+    }
 }
 
 bool DAudioEncoderInterface::openInputAudioCtx()
@@ -180,7 +217,7 @@ bool DAudioEncoderInterface::openInputAudioCtx()
 
     // audio converter, convert other fmt to requireAudioFmt
     d->audioConverter = d->d_swr_alloc_set_opts(nullptr,
-                                                d->d_av_get_default_channel_layout(d->audioInCodecCtx->channels),
+                                                d->d_av_get_default_channel_layout(d->channels),
                                                 AV_SAMPLE_FMT_FLTP,   // aac encoder only receive this format
                                                 d->audioInCodecCtx->sample_rate,
                                                 d->d_av_get_default_channel_layout(d->audioInCodecCtx->channels),
@@ -190,7 +227,7 @@ bool DAudioEncoderInterface::openInputAudioCtx()
     d->d_swr_init(d->audioConverter);
     //FIFO buffer
     d->audioFifo = d->d_av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP,
-                                            d->audioInCodecCtx->channels,
+                                            d->channels,
                                             d->audioInCodecCtx->sample_rate * 2);
 
     d->isOpenInputAudioCtx = true;
@@ -205,7 +242,8 @@ bool DAudioEncoderInterface::openOutputAudioCtx()
     }
 
     int ret = 0;
-    ret = d->d_avformat_alloc_output_context2(&(d->audioOutFormatCtx), nullptr, "adts", nullptr);
+    ret = d->d_avformat_alloc_output_context2(&(d->audioOutFormatCtx),
+                                              nullptr, nullptr, d->outFilePath.toString().toLatin1());
     if (ret < 0) {
         qCritical("Failed to alloc ouput context");
         return false;
@@ -217,18 +255,18 @@ bool DAudioEncoderInterface::openOutputAudioCtx()
         return false;
     }
 
-    AVCodec *audioOutCodec = d->d_avcodec_find_encoder(AV_CODEC_ID_AAC);
+    AVCodec *audioOutCodec = d->d_avcodec_find_encoder(d->codecAdaptation());
     if (!audioOutCodec) {
         qCritical("Fail to find aac encoder. Please check your DLL.");
         return false;
     }
 
     d->audioOutCodecCtx = d->d_avcodec_alloc_context3(audioOutCodec);
-    d->audioOutCodecCtx->channels = d->audioInStream->codecpar->channels;
-    d->audioOutCodecCtx->channel_layout = d->d_av_get_default_channel_layout(d->audioInStream->codecpar->channels);
+    d->audioOutCodecCtx->channels = d->channels;
+    d->audioOutCodecCtx->channel_layout = d->d_av_get_default_channel_layout(d->channels);
     d->audioOutCodecCtx->sample_rate = d->audioInStream->codecpar->sample_rate;
     d->audioOutCodecCtx->sample_fmt = audioOutCodec->sample_fmts[0];   //for aac , there is AV_SAMPLE_FMT_FLTP =8
-    d->audioOutCodecCtx->bit_rate = 32000;
+    d->audioOutCodecCtx->bit_rate = d->bitRateAdaptation();
     d->audioOutCodecCtx->time_base.num = 1;
     d->audioOutCodecCtx->time_base.den = d->audioOutCodecCtx->sample_rate;
     qInfo() << d->audioOutCodecCtx->channels << d->audioOutCodecCtx->channel_layout << d->audioOutCodecCtx->sample_rate << d->audioOutCodecCtx->sample_fmt << d->audioOutCodecCtx->time_base.num << d->audioOutCodecCtx->time_base.den;
@@ -264,6 +302,12 @@ void DAudioEncoderInterface::startEncode()
     // TODO 开始录音
     Q_D(DAudioEncoderInterface);
     if (d->state == QMediaRecorder::RecordingState) {
+        return;
+    }
+
+    if (d->state == QMediaRecorder::PausedState) {
+        d->isPause.store(false);
+        d->state = QMediaRecorder::RecordingState;
         return;
     }
 
@@ -309,12 +353,16 @@ void DAudioEncoderInterface::stopEncode()
 
 void DAudioEncoderInterface::pauseEncode()
 {
-    // TODO 暂停录音
     Q_D(DAudioEncoderInterface);
-    if (d->state != QMediaRecorder::RecordingState) {
+    if (d->state == QMediaRecorder::PausedState) {
         return;
     }
-    d->state = QMediaRecorder::PausedState;
+
+    if (d->state == QMediaRecorder::RecordingState) {
+        d->isPause.store(true);
+        d->state = QMediaRecorder::PausedState;
+        return;
+    }
 }
 
 QMediaRecorder::State DAudioEncoderInterface::state() const
@@ -346,6 +394,9 @@ void DAudioEncoderInterface::encodeWork()
             qCritical("can not receive frame in decoding");
         }
 
+        if (d->isPause.load()) {
+            continue;
+        }
         // encoding
         uint8_t **cSamples = nullptr;
         ret = d->d_av_samples_alloc_array_and_samples(&cSamples, nullptr, d->audioOutCodecCtx->channels,
@@ -484,4 +535,38 @@ bool DAudioEncoderInterface::loadFunction()
 
     d->isLoadFunction = true;
     return true;
+}
+
+int DAudioEncoderInterfacePrivate::bitRateAdaptation()
+{
+    if (bitRate != 0) {
+        return bitRate;
+    }
+
+    if (codec == AV_CODEC_ID_MP3) {
+        bitRate = 128000;
+    } else if (codec == AV_CODEC_ID_AC3) {
+        bitRate = 190000;
+    } else {
+        bitRate = 48000;
+    }
+
+    return bitRate;
+}
+
+AVCodecID DAudioEncoderInterfacePrivate::codecAdaptation()
+{
+    if (codec != AV_CODEC_ID_NONE) {
+        return codec;
+    }
+
+    QString fileName = outFilePath.toString();
+    if (fileName.endsWith("mp3", Qt::CaseInsensitive)) {
+        codec = AV_CODEC_ID_MP3;
+    } else if (fileName.endsWith("ac3", Qt::CaseInsensitive)) {
+        codec = AV_CODEC_ID_AC3;
+    } else {
+        codec = AV_CODEC_ID_AAC;
+    }
+    return codec;
 }

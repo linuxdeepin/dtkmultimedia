@@ -31,6 +31,11 @@ public:
     }
 
 private:
+    int bitRateAdaptation();
+
+    AVCodecID codecAdaptation();
+
+private:
     DAudioEncoderInterface *q_ptr;
 
     QLibrary libavutil;
@@ -101,16 +106,16 @@ private:
     AVCodecContext *audioOutCodecCtx { nullptr };
 
     QString deviceName { "default" };
-    QString inputFormat { "pulse" };
     QUrl outFilePath { "outAudioFile.aac" };
-    QString codec { "aac" };
     int sampleRate { 48000 };
-    int channels { 2 };
-    int bitRate { 32000 };
+    int bitRate { 0 };
+    DAudioRecorder::AChannelsID channels { DAudioRecorder::CHANNELS_ID_STEREO };
+    AVCodecID codec { AV_CODEC_ID_NONE };
 
     QMediaRecorder::State state { QMediaRecorder::StoppedState };
     std::thread *audioRecorderThread { nullptr };
     std::atomic_bool isRecording { false };
+    std::atomic_bool isPause { false };
 
     bool isLoadFunction { false };
     bool isOpenInputAudioCtx { false };

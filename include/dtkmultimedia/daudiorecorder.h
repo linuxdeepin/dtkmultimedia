@@ -16,18 +16,32 @@ class Q_MULTIMEDIA_EXPORT DAudioRecorder : public QAudioRecorder
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(DAudioRecorder)
+
+public:
+    enum ACodecID {
+        CODEC_ID_NO,
+        CODEC_ID_AAC,
+        CODEC_ID_MP3,
+        CODEC_ID_AC3,
+    };
+
+    enum AChannelsID {
+        CHANNELS_ID_MONO = 1,
+        CHANNELS_ID_STEREO,
+    };
+
 public:
     DAudioRecorder(QObject *parent = nullptr);
     ~DAudioRecorder();
 
-    QString codec() const;
-    void setCodec(const QString &codec);
+    ACodecID codec() const;
+    void setCodec(const ACodecID &codec);
 
     int bitRate() const;
     void setBitRate(int bitrate);
 
-    int channelCount() const;
-    void setChannelCount(int channels);
+    AChannelsID channelCount() const;
+    void setChannelCount(AChannelsID channels);
 
     int sampleRate() const;
     void setSampleRate(int rate);

@@ -28,7 +28,7 @@ public:
 
 TEST_F(ut_DAudioRecorder, setCodec)
 {
-    QString codec = "aac";
+    DAudioRecorder::ACodecID codec = DAudioRecorder::CODEC_ID_AAC;
     m_audioRecorder->setCodec(codec);
     EXPECT_EQ(codec, m_audioRecorder->codec());
 }
@@ -42,7 +42,7 @@ TEST_F(ut_DAudioRecorder, setBitRate)
 
 TEST_F(ut_DAudioRecorder, setChannelCount)
 {
-    int count = 2;
+    DAudioRecorder::AChannelsID count = DAudioRecorder::CHANNELS_ID_MONO;
     m_audioRecorder->setChannelCount(count);
     EXPECT_EQ(count, m_audioRecorder->channelCount());
 }
@@ -52,4 +52,11 @@ TEST_F(ut_DAudioRecorder, setAudioInput)
     QString device = "default";
     m_audioRecorder->setAudioInput(device);
     EXPECT_EQ(device, m_audioRecorder->audioInput());
+}
+
+TEST_F(ut_DAudioRecorder, setSampleRate)
+{
+    int sampleR = 36000;
+    m_audioRecorder->setSampleRate(sampleR);
+    EXPECT_EQ(sampleR, m_audioRecorder->sampleRate());
 }

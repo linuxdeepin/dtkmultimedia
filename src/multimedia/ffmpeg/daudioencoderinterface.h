@@ -7,6 +7,7 @@
 
 #include <dtkmultimedia.h>
 #include <QMediaRecorder>
+#include <DAudioRecorder>
 #include <QObject>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -22,14 +23,14 @@ public:
     ~DAudioEncoderInterface();
 
 public:
-    QString codec() const;
-    void setCodec(const QString &codec);
+    DAudioRecorder::ACodecID codec() const;
+    void setCodec(const DAudioRecorder::ACodecID &codec);
 
     int bitRate() const;
     void setBitRate(int bitrate);
 
-    int channelCount() const;
-    void setChannelCount(int channels);
+    DAudioRecorder::AChannelsID channelCount() const;
+    void setChannelCount(DAudioRecorder::AChannelsID channels);
 
     int sampleRate() const;
     void setSampleRate(int rate);
