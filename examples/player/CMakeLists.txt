@@ -24,14 +24,13 @@ SET(SRC_PATH ${DIR_SRCS})
 file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
 ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_PATH} ${INCLUDE_FILES})
 
-
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/../../include/dtkmultimedia
     ${PROJECT_SOURCE_DIR}/../../include/dtkmultimediawidgets
-    ${PROJECT_SOURCE_DIR})
+    ${PROJECT_SOURCE_DIR}/../../include/dtkocr)
 
-set(TARGET_LIBS Qt5::Widgets Qt5::Network   Qt5::MultimediaWidgets)
+set(TARGET_LIBS Qt5::Widgets Qt5::Network Qt5::MultimediaWidgets)
 
 # 7.add link library
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia dtkmultimediawidgets)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia dtkmultimediawidgets dtkocr)
 

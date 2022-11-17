@@ -57,7 +57,7 @@ pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 
 set(TARGET_LIBS Xtst Qt5::Widgets Qt5::Network Qt5::DBus Qt5::Multimedia Qt5::X11Extras
     Qt5::MultimediaWidgets PkgConfig::Dtk PkgConfig::DBusextended PkgConfig::Gst GL
-    Qt5::Concurrent dtkmultimedia)
+    Qt5::Concurrent dtkmultimedia dtkocr)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
