@@ -20,13 +20,13 @@ DAudioRecorder::~DAudioRecorder()
         delete d->encoderInterface;
 }
 
-QString DAudioRecorder::codec() const
+DAudioRecorder::ACodecID DAudioRecorder::codec() const
 {
     Q_D(const DAudioRecorder);
     return d->encoderInterface->codec();
 }
 
-void DAudioRecorder::setCodec(const QString &codec)
+void DAudioRecorder::setCodec(const ACodecID &codec)
 {
     Q_D(DAudioRecorder);
     d->encoderInterface->setCodec(codec);
@@ -44,13 +44,13 @@ void DAudioRecorder::setBitRate(int bitrate)
     d->encoderInterface->setBitRate(bitrate);
 }
 
-int DAudioRecorder::channelCount() const
+DAudioRecorder::AChannelsID DAudioRecorder::channelCount() const
 {
     Q_D(const DAudioRecorder);
     return d->encoderInterface->channelCount();
 }
 
-void DAudioRecorder::setChannelCount(int channels)
+void DAudioRecorder::setChannelCount(AChannelsID channels)
 {
     Q_D(DAudioRecorder);
     d->encoderInterface->setChannelCount(channels);
