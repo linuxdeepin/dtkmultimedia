@@ -219,7 +219,7 @@ bool DAudioEncoderInterface::openInputAudioCtx()
     d->audioConverter = d->d_swr_alloc_set_opts(nullptr,
                                                 d->d_av_get_default_channel_layout(d->channels),
                                                 AV_SAMPLE_FMT_FLTP,   // aac encoder only receive this format
-                                                d->audioInCodecCtx->sample_rate,
+                                                d->sampleRate,
                                                 d->d_av_get_default_channel_layout(d->audioInCodecCtx->channels),
                                                 (AVSampleFormat)d->audioInStream->codecpar->format,
                                                 d->audioInStream->codecpar->sample_rate,
@@ -264,7 +264,7 @@ bool DAudioEncoderInterface::openOutputAudioCtx()
     d->audioOutCodecCtx = d->d_avcodec_alloc_context3(audioOutCodec);
     d->audioOutCodecCtx->channels = d->channels;
     d->audioOutCodecCtx->channel_layout = d->d_av_get_default_channel_layout(d->channels);
-    d->audioOutCodecCtx->sample_rate = d->audioInStream->codecpar->sample_rate;
+    d->audioOutCodecCtx->sample_rate = d->sampleRate;
     d->audioOutCodecCtx->sample_fmt = audioOutCodec->sample_fmts[0];   //for aac , there is AV_SAMPLE_FMT_FLTP =8
     d->audioOutCodecCtx->bit_rate = d->bitRateAdaptation();
     d->audioOutCodecCtx->time_base.num = 1;
@@ -404,15 +404,18 @@ void DAudioEncoderInterface::encodeWork()
         if (ret < 0) {
             qCritical("Fail to alloc samples by av_samples_alloc_array_and_samples.");
         }
+
+        int outCout = inputFrame->nb_samples * d->sampleRate / d->audioInStream->codecpar->sample_rate;
+
         ret = d->d_swr_convert(d->audioConverter, cSamples, inputFrame->nb_samples,
                                (const uint8_t **)inputFrame->extended_data, inputFrame->nb_samples);
         if (ret < 0) {
             qCritical("Fail to swr_convert.");
         }
-        if (d->d_av_audio_fifo_space(d->audioFifo) < inputFrame->nb_samples) {
+        if (d->d_av_audio_fifo_space(d->audioFifo) < outCout) {
             qCritical("audio buffer is too small.");
         }
-        ret = d->d_av_audio_fifo_write(d->audioFifo, (void **)cSamples, inputFrame->nb_samples);
+        ret = d->d_av_audio_fifo_write(d->audioFifo, (void **)cSamples, outCout);
         if (ret < 0) {
             qCritical("Fail to write fifo");
         }
