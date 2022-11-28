@@ -1,0 +1,295 @@
+// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+//
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
+#include "dmediarecorder_p.h"
+#include <QTimer>
+#include "dcamera.h"
+
+DMULTIMEDIA_USE_NAMESPACE
+
+DMediaRecorder::DMediaRecorder(QMediaObject *parent)
+    : QMediaRecorder(parent), d_ptr(new DMediaRecorderPrivate(this))
+{
+    Q_D(DMediaRecorder);
+    d->camera = qobject_cast<DCamera *>(parent);
+    //TODO
+}
+
+DMediaRecorder::~DMediaRecorder()
+{
+}
+
+bool DMediaRecorder::isAvailable() const
+{
+    Q_D(const DMediaRecorder);
+    return d->bAvailable;
+}
+
+QUrl DMediaRecorder::outputLocation() const
+{
+    Q_D(const DMediaRecorder);
+    return d->location;
+}
+
+void DMediaRecorder::setOutputLocation(const QUrl &location)
+{
+    Q_D(DMediaRecorder);
+    if (location.toLocalFile() != d->location.toLocalFile()) {
+        d->location = location;
+        emit actualLocationChanged(d->location);
+    }
+}
+
+QUrl DMediaRecorder::actualLocation() const
+{
+    Q_D(const DMediaRecorder);
+    return d->location;
+}
+
+QMediaRecorder::State DMediaRecorder::recorderState() const
+{
+    Q_D(const DMediaRecorder);
+    return d->state;
+}
+
+QMediaRecorder::Error DMediaRecorder::error() const
+{
+    return QMediaRecorder::error();
+}
+
+QString DMediaRecorder::errorString() const
+{
+    return QMediaRecorder::errorString();
+}
+
+qint64 DMediaRecorder::duration() const
+{
+    Q_D(const DMediaRecorder);
+    if (d->camera->isFfmpegEnv()) {
+        if (d->state == QMediaRecorder::RecordingState) {
+            return d->nDuration;
+        } else {
+            return 0;
+        }
+    } else {
+        return QMediaRecorder::duration();
+    }
+}
+
+DMediaFormat DMediaRecorder::mediaFormat() const
+{
+    Q_D(const DMediaRecorder);
+    return d->mediaFormat;
+}
+
+void DMediaRecorder::setMediaFormat(const DMediaFormat &format)
+{
+    Q_D(DMediaRecorder);
+    if (d->mediaFormat != format) {
+        d->mediaFormat = format;
+        emit mediaFormatChanged();
+    }
+}
+
+DMediaRecorder::EncodingMode DMediaRecorder::encodingMode() const
+{
+    Q_D(const DMediaRecorder);
+    return d->enMode;
+}
+
+void DMediaRecorder::setEncodingMode(DMediaRecorder::EncodingMode mode)
+{
+    Q_D(DMediaRecorder);
+    if (d->enMode != mode) {
+        d->enMode = mode;
+        emit encodingModeChanged();
+    }
+}
+
+DMediaRecorder::Quality DMediaRecorder::quality() const
+{
+    Q_D(const DMediaRecorder);
+    return d->quality;
+}
+
+void DMediaRecorder::setQuality(DMediaRecorder::Quality quality)
+{
+    Q_D(DMediaRecorder);
+    if (d->quality != quality) {
+        d->quality = quality;
+        emit qualityChanged();
+    }
+}
+
+QSize DMediaRecorder::videoResolution() const
+{
+    Q_D(const DMediaRecorder);
+    return d->vResolution;
+}
+
+void DMediaRecorder::setVideoResolution(const QSize &size)
+{
+    Q_D(DMediaRecorder);
+    if (d->vResolution != size) {
+        d->vResolution = size;
+        emit videoResolutionChanged();
+    }
+}
+
+qreal DMediaRecorder::videoFrameRate() const
+{
+    Q_D(const DMediaRecorder);
+    return d->vFrameRate;
+}
+
+void DMediaRecorder::setVideoFrameRate(qreal frameRate)
+{
+    Q_D(DMediaRecorder);
+    if (d->vFrameRate != frameRate) {
+        d->vFrameRate = frameRate;
+        emit videoFrameRateChanged();
+    }
+}
+
+int DMediaRecorder::videoBitRate() const
+{
+    Q_D(const DMediaRecorder);
+    return d->vBitRate;
+}
+
+void DMediaRecorder::setVideoBitRate(int bitRate)
+{
+    Q_D(DMediaRecorder);
+    if (d->vBitRate != bitRate) {
+        d->vBitRate = bitRate;
+        emit videoBitRateChanged();
+    }
+}
+
+int DMediaRecorder::audioBitRate() const
+{
+    Q_D(const DMediaRecorder);
+    return d->aBitRate;
+}
+
+void DMediaRecorder::setAudioBitRate(int bitRate)
+{
+    Q_D(DMediaRecorder);
+    if (d->aBitRate != bitRate) {
+        d->aBitRate = bitRate;
+        emit audioBitRateChanged();
+    }
+}
+
+int DMediaRecorder::audioChannelCount() const
+{
+    Q_D(const DMediaRecorder);
+    return d->aChannelCount;
+}
+
+void DMediaRecorder::setAudioChannelCount(int channels)
+{
+    Q_D(DMediaRecorder);
+    if (d->aChannelCount != channels) {
+        d->aChannelCount = channels;
+        emit audioChannelCountChanged();
+    }
+}
+
+int DMediaRecorder::audioSampleRate() const
+{
+    Q_D(const DMediaRecorder);
+    return d->aSampleRate;
+}
+
+void DMediaRecorder::setAudioSampleRate(int sampleRate)
+{
+    Q_D(DMediaRecorder);
+    if (d->aSampleRate != sampleRate) {
+        d->aSampleRate = sampleRate;
+        emit audioSampleRateChanged();
+    }
+}
+
+DMediaMetaData DMediaRecorder::metaData() const
+{
+    Q_D(const DMediaRecorder);
+    return d->metaData;
+}
+
+void DMediaRecorder::setMetaData(const DMediaMetaData &metaData)
+{
+    Q_D(DMediaRecorder);
+    if (d->metaData != metaData) {
+        d->metaData = metaData;
+        emit metaDataChanged();
+    }
+}
+
+void DMediaRecorder::setMetaData(const QString &key, const QVariant &value)
+{
+    QMediaRecorder::setMetaData(key, value);
+}
+
+void DMediaRecorder::addMetaData(const DMediaMetaData &metaData)
+{
+    Q_D(DMediaRecorder);
+    for (DMediaMetaData::Key key : metaData.keys()) {
+        d->metaData[key] = metaData.value(key);
+    }
+    if (!metaData.isEmpty()) {
+        emit metaDataChanged();
+    }
+}
+
+DMediaCaptureSession *DMediaRecorder::captureSession() const
+{
+    Q_D(const DMediaRecorder);
+    return d->mediaCapSession;
+}
+
+QMediaRecorder *DMediaRecorder::platformRecoder() const
+{
+    //todo
+    return nullptr;
+}
+
+void DMediaRecorder::record()
+{
+    Q_D(DMediaRecorder);
+    if (d->camera->isFfmpegEnv()) {
+        if (d->state == QMediaRecorder::RecordingState) return;
+        d->camera->takeVideo(d->location.toLocalFile());
+        d->state = QMediaRecorder::RecordingState;
+        emit stateChanged(d->state);
+        d->pTimer->start();
+    } else {
+        QMediaRecorder::record();
+    }
+}
+
+void DMediaRecorder::pause()
+{
+    Q_D(DMediaRecorder);
+    if (d->camera->isFfmpegEnv()) {
+
+    } else {
+        QMediaRecorder::pause();
+    }
+}
+
+void DMediaRecorder::stop()
+{
+    Q_D(DMediaRecorder);
+    if (d->camera->isFfmpegEnv()) {
+        if (d->state != QMediaRecorder::RecordingState) return;
+        d->camera->takeVideo(d->location.toLocalFile());
+        d->state = QMediaRecorder::StoppedState;
+        emit stateChanged(d->state);
+        d->nDuration = 0;
+        d->pTimer->stop();
+    } else {
+        QMediaRecorder::stop();
+    }
+}
