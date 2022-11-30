@@ -57,8 +57,13 @@ public:
     bool setOutputLocation(const QUrl &location);
 
     void setStreamAcceptFunc(VideoStreamCallback function, void *obj);
-    State state() const;
 
+    QPoint topLeft() const;
+    void setTopLeft(const int x, const int y);
+
+    State state() const;
+Q_SIGNALS:
+    void screenStreamData(QImage);
 public Q_SLOTS:
     void record();
     void stop();

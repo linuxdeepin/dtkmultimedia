@@ -13,9 +13,10 @@ DMULTIMEDIA_USE_NAMESPACE
 
 class VideoStreamFfmpeg : public VideoStreamInterface
 {
+    Q_OBJECT
 public:
     VideoStreamFfmpeg(QObject *parent = nullptr);
-    ~VideoStreamFfmpeg();
+    ~VideoStreamFfmpeg() override;
 
 public:
     void record() override;
@@ -57,10 +58,10 @@ private:
     decltype(avcodec_encode_video2) *d_avcodec_encode_video2 { nullptr };
     decltype(av_init_packet) *d_av_init_packet { nullptr };
     decltype(av_packet_unref) *d_av_packet_unref { nullptr };
+    decltype(avpicture_get_size) *d_avpicture_get_size { nullptr };
 
     decltype(av_dict_set) *d_av_dict_set { nullptr };
     decltype(av_frame_alloc) *d_av_frame_alloc { nullptr };
-    decltype(av_image_get_buffer_size) *d_av_image_get_buffer_size { nullptr };
     decltype(av_malloc) *d_av_malloc { nullptr };
     decltype(av_image_fill_arrays) *d_av_image_fill_arrays { nullptr };
     decltype(av_opt_set) *d_av_opt_set { nullptr };

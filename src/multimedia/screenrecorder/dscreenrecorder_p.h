@@ -7,7 +7,6 @@
 
 #include "dscreenrecorder.h"
 #include "videostreaminterface.h"
-#include <iostream>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DScreenRecorderPrivate : public QObject
