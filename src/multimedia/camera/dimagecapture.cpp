@@ -4,6 +4,7 @@
 
 #include "dimagecapture_p.h"
 #include "dcamera.h"
+#include "datamanager.h"
 
 DMULTIMEDIA_USE_NAMESPACE
 
@@ -26,13 +27,17 @@ DImageCapture::~DImageCapture()
 
 bool DImageCapture::isAvailable() const
 {
+    Q_D(const DImageCapture);
+    if (d->camera->isFfmpegEnv()) {
+        return DataManager::instance()->getdevStatus() == CAM_CANUSE;
+    }
     return QCameraImageCapture::isAvailable();
 }
 
 DMediaCaptureSession *DImageCapture::captureSession() const
 {
     Q_D(const DImageCapture);
-    return d->mediaCapSession;
+    return d->camera->captureSession();
 }
 
 QCameraImageCapture::Error DImageCapture::error() const
@@ -175,7 +180,11 @@ void DImageCapture::addMetaData(const DMediaMetaData &metaData)
 int DImageCapture::captureToFile(const QString &location)
 {
     Q_D(DImageCapture);
-    d->camera->takeOne(location);
+    if (d->camera->isFfmpegEnv()) {
+        d->camera->takeOne(location);
+        return 0;
+    }
+    return -1;
 }
 
 int DImageCapture::capture(const QString &location)
@@ -183,7 +192,8 @@ int DImageCapture::capture(const QString &location)
     Q_D(DImageCapture);
     if (d->camera->isFfmpegEnv()) {
         d->camera->takeOne(location);
+        return 0;
     } else {
-        QCameraImageCapture::capture(location);
+        return QCameraImageCapture::capture(location);
     }
 }

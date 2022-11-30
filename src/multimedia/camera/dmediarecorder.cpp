@@ -5,6 +5,9 @@
 #include "dmediarecorder_p.h"
 #include <QTimer>
 #include "dcamera.h"
+extern "C" {
+#include "camview.h"
+}
 
 DMULTIMEDIA_USE_NAMESPACE
 
@@ -13,7 +16,19 @@ DMediaRecorder::DMediaRecorder(QMediaObject *parent)
 {
     Q_D(DMediaRecorder);
     d->camera = qobject_cast<DCamera *>(parent);
-    //TODO
+    if (d->camera->isFfmpegEnv()) {
+        d->pTimer = new QTimer;
+        connect(d->pTimer, &QTimer::timeout, [=] {
+            if (d->state == QMediaRecorder::RecordingState) {
+                int duration = round(get_video_time_capture() * 1000);
+                if (d->nDuration != duration) {
+                    d->nDuration = duration;
+                    emit durationChanged(d->nDuration);
+                }
+            }
+        });
+        d->pTimer->start(1000);
+    }
 }
 
 DMediaRecorder::~DMediaRecorder()
@@ -246,7 +261,7 @@ void DMediaRecorder::addMetaData(const DMediaMetaData &metaData)
 DMediaCaptureSession *DMediaRecorder::captureSession() const
 {
     Q_D(const DMediaRecorder);
-    return d->mediaCapSession;
+    return d->camera->captureSession();
 }
 
 QMediaRecorder *DMediaRecorder::platformRecoder() const

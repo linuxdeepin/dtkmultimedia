@@ -7,6 +7,17 @@
 #include <QDir>
 #include <QLibraryInfo>
 #include <QProcessEnvironment>
+#include <QCameraExposure>
+#include <QStandardPaths>
+#include "datamanager.h"
+#include "majorimageprocessingthread.h"
+#include "dmediacapturesession.h"
+extern "C" {
+#include "LPF_V4L2.h"
+#include "v4l2_core.h"
+#include "camview.h"
+#include "load_libs.h"
+}
 
 DMULTIMEDIA_USE_NAMESPACE
 
@@ -39,11 +50,46 @@ DCamera::~DCamera()
 void DCameraPrivate::initCamera()
 {
     Q_Q(DCamera);
-    //TODO
+    bool bffmpegEnv = CheckFFmpegEnv();
+    DataManager::instance()->setEncodeEnv(bffmpegEnv ? FFmpeg_Env : GStreamer_Env);
+    if (bffmpegEnv) {
+        cameraUnInit();
+        isWayland = CheckWayland();
+        initDynamicLibPath();
+        gviewencoder_init();
+        v4l2core_init();
+
+        imgPrcThread = new MajorImageProcessingThread;
+        imgPrcThread->setParent(this);
+        imgPrcThread->setObjectName("MajorThread");
+        connect(imgPrcThread, &MajorImageProcessingThread::sigYUVFrame, q, &DCamera::signalbuffer);
+    }
+    captureSession = new DMediaCaptureSession(q);
 }
 void DCameraPrivate::initDynamicLibPath()
 {
-    //TODO
+    LoadLibNames tmp;
+    QByteArray avcodec = libPath("libavcodec.so").toLatin1();
+    tmp.chAvcodec = avcodec.data();
+    QByteArray avformat = libPath("libavformat.so").toLatin1();
+    tmp.chAvformat = avformat.data();
+    QByteArray avutil = libPath("libavutil.so").toLatin1();
+    tmp.chAvutil = avutil.data();
+    QByteArray udev = libPath("libudev.so").toLatin1();
+    tmp.chUdev = udev.data();
+    QByteArray usb = libPath("libusb-1.0.so").toLatin1();
+    tmp.chUsb = usb.data();
+    QByteArray portaudio = libPath("libportaudio.so").toLatin1();
+    tmp.chPortaudio = portaudio.data();
+    QByteArray v4l2 = libPath("libv4l2.so").toLatin1();
+    tmp.chV4l2 = v4l2.data();
+    QByteArray ffmpegthumbnailer = libPath("libffmpegthumbnailer.so").toLatin1();
+    tmp.chFfmpegthumbnailer = ffmpegthumbnailer.data();
+    QByteArray swscale = libPath("libswscale.so").toLatin1();
+    tmp.chSwscale = swscale.data();
+    QByteArray swresample = libPath("libswresample.so").toLatin1();
+    tmp.chSwresample = swresample.data();
+    setLibNames(tmp);
 }
 
 QString DCameraPrivate::libPath(const QString &strlib)
@@ -97,26 +143,71 @@ int DCameraPrivate::dcamInit()
 
 int DCameraPrivate::dcamInit(const QString &sDevName)
 {
-    //TODO
-    return 0;
+    int nRet = camInit(sDevName.toLatin1().data());
+
+    if (nRet == E_OK) {
+        if (imgPrcThread) {
+            imgPrcThread->init();
+            imgPrcThread->start();
+        }
+        DataManager::instance()->setdevStatus(CAM_CANUSE);
+    } else if (nRet == E_FORMAT_ERR) {
+        v4l2_dev_t *vd = get_v4l2_device_handler();
+
+        if (vd != nullptr)
+            close_v4l2_device_handler();
+
+        qWarning() << "camInit failed";
+        DataManager::instance()->setdevStatus(CAM_CANNOT_USE);
+    } else {
+        v4l2_dev_t *vd = get_v4l2_device_handler();
+
+        if (vd != nullptr)
+            close_v4l2_device_handler();
+
+        DataManager::instance()->setdevStatus(NOCAM);
+    }
+    return nRet;
 }
 
 int DCameraPrivate::cameraUnInit()
 {
-    //TODO
-    return 0;
+    if (imgPrcThread) {
+        imgPrcThread->stop();
+        imgPrcThread->wait();
+    }
+    camUnInit();
 }
 
 void DCamera::takeOne(const QString &location)
 {
     Q_D(DCamera);
-    //TODO
+    if (location.isEmpty() || location.isNull())
+        d->imgPrcThread->m_strPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QDir::separator() + "uosimage.jpg";
+    d->imgPrcThread->m_bTake = true;
 }
 
 void DCamera::takeVideo(const QString &location)
 {
     Q_D(DCamera);
-    //TODO
+    if (!d->bVideoStatus) {
+        if (location.isEmpty() || location.isNull()) {
+            set_video_path(QStandardPaths::writableLocation(QStandardPaths::MoviesLocation).toLatin1().data());
+            set_video_name(DataManager::instance()->getstrFileName().toStdString().c_str());
+        } else {
+            set_video_path(QFileInfo(location).path().toLatin1().data());
+            set_video_name(QFileInfo(location).fileName().toLatin1().data());
+        }
+        start_encoder_thread();
+        d->bVideoStatus = true;
+    } else {
+        if (video_capture_get_save_video() == 1) {
+            set_video_time_capture(0);
+            stop_encoder_thread();
+        }
+        reset_video_timer();
+        d->bVideoStatus = false;
+    }
 }
 
 void DCamera::start()
@@ -146,8 +237,7 @@ void DCamera::stop()
 
 bool DCamera::isFfmpegEnv()
 {
-    //TODO
-    return false;
+    return DataManager::instance()->encodeEnv() == FFmpeg_Env;
 }
 
 bool DCamera::isWaylandEnv()
@@ -183,14 +273,18 @@ DMediaCaptureSession *DCamera::captureSession() const
 
 int DCamera::checkCamera()
 {
-    //TODO
-    return 0;
+    return (int)DataManager::instance()->getdevStatus();
 }
 
 QStringList DCamera::devList()
 {
     QStringList sList;
-    //TODO
+    v4l2_device_list_t *devlist = get_device_list();
+    if (!devlist) return sList;
+    for (int i = 0; i < devlist->num_devices; i++) {
+        char *devName = devlist->list_devices->device;
+        sList << devName;
+    }
     return sList;
 }
 
@@ -209,40 +303,61 @@ void DCamera::closeDev()
 QByteArray DCamera::yuvbuffer(uint &width, uint &height)
 {
     Q_D(const DCamera);
-    width = 0;
-    height = 0;
-    //TODO
-    return QByteArray();
+    QByteArray data;
+    if (d->imgPrcThread->isRunning()) {
+        width = d->imgPrcThread->getResolution().width();
+        height = d->imgPrcThread->getResolution().height();
+        data.append((char *)d->imgPrcThread->getbuffer(), width * height * 1.5);
+    }
+    return data;
 }
 
 void DCamera::resolutionSettings(const QSize &size)
 {
-    //TODO
+    v4l2core_prepare_new_resolution(get_v4l2_device_handler(), size.width(), size.height());
+    request_format_update(1);
 }
 
 QList<QSize> DCamera::resolutions()
 {
     Q_D(const DCamera);
     QList<QSize> lSize;
-    //TODO
-    return lSize;
+    if (d->imgPrcThread->isRunning()) {
+        v4l2_dev_t *my_vd = get_v4l2_device_handler();
+        config_t *my_config = config_get();
+        struct v4l2_frmsizeenum fsize;
+        memset(&fsize, 0, sizeof(fsize));
+        fsize.index = 0;
+        fsize.pixel_format = my_config->format;
+        while (!xioctl(my_vd->fd, VIDIOC_ENUM_FRAMESIZES, &fsize)) {
+            qInfo() << (QSize(fsize.discrete.width, fsize.discrete.height));
+            lSize.prepend(QSize(fsize.discrete.width, fsize.discrete.height));
+            fsize.index++;
+        }
+        return lSize;
+    }
 }
 
 void DCamera::setCameraCollectionFormat(const uint32_t &pixelformat)
 {
-    //TODO
+    config_t *my_config = config_get();
+    my_config->format = pixelformat;
 }
 
 void DCamera::setFilter(const QString &filter)
 {
     Q_D(const DCamera);
-    //TODO
+    if (d->imgPrcThread->isRunning()) {
+        d->imgPrcThread->setFilter(filter);
+    }
 }
 
 void DCamera::setExposure(const int &exposure)
 {
     Q_D(const DCamera);
-    //TODO
+    if (d->imgPrcThread->isRunning()) {
+        d->imgPrcThread->setExposure(exposure);
+    }
     QCamera::exposure()->setExposureCompensation(exposure);
 }
 
@@ -250,6 +365,17 @@ QList<uint32_t> DCamera::supportedViewfinderPixelFormats()
 {
     Q_D(const DCamera);
     QList<uint32_t> lFormats;
-    //TODO
+    if (d->imgPrcThread->isRunning()) {
+        struct v4l2_fmtdesc ffmt;
+        memset(&ffmt, 0, sizeof(ffmt));
+        ffmt.index = 0;
+        ffmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        v4l2_dev_t *my_vd = get_v4l2_device_handler();
+        while (!xioctl(my_vd->fd, VIDIOC_ENUM_FMT, &ffmt)) {
+            qInfo() << (char *)ffmt.description;
+            lFormats.append(ffmt.pixelformat);
+            ffmt.index++;
+        }
+    }
     return lFormats;
 }
