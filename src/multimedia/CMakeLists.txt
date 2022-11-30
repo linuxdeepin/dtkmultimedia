@@ -3,11 +3,13 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 set(BIN_NAME ${CMAKE_PROJECT_NAME})
+project(${BIN_NAME} CXX C)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
 file(GLOB_RECURSE INCLUDE_FILES "./*.h" "${INSTALL_INCLUDE_FILES}")
 file(GLOB_RECURSE SRCS
     "./*.h"
+    "./*.c"
     "./*.cpp"
 )
 include_directories(../../include/${BIN_NAME})
@@ -23,6 +25,12 @@ include_directories(gstreamer)
 include_directories(common/algorithm)
 include_directories(common/interface)
 include_directories(common/utils)
+include_directories(camera/libcam/libcam_v4l2core)
+include_directories(camera/libcam/libcam_render)
+include_directories(camera/libcam/libcam_encoder)
+include_directories(camera/libcam/libcam_audio)
+include_directories(camera/libcam/libcam)
+include_directories(camera/libcam)
 
 set_target_properties(${BIN_NAME} PROPERTIES
     VERSION ${CMAKE_PROJECT_VERSION}
@@ -37,7 +45,7 @@ find_package(Qt5Multimedia)
 
 set(TARGET_LIBS Qt5::X11Extras Qt5::Multimedia Qt5::Gui)
 
-list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
+list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0 /usr/include/libusb-1.0)
 
 target_include_directories(${BIN_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Core

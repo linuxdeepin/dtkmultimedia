@@ -43,6 +43,14 @@ Files: src/*
 Copyright: UnionTech Software Technology Co., Ltd.
 License: LGPL-3.0-or-later
 
+# libcam
+Files: src/multimedia/camera/libcam/*
+Copyright: Copyright (C) 2005 Mike Matsnev
+           Copyright (C) Paulo Assis <pj.assis@gmail.com>
+           Flemming Frandsen <dren.dk@gmail.com>
+           Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+License: GPL-2.0-or-later
+
 # examples
 Files: examples/*
 Copyright: UnionTech Software Technology Co., Ltd.
