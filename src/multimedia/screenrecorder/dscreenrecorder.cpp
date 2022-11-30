@@ -4,6 +4,7 @@
 
 #include "dscreenrecorder_p.h"
 #include "videostreamffmpeg.h"
+#include <QImage>
 
 DMULTIMEDIA_USE_NAMESPACE
 
@@ -11,7 +12,8 @@ DScreenRecorder::DScreenRecorder(QObject *parent)
     : QMediaRecorder(nullptr, parent), d_ptr(new DScreenRecorderPrivate(this))
 {
     Q_D(DScreenRecorder);
-    d->videoInterface = new VideoStreamFfmpeg;
+    d->videoInterface = new VideoStreamFfmpeg(this);
+    connect(d->videoInterface, &VideoStreamInterface::screenStreamData, this, &DScreenRecorder::screenStreamData);
 }
 
 DScreenRecorder::~DScreenRecorder()
@@ -99,17 +101,28 @@ void DScreenRecorder::setStreamAcceptFunc(VideoStreamCallback function, void *ob
     return d->videoInterface->setStreamAcceptFunc(function, obj);
 }
 
+QPoint DScreenRecorder::topLeft() const
+{
+    Q_D(const DScreenRecorder);
+    return d->videoInterface->topLeft();
+}
+
+void DScreenRecorder::setTopLeft(const int x, const int y)
+{
+    Q_D(DScreenRecorder);
+    d->videoInterface->setTopLeft(x, y);
+}
+
 QMediaRecorder::State DScreenRecorder::state() const
 {
     Q_D(const DScreenRecorder);
-    return QMediaRecorder::State::StoppedState;
+    return d->videoInterface->state();
 }
 
 void DScreenRecorder::record()
 {
     Q_D(DScreenRecorder);
     d->videoInterface->record();
-    //QAudioRecorder::record();
 }
 
 void DScreenRecorder::stop()

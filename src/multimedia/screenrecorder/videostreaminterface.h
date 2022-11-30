@@ -6,10 +6,7 @@
 #define VIDEOSTREAMINTERFACE_H
 
 #include <DScreenRecorder>
-
-#include <QObject>
 #include <QPoint>
-
 #include <thread>
 
 extern "C" {
@@ -32,7 +29,15 @@ class VideoStreamInterface : public QObject
 {
     Q_OBJECT
 public:
+    enum StreamReceiveStyle {
+        SignalReceive,
+        CallbackReceive,
+        Encoding,
+    };
+
+public:
     explicit VideoStreamInterface(QObject *parent = nullptr);
+    ~VideoStreamInterface();
 
     DScreenRecorder::VCodecID codec() const;
     void setCodec(const DScreenRecorder::VCodecID &codec);
@@ -57,19 +62,28 @@ public:
 
     void setStreamAcceptFunc(VideoStreamCallback function, void *obj);
 
+    QMediaRecorder::State state() const;
+
+Q_SIGNALS:
+    void screenStreamData(QImage);
+
 public:
     virtual void record() = 0;
     virtual void stop() = 0;
 
 protected:
-    int bitrate = { 1800000 };
-    int framerate { 24 };
-    QPoint topLeftP { 0, 0 };
-    QSize resolutionSize { 1280, 1024 };
-    QUrl outFilePath { "outVideoFile.mp4" };
-    AVCodecID codecId { AV_CODEC_ID_MPEG4 };
-    AVPixelFormat pixFormat { AV_PIX_FMT_ARGB };
+    void propertyRevise();
 
+protected:
+    int bitrate = { 1800000 };
+    int framerate { 12 };
+    QPoint topLeftP { 0, 0 };
+    QSize resolutionSize { 800, 600 };
+    QUrl outFilePath { "" };
+    AVCodecID codecId { AV_CODEC_ID_NONE };
+    AVPixelFormat pixFormat { AV_PIX_FMT_RGBA };
+
+    QMediaRecorder::State stateValue { QMediaRecorder::StoppedState };
     std::thread *videoRecorderThread { nullptr };
     std::atomic_bool isRecording { false };
     std::atomic_bool isPause { false };
@@ -80,6 +94,8 @@ protected:
 
     VideoStreamCallback sendDataFunc = { nullptr };
     void *sendDataObj = { nullptr };
+
+    StreamReceiveStyle recStyle = { SignalReceive };
 };
 
 DMULTIMEDIA_END_NAMESPACE

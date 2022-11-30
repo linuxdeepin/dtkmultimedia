@@ -3,10 +3,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "videostreaminterface.h"
+#include <QImage>
 
 DMULTIMEDIA_USE_NAMESPACE
 VideoStreamInterface::VideoStreamInterface(QObject *parent)
     : QObject(parent)
+{
+}
+
+VideoStreamInterface::~VideoStreamInterface()
 {
 }
 
@@ -17,7 +22,20 @@ DScreenRecorder::VCodecID VideoStreamInterface::codec() const
 
 void VideoStreamInterface::setCodec(const DScreenRecorder::VCodecID &codec)
 {
-    codecId = AV_CODEC_ID_MPEG4;
+    switch (codec) {
+    case DScreenRecorder::CODEC_ID_NO: {
+        codecId = AV_CODEC_ID_NONE;
+        break;
+    }
+    case DScreenRecorder::CODEC_ID_H264: {
+        codecId = AV_CODEC_ID_H264;
+        break;
+    }
+    case DScreenRecorder::CODEC_ID_MPEG4: {
+        codecId = AV_CODEC_ID_MPEG4;
+        break;
+    }
+    }
 }
 
 DScreenRecorder::PixFormatID VideoStreamInterface::pixfmt() const
@@ -27,7 +45,32 @@ DScreenRecorder::PixFormatID VideoStreamInterface::pixfmt() const
 
 void VideoStreamInterface::setPixfmt(const DScreenRecorder::PixFormatID pixfmt)
 {
-    pixFormat = AV_PIX_FMT_BGR24;
+    switch (pixfmt) {
+    case DScreenRecorder::PIX_FMT_YUV420P: {
+        pixFormat = AV_PIX_FMT_YUV420P;
+        break;
+    }
+    case DScreenRecorder::PIX_FMT_YUYV422: {
+        pixFormat = AV_PIX_FMT_YUYV422;
+        break;
+    }
+    case DScreenRecorder::PIX_FMT_BGR24: {
+        pixFormat = AV_PIX_FMT_BGR24;
+        break;
+    }
+    case DScreenRecorder::PIX_FMT_RGB24: {
+        pixFormat = AV_PIX_FMT_RGB24;
+        break;
+    }
+    case DScreenRecorder::PIX_FMT_ARGB: {
+        pixFormat = AV_PIX_FMT_ARGB;
+        break;
+    }
+    case DScreenRecorder::PIX_FMT_RGBA: {
+        pixFormat = AV_PIX_FMT_RGBA;
+        break;
+    }
+    }
 }
 
 int VideoStreamInterface::bitRate() const
@@ -86,4 +129,20 @@ void VideoStreamInterface::setStreamAcceptFunc(VideoStreamCallback function, voi
 {
     sendDataFunc = function;
     sendDataObj = obj;
+}
+
+QMediaRecorder::State VideoStreamInterface::state() const
+{
+    return stateValue;
+}
+
+void VideoStreamInterface::propertyRevise()
+{
+    if (outFilePath.isValid() && codecId != AV_CODEC_ID_NONE) {
+        recStyle = Encoding;
+    } else if (sendDataFunc != nullptr) {
+        recStyle = CallbackReceive;
+    } else {
+        recStyle = SignalReceive;
+    }
 }
