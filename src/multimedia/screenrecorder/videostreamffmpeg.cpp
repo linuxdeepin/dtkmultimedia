@@ -50,6 +50,7 @@ void VideoStreamFfmpeg::record()
     }
 
     propertyRevise();
+
     if (!isLoadFunction) {
         if (!loadFunction()) {
             return;
@@ -129,7 +130,27 @@ void VideoStreamFfmpeg::encodeWork()
                 emit screenStreamData(image);
                 continue;
             }
-            frameCout++;
+
+            outFrame->width = resolutionSize.width();
+            outFrame->height = resolutionSize.height();
+            outFrame->format = pixFormat;
+            AVPacket outPacket;
+            d_av_init_packet(&outPacket);
+            outPacket.data = nullptr;
+            outPacket.size = 0;
+            d_avcodec_encode_video2(videoOutCodecCtx, &outPacket, outFrame, &got_picture);
+            if (1 == got_picture) {
+                frameCout++;
+                if (outPacket.pts != AV_NOPTS_VALUE)
+                    outPacket.pts = d_av_rescale_q(outPacket.pts, videoOutStream->codec->time_base, videoOutStream->time_base);
+                if (outPacket.dts != AV_NOPTS_VALUE)
+                    outPacket.dts = d_av_rescale_q(outPacket.dts, videoOutStream->codec->time_base, videoOutStream->time_base);
+
+                if (d_av_write_frame(videoOutFormatCtx, &outPacket) != 0) {
+                    qCritical("error in writing video frame");
+                }
+                d_av_packet_unref(&outPacket);
+            }
         }
     }
 }
@@ -210,8 +231,8 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
 
     videoOutStream = d_avformat_new_stream(videoOutFormatCtx, nullptr);
     AVCodec *outAVCodec = d_avcodec_find_encoder(codecId);
-    videoOutCodecCtx = d_avcodec_alloc_context3(outAVCodec);
-    videoOutCodecCtx->codec_id = codecId;
+    videoOutCodecCtx = videoOutStream->codec;
+    videoOutCodecCtx->codec_id = codecId;   // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     videoOutCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
     videoOutCodecCtx->pix_fmt = pixFormat;
     videoOutCodecCtx->bit_rate = bitrate;
@@ -244,6 +265,16 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
             qCritical("error in creating the video file");
             return false;
         }
+    }
+
+    if (!videoOutFormatCtx->nb_streams) {
+        qCritical("output file dose not contain any stream");
+        return false;
+    }
+
+    if (d_avformat_write_header(videoOutFormatCtx, &options) < 0) {
+        qCritical("error in writing the header context");
+        return false;
     }
 
     isOpenOutputVideoCtx = true;

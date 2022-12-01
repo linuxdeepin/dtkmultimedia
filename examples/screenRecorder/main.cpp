@@ -48,11 +48,18 @@ int main(int argc, char *argv[])
 #if 0
     recoder.setStreamAcceptFunc(dataReceive, &recoder);
     recoder.setPixfmt(DScreenRecorder::PixFormatID::PIX_FMT_RGB24);
-#else
+#    elseif 0
     ImageReceive obj;
     QObject::connect(&recoder, SIGNAL(screenStreamData(QImage)), &obj, SLOT(dataReceive(QImage)));
+#else
+    recoder.setPixfmt(DScreenRecorder::PIX_FMT_YUV420P);
+    recoder.setCodec(DScreenRecorder::CODEC_ID_MPEG4);
+    recoder.setOutputLocation(QUrl("./out.mp4"));
 #endif
     recoder.record();
-    return a.exec();
+    QThread::sleep(5);
+    recoder.stop();
+    qDebug() << recoder.state();
+    return 0;
 }
 #include "main.moc"

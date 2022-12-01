@@ -47,6 +47,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(examples/player)
     add_subdirectory(examples/audioRecorder)
     add_subdirectory(examples/camera)
+    add_subdirectory(examples/screenRecorder)
 endif ()
 
 
