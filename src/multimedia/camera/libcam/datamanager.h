@@ -14,7 +14,7 @@ enum GridType {
     Grid_Thirds = 2
 };
 
-enum DeviceStatus { NOCAM,
+enum DeviceStatus { NOCAM = 0,
                     CAM_CANNOT_USE,
                     CAM_CANUSE };
 
