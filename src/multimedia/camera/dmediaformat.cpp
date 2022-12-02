@@ -94,7 +94,7 @@ DMediaFormat::DMediaFormat(const DMediaFormat &other)
 
 DMediaFormat &DMediaFormat::operator=(const DMediaFormat &other)
 {
-    memcpy(this, &other, sizeof(DMediaFormat));
+    d_ptr.reset(new DMediaFormatPrivate(this));
     setFileFormat(other.fileFormat());
     setVideoCodec(other.videoCodec());
     setAudioCodec(other.audioCodec());
@@ -284,7 +284,6 @@ QString DMediaFormat::videoCodecDescription(DMediaFormat::VideoCodec codec)
 bool DMediaFormat::operator==(const DMediaFormat &other) const
 {
     Q_D(const DMediaFormat);
-    Q_ASSERT(!d);
     return d->fmt == other.fileFormat() && d->audio == other.audioCodec() && d->video == other.videoCodec();
 }
 
