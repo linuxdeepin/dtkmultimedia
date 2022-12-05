@@ -325,23 +325,27 @@ QList<QSize> DCamera::resolutions()
     if (d->imgPrcThread->isRunning()) {
         v4l2_dev_t *my_vd = get_v4l2_device_handler();
         config_t *my_config = config_get();
-        struct v4l2_frmsizeenum fsize;
-        memset(&fsize, 0, sizeof(fsize));
-        fsize.index = 0;
-        fsize.pixel_format = my_config->format;
-        while (!xioctl(my_vd->fd, VIDIOC_ENUM_FRAMESIZES, &fsize)) {
-            qInfo() << (QSize(fsize.discrete.width, fsize.discrete.height));
-            lSize.prepend(QSize(fsize.discrete.width, fsize.discrete.height));
-            fsize.index++;
+        if (my_config && my_vd) {
+            struct v4l2_frmsizeenum fsize;
+            memset(&fsize, 0, sizeof(fsize));
+            fsize.index = 0;
+            fsize.pixel_format = my_config->format;
+            while (!xioctl(my_vd->fd, VIDIOC_ENUM_FRAMESIZES, &fsize)) {
+                qInfo() << (QSize(fsize.discrete.width, fsize.discrete.height));
+                lSize.prepend(QSize(fsize.discrete.width, fsize.discrete.height));
+                fsize.index++;
+            }
         }
-        return lSize;
     }
+    return lSize;
 }
 
 void DCamera::setCameraCollectionFormat(const uint32_t &pixelformat)
 {
     config_t *my_config = config_get();
-    my_config->format = pixelformat;
+    if (my_config) {
+        my_config->format = pixelformat;
+    }
 }
 
 void DCamera::setFilter(const QString &filter)
@@ -371,10 +375,12 @@ QList<uint32_t> DCamera::supportedViewfinderPixelFormats()
         ffmt.index = 0;
         ffmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         v4l2_dev_t *my_vd = get_v4l2_device_handler();
-        while (!xioctl(my_vd->fd, VIDIOC_ENUM_FMT, &ffmt)) {
-            qInfo() << (char *)ffmt.description;
-            lFormats.append(ffmt.pixelformat);
-            ffmt.index++;
+        if (my_vd) {
+            while (!xioctl(my_vd->fd, VIDIOC_ENUM_FMT, &ffmt)) {
+                qInfo() << (char *)ffmt.description;
+                lFormats.append(ffmt.pixelformat);
+                ffmt.index++;
+            }
         }
     }
     return lFormats;
