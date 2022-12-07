@@ -1,0 +1,225 @@
+/*!
+@~chinese
+@file dmediarecorder.h
+
+@class Dtk::Multimedia::DMediaRecorder dmediarecorder.h
+@brief DMediaRecorder类提供相机录制相关功能.
+
+@enum Dtk::Multimedia::DMediaRecorder::Quality
+@brief 拍照质量
+@var Dtk::Multimedia::DMediaRecorder::VeryLowQuality
+    极低质量
+@var Dtk::Multimedia::DMediaRecorder::LowQuality
+    低质量
+@var Dtk::Multimedia::DMediaRecorder::NormalQuality
+    正常
+@var Dtk::Multimedia::DMediaRecorder::HighQuality
+    较高质量
+@var Dtk::Multimedia::DMediaRecorder::VeryHighQuality
+    高质量
+
+@enum Dtk::Multimedia::DMediaRecorder::EncodingMode
+@brief 编码质量
+@var Dtk::Multimedia::DMediaRecorder::ConstantQualityEncoding
+    恒定的编码质量
+@var Dtk::Multimedia::DMediaRecorder::ConstantBitRateEncoding
+    恒定的比特率编码
+@var Dtk::Multimedia::DMediaRecorder::AverageBitRateEncoding
+    编码保持平均比特率
+@var Dtk::Multimedia::DMediaRecorder::TwoPassEncoding
+    编码确定特征，二次处理
+
+@fn bool DMediaRecorder::isAvailable() const
+@brief 录像功能是否可用.
+@return 录像功能是否可用，true为可用.
+
+@fn QUrl DMediaRecorder::outputLocation() const
+@brief 返回录像输出文件路径.
+@return 录像输出文件路径.
+
+@fn void DMediaRecorder::setOutputLocation(const QUrl &location)
+@brief 设置录像输出文件路径.
+@param[in] location 录像输出文件路径.
+
+@fn QUrl DMediaRecorder::actualLocation() const
+@brief 返回录像输出文件真实路径.
+@return 录像输出文件真实路径.
+
+@fn State DMediaRecorder::recorderState() const
+@brief 返回录像录制状态.
+@return 录像录制状态.
+
+@fn Error DMediaRecorder::error() const
+@brief 返回相机当前录制的错误状态.
+@return 相机当前录制的错误状态.
+
+@fn QString DMediaRecorder::errorString() const
+@brief 返回相机当前录制的错误描述.
+@return 相机当前录制的错误描述.
+
+@fn qint64 DMediaRecorder::duration() const;
+@brief 返回相机当前录制的时长.
+@return 相机当前录制的时长.
+
+@fn DMediaFormat DMediaRecorder::mediaFormat() const
+@brief 返回相机当前录制的时长.
+@return 相机当前录制的时长.
+
+@fn void DMediaRecorder::setMediaFormat(const DMediaFormat &format)
+@brief 设置录像输出文件格式.
+@param[in] format 录像输出文件格式.
+
+@fn EncodingMode DMediaRecorder::encodingMode() const
+@brief 返回相机当前录制的编码模式.
+@return 相机当前录制的编码模式.
+
+@fn void DMediaRecorder::setEncodingMode(EncodingMode)
+@brief 返回相机当前录制的编码模式.
+@param[in] EncodingMode 相机当前录制的编码模式.
+
+@fn Quality DMediaRecorder::quality() const
+@brief 返回相机录制的质量.
+@return 录制的质量.
+
+@fn void DMediaRecorder::setQuality(Quality quality)
+@brief 设置相机录制的质量.
+@param[in] quality 录制的质量.
+
+@fn QSize DMediaRecorder::videoResolution() const
+@brief 返回相机录制视频的分辨率.
+@return 视频的分辨率.
+
+@fn void DMediaRecorder::setVideoResolution(const QSize &size)
+@brief 设置相机录制视频的分辨率.
+@param[in] size 视频的分辨率.
+
+@fn void DMediaRecorder::setVideoResolution(int width, int height)
+@brief 设置相机录制视频的分辨率.
+@param[in] width 视频的宽.
+@param[in] height 视频的高.
+
+@fn qreal DMediaRecorder::videoFrameRate() const
+@brief 返回相机录制视频的帧率.
+@return 视频的帧率.
+
+@fn void DMediaRecorder::setVideoFrameRate(qreal frameRate);
+@brief 设置相机录制视频的帧率.
+@param[in] frameRate 视频的帧率.
+
+@fn int DMediaRecorder::videoBitRate() const
+@brief 返回相机录制视频的比特率.
+@return 视频的比特率.
+
+@fn void DMediaRecorder::setVideoBitRate(int bitRate);
+@brief 设置相机录制视频的比特率.
+@param[in] bitRate 视频的比特率.
+
+@fn int DMediaRecorder::audioBitRate() const
+@brief 返回相机录制音频的比特率.
+@return 音频的比特率.
+
+@fn void DMediaRecorder::setAudioBitRate(int bitRate)
+@brief 设置相机录制音频的比特率.
+@param[in] bitRate 音频的比特率.
+
+@fn int DMediaRecorder::audioChannelCount() const
+@brief 返回相机录制音频的声道数.
+@return 音频的声道数.
+
+@fn void DMediaRecorder::setAudioChannelCount(int channels)
+@brief 设置相机录制音频的声道数.
+@param[in] bitRate 音频的声道数.
+
+@fn int DMediaRecorder::audioSampleRate() const
+@brief 返回相机录制音频的采样率.
+@return 音频的采样率.
+
+@fn void DMediaRecorder::setAudioSampleRate(int sampleRate)
+@brief 设置相机录制音频的采样率.
+@param[in] bitRate 音频的采样率.
+
+@fn DMediaMetaData DMediaRecorder::metaData() const
+@brief 返回相机录制的元数据.
+@return 录制的元数据.
+
+@fn void DMediaRecorder::setMetaData(const DMediaMetaData &metaData)
+@brief 设置相机录制的元数据.
+@param[in] metaData 录制的元数据.
+
+@fn void DMediaRecorder::setMetaData(const QString &key, const QVariant &value)
+@brief 添加相机录制的元数据.
+@param[in] key 录制的元数据的主键.
+@param[in] value 录制的元数据的主键值.
+
+@fn void DMediaRecorder::addMetaData(const DMediaMetaData &metaData)
+@brief 添加相机录制的元数据.
+@param[in] metaData 录制的元数据.
+
+
+@fn DMediaCaptureSession *DMediaRecorder::captureSession() const
+@brief 返回相机的回话.
+@return 相机的回话的指针.
+
+@fn QMediaRecorder *DMediaRecorder::platformRecoder() const;
+@brief 返回相机的录制对象.
+@return 相机的录制对象.
+
+@fn void DMediaRecorder::record()
+@brief 信号槽-相机开始录制.
+
+@fn void DMediaRecorder::pause()
+@brief 信号槽-相机暂停录制.
+
+@fn void DMediaRecorder::stop()
+@brief 信号槽-相机停止录制.
+
+@fn void DMediaRecorder::recorderStateChanged(State state)
+@brief 添加相机录制的录制状态改变.
+@param[in] state 录制状态.
+
+@fn void DMediaRecorder::actualLocationChanged(const QUrl &location)
+@brief 添加相机录制的位置改变.
+@param[in] location 录制的位置.
+
+@fn void DMediaRecorder::encoderSettingsChanged()
+@brief 添加相机录制的位置改变.
+
+@fn void DMediaRecorder::errorOccurred(Error error, const QString &errorString)
+@brief 添加相机录制的错误发生.
+@param[in] error 错误状态.
+@param[in] errorString 错误描述.
+
+@fn void DMediaRecorder::errorChanged()
+@brief 添加相机录制的错误发生改变.
+
+@fn void DMediaRecorder::metaDataChanged()
+@brief 添加相机录制的元数据发生改变.
+
+@fn void DMediaRecorder::mediaFormatChanged()
+@brief 添加相机录制的媒体格式发生改变.
+
+@fn void DMediaRecorder::encodingModeChanged()
+@brief 添加相机录制的编码模式发生改变.
+
+@fn void DMediaRecorder::qualityChanged()
+@brief 添加相机录制的编码质量发生改变.
+
+@fn void DMediaRecorder::videoResolutionChanged()
+@brief 添加相机录制的视频像素发生改变.
+
+@fn void DMediaRecorder::videoFrameRateChanged()
+@brief 添加相机录制的视频帧率发生改变.
+
+@fn void DMediaRecorder::videoBitRateChanged()
+@brief 添加相机录制的视频比特率发生改变.
+
+@fn void DMediaRecorder::audioBitRateChanged()
+@brief 添加相机录制的音频比特率发生改变.
+
+@fn void DMediaRecorder::audioChannelCountChanged()
+@brief 添加相机录制的音频通道数发生改变.
+
+@fn void DMediaRecorder::audioSampleRateChanged();
+@brief 添加相机录制的音频采样率发生改变.
+
+*/
