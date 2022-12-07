@@ -1,0 +1,86 @@
+/*!
+@~chinese
+@file dmediacapturesession.h
+
+@class Dtk::Multimedia::DMediaCaptureSession dmediacapturesession.h
+@brief DMediaCaptureSession类提供相机连接回话相关信息.
+
+@fn DAudioInput *DMediaCaptureSession::audioInput() const
+@brief 获取相机输入设备.
+@return 相机输入设备.
+
+@fn void DMediaCaptureSession::setAudioInput(DAudioInput *input)
+@brief 设置相机输入设备.
+@param[in] input 相机输入设备.
+
+@fn DCamera *DMediaCaptureSession::camera() const
+@brief 获取相机对象设备.
+@return 相机对象设备.
+
+@fn void DMediaCaptureSession::setCamera(DCamera *camera)
+@brief 设置相机对象设备.
+@param[in] camera 相机对象设备.
+
+@fn DImageCapture *DMediaCaptureSession::imageCapture()
+@brief 获取相机拍照对象.
+@return 相机拍照对象.
+
+@fn void DMediaCaptureSession::setImageCapture(DImageCapture *imageCapture)
+@brief 设置相机拍照对象.
+@param[in] camera 相机拍照对象.
+
+@fn DMediaRecorder *DMediaCaptureSession::recorder()
+@brief 获取相机录像对象.
+@return 相机录像对象.
+
+@fn void DMediaCaptureSession::setRecorder(DMediaRecorder *recorder)
+@brief 设置相机录像对象.
+@param[in] recorder 相机录像对象.
+
+@fn void DMediaCaptureSession::setVideoOutput(QObject *output)
+@brief 设置相机视频输出设备.
+@param[in] output 相机视频输出设备.
+
+@fn QObject *DMediaCaptureSession::videoOutput() const
+@brief 获取相机视频输出设备.
+@return 相机视频输出设备.
+
+@fn void DMediaCaptureSession::setVideoSink(DVideoSink *sink)
+@brief 设置相机视频链路对象.
+@param[in] sink 相机视频链路对象.
+
+@fn DVideoSink *DMediaCaptureSession::videoSink() const
+@brief 获取相机视频链路对象.
+@return 相机视频链路对象.
+
+@fn void DMediaCaptureSession::setAudioOutput(DAudioOutput *output)
+@brief 设置相机音频输出设备.
+@param[in] output 相机音频输出设备.
+
+@fn DAudioOutput *DMediaCaptureSession::audioOutput() const
+@brief 获取相机音频输出设备.
+@return 音频输出设备.
+
+@fn DMediaCaptureSession *DMediaCaptureSession::platformSession() const
+@brief 获取相机平台回话.
+@return 相机平台回话.
+
+@fn void DMediaCaptureSession::audioInputChanged()
+@brief 信号-相机输入设备改变.
+
+@fn void DMediaCaptureSession::cameraChanged()
+@brief 信号-相机对象设备改变.
+
+@fn void DMediaCaptureSession::imageCaptureChanged()
+@brief 信号-相机拍照设备改变.
+
+@fn void DMediaCaptureSession::recorderChanged()
+@brief 信号-相机录制设备改变.
+
+@fn void DMediaCaptureSession::videoOutputChanged()
+@brief 信号-相机视频输出设备改变.
+
+@fn void DMediaCaptureSession::audioOutputChanged()
+@brief 信号-相机音频输出设备改变.
+
+*/

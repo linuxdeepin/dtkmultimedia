@@ -1,0 +1,144 @@
+/*!
+@~chinese
+@file dimagecapture.h
+
+@class Dtk::Multimedia::DImageCapture dimagecapture.h
+@brief DImageCapture类提供相机拍照相关功能.
+
+@enum Dtk::Multimedia::DImageCapture::Quality
+@brief 拍照质量
+@var Dtk::Multimedia::DImageCapture::VeryLowQuality
+    极低质量
+@var Dtk::Multimedia::DImageCapture::LowQuality
+    低质量
+@var Dtk::Multimedia::DImageCapture::NormalQuality
+    正常
+@var Dtk::Multimedia::DImageCapture::HighQuality
+    较高质量
+@var Dtk::Multimedia::DImageCapture::VeryHighQuality
+    高质量
+
+@enum Dtk::Multimedia::DImageCapture::FileFormat
+@brief 拍照图片格式
+@var Dtk::Multimedia::DImageCapture::UnspecifiedFormat
+    未指定图片格式
+@var Dtk::Multimedia::DImageCapture::JPEG
+    JPEG图片格式
+@var Dtk::Multimedia::DImageCapture::PNG
+    PNG图片格式
+@var Dtk::Multimedia::DImageCapture::WebP
+    WebP图片格式
+@var Dtk::Multimedia::DImageCapture::Tiff
+    Tiff图片格式
+
+@fn bool DImageCapture::isAvailable() const
+@brief 拍照功能是否可用.
+@return 拍照功能是否可用，true为可用.
+
+@fn DMediaCaptureSession *DImageCapture::captureSession() const
+@brief 返回相机的回话.
+@return 相机的回话的指针.
+
+@fn Error DImageCapture::error() const
+@brief 返回相机当前的错误状态.
+@return 相机当前的错误状态.
+
+@fn QString DImageCapture::errorString() const
+@brief 返回相机当前的错误描述.
+@return 相机当前的错误描述.
+
+@fn bool DImageCapture::isReadyForCapture() const
+@brief 返回相机是否准备好立即捕获图像.
+@return 相机是否准备好立即捕获图像，true为已做好准备.
+
+@fn FileFormat DImageCapture::fileFormat() const
+@brief 返回相机捕获图像的文件格式.
+@return 图像的文件格式.
+
+@fn void DImageCapture::setFileFormat(FileFormat format)
+@brief 设置相机捕获图像的文件格式.
+@param[in] format 图像的文件格式.
+
+@fn static QList<FileFormat> DImageCapture::supportedFormats()
+@brief 返回相机捕获图像的支持文件格式列表.
+@return 图像的支持文件格式列表.
+
+@fn static QString DImageCapture::fileFormatName(FileFormat f)
+@brief 返回相机捕获图像的支持文件格式名称.
+@param[in] format 图像的文件格式.
+@return 图像的支持文件格式名称.
+
+@fn static QString DImageCapture::fileFormatDescription(FileFormat f)
+@brief 返回相机捕获图像的支持文件格式描述.
+@param[in] format 图像的文件格式.
+@return 图像的支持文件格式描述.
+
+@fn QSize DImageCapture::resolution() const
+@brief 返回相机捕获图像的分辨率.
+@return 图像的分辨率.
+
+@fn void DImageCapture::setResolution(const QSize &size)
+@brief 设置相机捕获图像的分辨率.
+@param[in] size 图像的分辨率.
+
+@fn void DImageCapture::setResolution(int width, int height)
+@brief 设置相机捕获图像的分辨率.
+@param[in] width 图像的宽.
+@param[in] height 图像的高.
+
+@fn Quality DImageCapture::quality() const
+@brief 返回相机捕获图像的质量.
+@return 图像的质量.
+
+@fn void DImageCapture::setQuality(Quality quality)
+@brief 设置相机捕获图像的质量.
+@param[in] quality 图像的质量.
+
+@fn DMediaMetaData DImageCapture::metaData() const
+@brief 返回相机捕获图像的元数据.
+@return 捕获图像的元数据.
+
+@fn void DImageCapture::setMetaData(const DMediaMetaData &metaData)
+@brief 设置相机捕获图像的元数据.
+@param[in] metaData 捕获图像的元数据.
+
+@fn void DImageCapture::addMetaData(const DMediaMetaData &metaData);
+@brief 添加相机捕获图像的元数据.
+@param[in] metaData 捕获图像的元数据.
+
+@fn int DImageCapture::captureToFile(const QString &location = QString())
+@brief 信号槽-相机捕获图像到文件.
+@param[in] location 文件位置.
+@return 返回0表示成功.
+
+@fn int DImageCapture::capture(const QString &location = QString())
+@brief 信号槽-相机捕获图像到目标.
+@param[in] location 保存目标位置.
+@return 返回0表示成功.
+
+@fn void DImageCapture::errorChanged()
+@brief 相机捕获图像的错误状态改变.
+
+@fn void DImageCapture::errorOccurred(int id, DImageCapture::Error error, const QString &errorString)
+@brief 信号-相机捕获图像的错误触发.
+@param[in] id 错误ID.
+@param[in] error 错误状态.
+@param[in] errorString 错误描述.
+
+@fn void DImageCapture::readyForCaptureChanged(bool ready)
+@brief 信号-相机捕获图像是否已经准备发生改变.
+@param[in] ready 是否准备好捕获图像，true表示可以捕获图像.
+
+@fn void DImageCapture::metaDataChanged()
+@brief 信号-设置相机捕获图像元数据发生改变.
+
+@fn void DImageCapture::fileFormatChanged()
+@brief 信号-设置相机捕获图像格式发生改变.
+
+@fn void DImageCapture::qualityChanged()
+@brief 信号-设置相机捕获图像质量数据发生改变.
+
+@fn void DImageCapture::resolutionChanged()
+@brief 信号-设置相机捕获图像像素数据发生改变.
+
+*/

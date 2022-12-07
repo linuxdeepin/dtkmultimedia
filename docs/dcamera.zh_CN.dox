@@ -1,0 +1,86 @@
+/*!
+@~chinese
+@file dcamera.h
+
+@class Dtk::Multimedia::DCamera dcamera.h
+@brief DCamera类提供相机操作功能.
+
+@fn void DCamera::takeOne(const QString &location)
+@brief 相机拍照，图片存放在指定位置.
+@param[in] location 图片存放位置.
+
+@fn void DCamera::takeVideo(const QString &location);
+@brief 相机录像，视频存放在指定位置.
+@param[in] location 视频存放位置.
+
+@fn void DCamera::start()
+@brief 启动相机.
+
+@fn void DCamera::stop()
+@brief 停止相机.
+
+@fn bool DCamera::isFfmpegEnv()
+@brief 是否为ffmpeg工作环境.
+@return 是否为ffmpeg工作环境，true为ffmpeg工作环境.
+
+@fn bool DCamera::isWaylandEnv();
+@brief 是否为Wayland系统环境.
+@return 是否为Wayland系统环境，true为Wayland系统环境.
+
+@fn void DCamera::setViewfinder(QVideoWidget *viewfinder)
+@brief 是否为Wayland系统环境.
+@return 是否为Wayland系统环境，true为Wayland系统环境.
+
+@fn void DCamera::setstate(QCamera::State newState);
+@brief 设置相机工作状态.
+@param[in] newState 相机工作状态.
+
+@fn int DCamera::checkCamera()
+@brief 检测相机是否正常工作.
+@return 检测相机是否正常工作. 0为没有相机， 1为相机被占用， 2为相机正在工作
+
+@fn DMediaCaptureSession *DCamera::captureSession() const
+@brief 获取相机的回话.
+@return 相机的回话的指针.
+
+@fn QStringList DCamera::devList()
+@brief 获取相机的设备列表.
+@return 相机的设备列表.
+
+@fn void DCamera::openDev(const QString &sDevName)
+@brief 打开相机设备.
+@param[in] sDevName 相机设备名.
+
+@fn void DCamera::closeDev()
+@brief 关闭当前相机设备.
+
+@fn QByteArray DCamera::yuvbuffer(uint &width, uint &height)
+@brief 获取相机当前的yuv(yu12)流数据.
+@param[out] width 图像的宽.
+@param[out] height 图像的高.
+
+@fn void DCamera::resolutionSettings(const QSize &size)
+@brief 设置相机当前的分辨率.
+@param[in] size 图像的分辨率.
+
+@fn QList<QSize> DCamera::resolutions()
+@brief 相机当前模式支持的分辨率.
+@return 支持的分辨率列表.
+
+@fn void DCamera::setCameraCollectionFormat(const uint32_t &pixelformat)
+@brief 设置相机输出的图片格式.
+@param[in] pixelformat 图片格式.
+
+@fn void DCamera::setFilter(const QString &filter)
+@brief 设置相机滤波格式.
+@param[in] filter 滤波格式.
+
+@fn void DCamera::setExposure(const int &exposure)
+@brief 设置相机曝光度.
+@param[in] exposure 相机曝光度.
+
+@fn QList<uint32_t> DCamera::supportedViewfinderPixelFormats();
+@brief 获取当前相机支持的图片数据格式.
+@return 支持的图片数据格式列表.
+
+*/

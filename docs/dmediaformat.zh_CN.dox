@@ -1,0 +1,148 @@
+/*!
+@~chinese
+@file dmediaformat.h
+
+@class Dtk::Multimedia::DMediaFormat dmediaformat.h
+@brief DMediaFormat类提供相机输出格式管理.
+
+@enum Dtk::Multimedia::DMediaFormat::FileFormat
+@brief 文件格式.
+@var Dtk::Multimedia::DMediaFormat::UnspecifiedFormat
+Unspecified File Format
+@var Dtk::Multimedia::DMediaFormat::WMV
+Windows Media Video
+@var Dtk::Multimedia::DMediaFormat::AVI
+Audio Video Interleave
+@var Dtk::Multimedia::DMediaFormat::Matroska
+Matroska Multimedia Container
+@var Dtk::Multimedia::DMediaFormat::MPEG4
+MPEG-4 Video Container
+@var Dtk::Multimedia::DMediaFormat::Ogg
+Ogg
+@var Dtk::Multimedia::DMediaFormat::QuickTime
+QuickTime Container
+@var Dtk::Multimedia::DMediaFormat::WebM
+WebM
+@var Dtk::Multimedia::DMediaFormat::Mpeg4Audio
+MPEG-4 Audio
+@var Dtk::Multimedia::DMediaFormat::AAC
+AAC
+@var Dtk::Multimedia::DMediaFormat::WMA
+Windows Media Audio
+@var Dtk::Multimedia::DMediaFormat::MP3
+MP3
+@var Dtk::Multimedia::DMediaFormat::FLAC
+Free Lossless Audio Codec (FLAC)
+@var Dtk::Multimedia::DMediaFormat::Wave
+Wave File
+
+
+@enum Dtk::Multimedia::DMediaFormat::AudioCodec
+@brief 音频编码格式.
+
+@enum Dtk::Multimedia::DMediaFormat::VideoCodec
+@brief 视频编码格式.
+
+@enum Dtk::Multimedia::DMediaFormat::ConversionMode
+@brief 转换模式.
+@var Dtk::Multimedia::DMediaFormat::Encode
+编码
+@var Dtk::Multimedia::DMediaFormat::Decode
+解码
+
+@enum Dtk::Multimedia::DMediaFormat::ResolveFlags
+@brief 解析标志.
+@var Dtk::Multimedia::DMediaFormat::NoFlags
+无标志
+@var Dtk::Multimedia::DMediaFormat::RequiresVideo
+录像
+
+@fn FileFormat DMediaFormat::fileFormat() const
+@brief 获取文件格式.
+@return 文件格式.
+
+@fn void DMediaFormat::setFileFormat(FileFormat f);
+@brief 设置文件格式.
+@param[in] f 文件格式.
+
+@fn void DMediaFormat::setVideoCodec(VideoCodec codec)
+@brief 设置视频格式.
+@param[in] f 文件格式.
+
+@fn VideoCodec DMediaFormat::videoCodec() const
+@brief 获取视频编码方式.
+@return 视频编码方式.
+
+@fn void DMediaFormat::setAudioCodec(AudioCodec codec)
+@brief 设置视频编码方式.
+@param[in] codec 视频编码方式.
+
+@fn AudioCodec DMediaFormat::audioCodec() const
+@brief 获取音频编码方式.
+@param[in] codec 音频编码方式.
+
+@fn Q_INVOKABLE bool DMediaFormat::isSupported(ConversionMode mode) const
+@brief 是否支持转换模式.
+@param[in] mode 转换模式.
+@return true表示支持.
+
+@fn Q_INVOKABLE QList<FileFormat> DMediaFormat::supportedFileFormats(ConversionMode m)
+@brief 获取支持转换模式的文件格式列表.
+@param[in] mode 转换模式.
+@return 文件格式列表.
+
+@fn Q_INVOKABLE QList<VideoCodec> DMediaFormat::supportedVideoCodecs(ConversionMode m)
+@brief 获取支持转换模式的视频格式列表.
+@param[in] mode 转换模式.
+@return 视频格式列表.
+
+@fn Q_INVOKABLE QList<AudioCodec> DMediaFormat::supportedAudioCodecs(ConversionMode m)
+@brief 获取支持转换模式的音频格式列表.
+@param[in] mode 转换模式.
+@return 音频格式列表.
+
+@fn Q_INVOKABLE static QString DMediaFormat::fileFormatName(FileFormat fileFormat)
+@brief 获取支持文件格式的名称.
+@param[in] fileFormat 文件格式.
+@return 支持文件格式的名称.
+
+@fn Q_INVOKABLE static QString DMediaFormat::audioCodecName(AudioCodec codec)
+@brief 获取支持音频格式的名称.
+@param[in] codec 音频格式.
+@return 支持音频格式的名称.
+
+@fn Q_INVOKABLE static QString DMediaFormat::videoCodecName(VideoCodec codec)
+@brief 获取支持视频格式的名称.
+@param[in] codec 视频格式.
+@return 支持视频格式的名称.
+
+@fn Q_INVOKABLE static QString DMediaFormat::fileFormatDescription(DMediaFormat::FileFormat fileFormat)
+@brief 获取支持文件格式的名称描述.
+@param[in] fileFormat 文件格式.
+@return 支持文件格式的名称描述.
+
+@fn Q_INVOKABLE static QString DMediaFormat::audioCodecDescription(DMediaFormat::AudioCodec codec)
+@brief 获取支持音频格式的名称描述.
+@param[in] codec 音频格式.
+@return 支持音频格式的名称描述.
+
+@fn Q_INVOKABLE static QString DMediaFormat::videoCodecDescription(DMediaFormat::VideoCodec codec)
+@brief 获取支持视频格式的名称描述.
+@param[in] codec 视频格式描述.
+@return 支持视频格式的名称描述.
+
+@fn bool DMediaFormat::operator==(const DMediaFormat &other) const
+@brief 判断支持媒体格式是否相似.
+@param[in] other 媒体格式.
+@return true为相似.
+
+@fn bool DMediaFormat::operator!=(const DMediaFormat &other) const
+@brief 判断支持媒体格式是否不同.
+@param[in] other 媒体格式.
+@return true为不同.
+
+@fn void DMediaFormat::resolveForEncoding(ResolveFlags flags)
+@brief 基于标志解析格式.
+@param[in] flags 解析标志.
+
+*/
