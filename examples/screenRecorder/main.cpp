@@ -42,9 +42,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     DScreenRecorder recoder;
-    recoder.setFrameRate(12);
+    recoder.setFrameRate(24);
     recoder.setTopLeft(100, 100);
-    recoder.setResolution(600, 800);
+    recoder.setResolution(1600, 800);
 #if 0
     recoder.setStreamAcceptFunc(dataReceive, &recoder);
     recoder.setPixfmt(DScreenRecorder::PixFormatID::PIX_FMT_RGB24);
@@ -54,9 +54,10 @@ int main(int argc, char *argv[])
 #else
     recoder.setPixfmt(DScreenRecorder::PIX_FMT_YUV420P);
     recoder.setCodec(DScreenRecorder::CODEC_ID_MPEG4);
-    recoder.setOutputLocation(QUrl("./out.mp4"));
+    recoder.setOutputLocation(QUrl("mpeg4.mp4"));
 #endif
     recoder.record();
+    qDebug() << recoder.state();
     QThread::sleep(5);
     recoder.stop();
     qDebug() << recoder.state();
