@@ -12,6 +12,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     DScreenShot shot;
     shot.fullScreenShot().save("full.png");
-    shot.screenShot({ 0, 0 }, { 1920, 1080 }).save("shot.png");
+    shot.screenShot({ 0, 0 }, { 800, 600 }).save("shot.png");
     return 0;
 }

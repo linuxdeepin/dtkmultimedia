@@ -66,6 +66,7 @@ private:
     decltype(av_image_fill_arrays) *d_av_image_fill_arrays { nullptr };
     decltype(av_opt_set) *d_av_opt_set { nullptr };
     decltype(av_rescale_q) *d_av_rescale_q { nullptr };
+    decltype(av_gettime) *d_av_gettime { nullptr };
 
     decltype(sws_getContext) *d_sws_getContext { nullptr };
     decltype(sws_scale) *d_sws_scale { nullptr };

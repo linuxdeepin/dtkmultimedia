@@ -107,10 +107,11 @@ void VideoStreamFfmpeg::encodeWork()
                                           resolutionSize.width(), resolutionSize.height(), pixFormat,
                                           SWS_BICUBIC, nullptr, nullptr, nullptr);
     int frameFinished = 0;
-    int frameCout = 0;
-    int got_picture = 0;
-    isRecording.store(true);
+    int got = 0;
+    int64_t fristFramePts = 0;
+    int64_t frameCount = 0;
 
+    isRecording.store(true);
     while (isRecording.load()) {
         if (d_av_read_frame(videoInFormatCtx, inputPacket) < 0) {
             qCritical("can not read frame");
@@ -131,6 +132,7 @@ void VideoStreamFfmpeg::encodeWork()
                 continue;
             }
 
+            outFrame->pts = frameCount++;
             outFrame->width = resolutionSize.width();
             outFrame->height = resolutionSize.height();
             outFrame->format = pixFormat;
@@ -138,14 +140,14 @@ void VideoStreamFfmpeg::encodeWork()
             d_av_init_packet(&outPacket);
             outPacket.data = nullptr;
             outPacket.size = 0;
-            d_avcodec_encode_video2(videoOutCodecCtx, &outPacket, outFrame, &got_picture);
-            if (1 == got_picture) {
-                frameCout++;
-                if (outPacket.pts != AV_NOPTS_VALUE)
-                    outPacket.pts = d_av_rescale_q(outPacket.pts, videoOutStream->codec->time_base, videoOutStream->time_base);
-                if (outPacket.dts != AV_NOPTS_VALUE)
-                    outPacket.dts = d_av_rescale_q(outPacket.dts, videoOutStream->codec->time_base, videoOutStream->time_base);
 
+            d_avcodec_encode_video2(videoOutCodecCtx, &outPacket, outFrame, &got);
+            if (1 == got) {
+                int64_t curTime = d_av_gettime();
+                if (fristFramePts == 0) {
+                    fristFramePts = curTime;
+                }
+                outPacket.pts = outPacket.dts = static_cast<int64_t>(videoOutStream->time_base.den) * (curTime - fristFramePts) / AV_TIME_BASE;
                 if (d_av_write_frame(videoOutFormatCtx, &outPacket) != 0) {
                     qCritical("error in writing video frame");
                 }
@@ -247,8 +249,7 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
     if (codecId == AV_CODEC_ID_H264) {
         videoOutCodecCtx->qmin = 10;
         videoOutCodecCtx->qmax = 51;
-        videoOutCodecCtx->max_b_frames = 0;
-        d_av_dict_set(&param, "preset", "ultrafast", 0);
+        d_av_opt_set(videoOutCodecCtx->priv_data, "preset", "ultrafast", 0);
     }
 
     if (videoOutFormatCtx->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -327,6 +328,7 @@ bool VideoStreamFfmpeg::loadFunction()
     d_av_image_fill_arrays = reinterpret_cast<decltype(av_image_fill_arrays) *>(libavutil.resolve("av_image_fill_arrays"));
     d_av_opt_set = reinterpret_cast<decltype(av_opt_set) *>(libavutil.resolve("av_opt_set"));
     d_av_rescale_q = reinterpret_cast<decltype(av_rescale_q) *>(libavutil.resolve("av_rescale_q"));
+    d_av_gettime = reinterpret_cast<decltype(av_gettime) *>(libavutil.resolve("av_gettime"));
 
     d_sws_getContext = reinterpret_cast<decltype(sws_getContext) *>(libswscale.resolve("sws_getContext"));
     d_sws_scale = reinterpret_cast<decltype(sws_scale) *>(libswscale.resolve("sws_scale"));
