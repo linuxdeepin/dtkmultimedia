@@ -1,0 +1,17 @@
+/*!
+@~chinese
+@file dscreenshot.h
+
+@class Dtk::Multimedia::DScreenShot dscreenshot.h
+@brief DScreenShot类提供截图相关接口.
+
+@fn QPixmap DScreenShot::fullScreenShot()
+@brief 获取全屏截图.
+@return 截图图片数据.
+
+@fn QPixmap DScreenShot::screenShot(const QPoint point, const QSize size)
+@brief 获取指定位置区域截图.
+@param[in] point 开始截图坐标.
+@param[in] size 截图大小.
+@return 截图图片数据.
+*/
