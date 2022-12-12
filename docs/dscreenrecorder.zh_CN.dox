@@ -1,0 +1,71 @@
+/*!
+@~chinese
+@file dscreenrecorder.h
+
+@class Dtk::Multimedia::DScreenRecorder dscreenrecorder.h
+@brief DScreenRecorder类提供录屏相关接口，获取屏幕数据裸流.
+
+@fn void DScreenRecorder::setPixfmt(const PixFormatID pixfmt)
+@brief 设置数据图片格式
+@param[in] pixfmt 图片格式枚举值.
+
+@fn void DScreenRecorder::setCodec(const VCodecID &codec)
+@brief 设置视频编码格式.
+@param[in] codec 编码枚举值, CODEC_ID_H264 h264编码, CODEC_ID_MPEG4 mpeg4编码, CODEC_ID_NO 默认编码
+
+@fn void DScreenRecorder::setBitRate(int bitrate)
+@brief 设置视频比特率.
+@param[in] bitrate 比特率.
+
+@fn void DScreenRecorder::setFrameRate(int rate)
+@brief 设置视频帧率.
+@param[in] rate 帧率.
+
+@fn void DScreenRecorder::setResolution(const int width, const int height);
+@brief 设置视频宽高.
+@param[in] width 视频宽度.
+@param[in] height 视频高度.
+
+@fn void DScreenRecorder::setTopLeft(const int x, const int y)
+@brief 设置桌面录制坐标.
+@param[in] x 录制位置x坐标.
+@param[in] y 录制位置y坐标.
+
+@fn bool DScreenRecorder::setOutputLocation(const QUrl &location)
+@brief 设置输出文件路径.
+@param[in] 文件url地址.
+@return 设置成功与否.
+    
+
+@fn PixFormatID DScreenRecorder::pixfmt() const
+@brief 获取图片格式.
+@return 图片格式枚举值.
+
+@fn ACodecID DScreenRecorder::codec() const
+@brief 获取视频编码.
+@return 编码枚举值.
+
+@fn int DScreenRecorder::bitRate() const
+@brief 获取视频比特率.
+@return 视频比特率.
+
+@fn int DScreenRecorder::frameRate() const
+@brief 获取视频帧率.
+@return 视频帧率.
+
+@fn QSize DScreenRecorder::resolution() const
+@brief 获取视频宽高
+@return 视频的宽高.
+
+@fn QPoint DScreenRecorder::topLeft() const
+@brief 获取录制桌面位置.
+@return 录制位置坐标.
+
+@fn QUrl DScreenRecorder::outputLocation() const
+@brief 获取视频输出信息.
+@return 音频输出路径信息.    
+
+@fn State DScreenRecorder::state() const
+@brief 获取当前状态.
+@return 状态枚举值.
+*/
