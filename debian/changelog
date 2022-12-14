@@ -1,3 +1,9 @@
+dtkmultimedia (1.0.1) unstable; urgency=medium
+
+  * update version
+
+ -- Deepin Packages Builder <packages@deepin.com>  Wed, 14 Dec 2022 13:29:07 +0800
+
 dtkmultimedia (1.0.0) unstable; urgency=medium
 
   * Initial release
