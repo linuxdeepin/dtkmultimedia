@@ -11,7 +11,7 @@
 
 DOCR_BEGIN_NAMESPACE
 
-class DOcrPlugin;
+class DOcrPluginInterface;
 class DOcrPrivate : public QObject
 {
     Q_OBJECT
@@ -23,11 +23,14 @@ public:
 private:
     bool isCompatible();
     void resetPlugin();
+    QString currentModuleDir();
+
     QString pluginInstallDir;
     QString pluginName;
-    int pluginVersion;
-    QAtomicInt isRunning;
-    DOcrPlugin *plugin;
+    int pluginVersion = 0;
+    QAtomicInt isRunning = 0;
+    DOcrPluginInterface *plugin = nullptr;
+    bool pluginIsLoaded = false;
 
     DOcr *q_ptr;
 };

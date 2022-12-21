@@ -51,6 +51,16 @@ Copyright: Copyright (C) 2005 Mike Matsnev
            Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 License: GPL-2.0-or-later
 
+# paddle ocr source code
+Files: src/ocr/ppocr/postprocess_op.* src/ocr/ppocr/utility.*
+Copyright: 2020 PaddlePaddle Authors
+License: Apache-2.0
+
+# clipper
+Files: src/ocr/ppocr/clipper.*
+Copyright: 2010-2017, Angus Johnson
+License: BSL-1.0
+
 # examples
 Files: examples/*
 Copyright: UnionTech Software Technology Co., Ltd.

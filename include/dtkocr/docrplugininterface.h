@@ -4,8 +4,8 @@
 #ifndef DOCRPLUGININTERFACE_H
 #define DOCRPLUGININTERFACE_H
 
-#include "dtkocr.h"
 #include "docr.h"
+#include "dtkocr.h"
 
 DOCR_BEGIN_NAMESPACE
 
@@ -31,7 +31,7 @@ public:
     virtual QStringList languageSupport() const = 0;
     virtual bool setLanguage(const QString &language) = 0;
     virtual QList<Dtk::Ocr::TextBox> textBoxes() const;
-    virtual QList<Dtk::Ocr::TextBox> charBoxes() const;
+    virtual QList<Dtk::Ocr::TextBox> charBoxes(int index) const;
     virtual QString simpleResult() const = 0;
     virtual QString resultFromBox(int index) const;
 };
