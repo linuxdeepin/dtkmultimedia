@@ -7,9 +7,9 @@
 
 #include "dtkocr.h"
 
+#include <QList>
 #include <QObject>
 #include <QPointF>
-#include <QList>
 
 DOCR_BEGIN_NAMESPACE
 
@@ -36,7 +36,8 @@ enum HardwareID {
     GPU_BR
 };
 
-struct TextBox {
+struct TextBox
+{
     QList<QPointF> points;
     qreal angle;
 };
@@ -71,7 +72,7 @@ public:
     QStringList languageSupport() const;
     bool setLanguage(const QString &language);
     QList<TextBox> textBoxes() const;
-    QList<TextBox> charBoxes() const;
+    QList<TextBox> charBoxes(int index) const;
     QString simpleResult() const;
     QString resultFromBox(int index) const;
 

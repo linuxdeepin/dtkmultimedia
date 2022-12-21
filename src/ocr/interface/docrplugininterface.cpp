@@ -84,7 +84,7 @@ QList<TextBox> DOcrPluginInterface::textBoxes() const
     return QList<TextBox>();
 }
 
-QList<TextBox> DOcrPluginInterface::charBoxes() const
+QList<TextBox> DOcrPluginInterface::charBoxes(int index) const
 {
     qWarning() << errorMessage << __FUNCTION__;
     return QList<TextBox>();

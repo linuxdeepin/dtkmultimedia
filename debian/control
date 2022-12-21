@@ -13,7 +13,8 @@ Build-Depends:
                 libavcodec-dev, libavformat-dev,libavutil-dev,
                 libpulse-dev, libdvdnav-dev, libdbusextended-qt5-dev,
                 libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev,
-		libavdevice-dev, libswscale-dev, libswresample-dev, libavfilter-dev, libudev-dev, libusb-1.0-0-dev, portaudio19-dev, libv4l-dev
+		libavdevice-dev, libswscale-dev, libswresample-dev, libavfilter-dev, libudev-dev, libusb-1.0-0-dev, portaudio19-dev, libv4l-dev,
+                libncnn-dev, libopencv-mobile-dev
 Standards-Version: 4.5.0
 
 Package: libdtkmultimedia
@@ -34,8 +35,24 @@ Description: Development Tool Kit multimediawidgets library
 
 Package: libdtkmultimedia-dev
 Architecture: any
-Depends:${misc:Depends}, libdtkmultimedia( =${binary:Version}), libdtkmultimediawidgets( =${binary:Version})
+Depends: ${misc:Depends}, libdtkmultimedia( =${binary:Version}), libdtkmultimediawidgets( =${binary:Version})
 Description: Development Tool Kit multimedia devel library
  libdtkmultimedia-dev is base devel library of Deepin Qt/C++ applications.
+ .
+ This package contains the header files and static libraries.
+
+Package: libdtkocr
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Development Tool Kit ocr library
+ libdtkocr is base library of Deepin Qt/C++ applications.
+ .
+ This package contains the shared libraries.
+
+Package: libdtkocr-dev
+Architecture: any
+Depends: ${misc:Depends}, libdtkocr( =${binary:Version})
+Description: Development Tool Kit ocr devel library
+ libdtkocr-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.
