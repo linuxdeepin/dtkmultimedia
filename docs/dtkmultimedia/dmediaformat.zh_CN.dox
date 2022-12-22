@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dmediaformat.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DMediaFormat dmediaformat.h
 @brief DMediaFormat类提供相机输出格式管理.

@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dscreenrecorder.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DScreenRecorder dscreenrecorder.h
 @brief DScreenRecorder类提供录屏相关接口，获取屏幕数据裸流.
@@ -35,7 +36,7 @@
 @brief 设置输出文件路径.
 @param[in] 文件url地址.
 @return 设置成功与否.
-    
+
 
 @fn PixFormatID DScreenRecorder::pixfmt() const
 @brief 获取图片格式.
@@ -63,7 +64,7 @@
 
 @fn QUrl DScreenRecorder::outputLocation() const
 @brief 获取视频输出信息.
-@return 音频输出路径信息.    
+@return 音频输出路径信息.
 
 @fn State DScreenRecorder::state() const
 @brief 获取当前状态.

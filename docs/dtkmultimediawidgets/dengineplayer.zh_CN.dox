@@ -1,0 +1,204 @@
+/*!
+@~chinese
+@file dengineplayer.h
+@ingroup dtkmultimediawidgets
+
+@class Dtk::Multimedia::DEnginePlayer dengineplayer.h
+@brief DEnginePlayer类为播放界面操作类.
+
+@struct Dtk::Multimedia::MovieInfo
+@brief 媒体信息
+@var Dtk::Multimedia::MovieInfo::valid
+        是否有效
+@var Dtk::Multimedia::MovieInfo::title
+        标题
+@var Dtk::Multimedia::MovieInfo::fileType
+        文件类型
+@var Dtk::Multimedia::MovieInfo::resolution
+        分辨率
+@var Dtk::Multimedia::MovieInfo::filePath
+        文件路径
+@var Dtk::Multimedia::MovieInfo::creation
+        文件创建时间
+@var Dtk::Multimedia::MovieInfo::rawRotate
+        原始旋转度
+@var Dtk::Multimedia::MovieInfo::fileSize
+        文件大小
+@var Dtk::Multimedia::MovieInfo::duration
+        媒体时长
+@var Dtk::Multimedia::MovieInfo::width
+        媒体宽度
+@var Dtk::Multimedia::MovieInfo::height
+        媒体高度
+@var Dtk::Multimedia::MovieInfo::vCodecID
+        视频编码ID
+@var Dtk::Multimedia::MovieInfo::vCodeRate
+        视频码率
+@var Dtk::Multimedia::MovieInfo::fps
+        视频帧率
+@var Dtk::Multimedia::MovieInfo::proportion
+        视频比例
+@var Dtk::Multimedia::MovieInfo::aCodeID
+        音频编码ID
+@var Dtk::Multimedia::MovieInfo::aCodeRate
+        音频码率
+@var Dtk::Multimedia::MovieInfo::aDigit
+        音频采样格式
+@var Dtk::Multimedia::MovieInfo::channels
+        通道数@var Dtk::Multimedia::MovieInfo::sampling
+        采样率
+
+@enum Dtk::Multimedia::PlayMode
+@brief 播放模式
+@var Dtk::Multimedia::PlayMode::OrderPlay
+        顺序播放
+@var Dtk::Multimedia::PlayMode::ShufflePlay
+        随机播放
+@var Dtk::Multimedia::PlayMode::SinglePlay
+        单个播放
+@var Dtk::Multimedia::PlayMode::SingleLoop
+        单个循环播放
+@var Dtk::Multimedia::PlayMode::ListLoop
+        列表循环播放
+
+@fn qint64 DEnginePlayer::duration() const
+@brief 获取媒体时长.
+@return 媒体时长.
+
+@fn qint64 DEnginePlayer::position() const
+@brief 获取媒体已播放时长.
+@return 媒体已播放时长.
+
+@fn void DEnginePlayer::setPosition(qint64 position)
+@brief 设置媒体播放位置.
+@param[in] position 媒体播放位置.
+
+@fn float DEnginePlayer::bufferProgress() const
+@brief 设置媒体缓冲进度.
+@return 媒体缓冲进度.
+
+@fn QMediaTimeRange DEnginePlayer::availablePlaybackRanges() const
+@brief 获取媒体播放范围是否可用.
+@return 媒体播放范围是否可用，true为可用，其他为不可用.
+
+@fn qreal DEnginePlayer::playbackRate() const
+@brief 纯虚函数-获取媒体播放速度.
+@return 媒体播放速度.
+
+@fn void DEnginePlayer::setPlaybackRate(qreal rate)
+@brief 设置媒体播放速度.
+@param[in] rate 媒体播放速度.
+
+@fn QUrl DEnginePlayer::media() const
+@brief 获取媒体url地址.
+@return 媒体url地址.
+
+@fn const QIODevice *DEnginePlayer::mediaStream() const
+@brief 获取媒体对应设备.
+@return 媒体对应设备
+
+@fn void DEnginePlayer::setMedia(const QUrl &media, QIODevice *stream)
+@brief 设置媒体对应设备与地址.
+@param[in] media 媒体url地址.
+@param[in] stream 媒体对应设备.
+
+@fn void DEnginePlayer::setVolume(float volume)
+@brief 设置媒体播放音量.
+@param[in] volume 播放音量值.
+
+@fn void DEnginePlayer::setMuted(bool muted)
+@brief 设置媒体播放是否静音.
+@param[in] muted true为静音.
+
+@fn void DEnginePlayer::play()
+@brief 播放媒体.
+
+@fn void DEnginePlayer::pause()
+@brief 暂停媒体.
+
+@fn void DEnginePlayer::stop()
+@brief 停止媒体.
+
+@fn void DEnginePlayer::setVideoSink(DVideoSink *sink)
+@brief 设置视频链路.
+@param[in] sink 视频链路.
+
+@fn void DEnginePlayer::setPlayer(QWidget *Player)
+@brief 设置播放界面工具类.
+@param[in] Player 播放界面工具类.
+
+@fn void sDEnginePlayer::etPlaySpeed(double speed)
+@brief 设置播放速度.
+@param[in] speed 播放速度.
+
+@fn void DEnginePlayer::changeSoundMode(const DPlayerBackend::SoundMode &sm)
+@brief 改变声音输出声道模式.
+@param[in] sm 声道模式.
+
+@fn void DEnginePlayer::nextFrame()
+@brief 下一帧.
+
+@fn void DEnginePlayer::previousFrame()
+@brief 上一帧.
+
+@fn void DEnginePlayer::setDecodeModel(const DPlayerBackend::hwaccelMode &hwaccelMode)
+@brief 设置解码方式.
+@param[in] hwaccelMode 硬件加速模式.
+
+
+@fn QImage DEnginePlayer::takeScreenshot()
+@brief 获取当前视频播放的截图.
+@return 当前视频播放的截图.
+
+@fn void DEnginePlayer::burstScreenshot()
+@brief 连拍截图，截图间隔时间为5秒.
+
+@fn void DEnginePlayer::setVideoRotation(int degree)
+@brief 设置顺时针旋转视频角度.
+@param[in] degree 顺时针旋转视频角度.
+
+@fn void DEnginePlayer::changeVolume(int val)
+@brief 改变音量值.
+@param[in] val 音量值.
+
+@fn void DEnginePlayer::setMute(bool bMute)
+@brief 设置媒体播放是否静音.
+@param[in] muted true为静音，其他为非静音.
+
+@fn void DEnginePlayer::seekAbsolute(int pos);
+@brief 设置媒体播放seek位置值.
+@param[in] pos 媒体播放seek位置值.
+
+@fn void DEnginePlayer::setPlayMode(const PlayMode &pm)
+@brief 设置媒体播放模式.
+@param[in] pm 媒体播放模式.
+
+@fn PlayMode DEnginePlayer::playMode() const
+@brief 获取媒体播放模式.
+@return 媒体播放模式.
+
+@fn void DEnginePlayer::playByName(const QUrl &url)
+@brief 播放媒体根据媒体地址.
+@param[in] url 媒体地址.
+
+@fn bool DEnginePlayer::loadSubtitle(const QFileInfo &fi)
+@brief 加载sub字幕标题.
+@param[in] fi 字幕文件对象.
+@return 是否加载成功，true为添加成功，其他为失败.
+
+@fn bool DEnginePlayer::addPlayFile(const QUrl &url)
+@brief 添加媒体播放文件.
+@return 是否添加成功，true为添加成功，其他为失败.
+
+@fn const struct MovieInfo &DEnginePlayer::movieInfo()
+@brief 获取媒体信息.
+@return 媒体信息.
+
+@fn DAudioOutput *DEnginePlayer::audioOut()
+@brief 获取媒体音频输出对象.
+@return 媒体音频输出对象.
+
+@fn void DEnginePlayer::positionProxyChanged()
+@brief 信号槽-媒体播放位置改变.
+
+*/

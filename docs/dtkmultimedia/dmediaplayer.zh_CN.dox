@@ -1,0 +1,67 @@
+/*!
+@~chinese
+@file dmediaplayer.h
+@ingroup dtkmultimedi
+
+@class Dtk::Multimedia::DMediaPlayer dmediaplayer.h
+@brief DMediaPlayer类是一个高级媒体播放类。它可以用来播放歌曲、电影和网络广播等内容.
+
+@fn DPlatformMediaPlayer *DMediaPlayer::getPlayer()
+@brief 获取播放工具实例.
+@return 播放播放工具实例.
+
+@fn QVideoWidget *DMediaPlayer::getVideoOutput();
+@brief 获取播放界面.
+@return 播放界面.
+
+@fn QMediaPlaylist *DMediaPlayer::getPlaylist();
+@brief 获取播放列表.
+@return 播放列表.
+
+@fn void DMediaPlayer::play()
+@brief 视频播放.
+
+@fn void DMediaPlayer::pause()
+@brief 视频暂停.
+
+@fn void DMediaPlayer::stop()
+@brief 视频停止.
+
+@fn void DMediaPlayer::setPosition(qint64 position)
+@brief 设置播放位置.
+@param[in] position 视频播放位置.
+
+@fn void DMediaPlayer::setVolume(int volume)
+@brief 设置播放音量.
+@param[in] volume 播放音量值.
+
+@fn void DMediaPlayer::setMuted(bool muted)
+@brief 设置播放是否开启静音.
+@param[in] muted 是否开启静音.
+
+@fn void DMediaPlayer::setPlaybackRate(qreal rate)
+@brief 设置倍速播放值.
+@param[in] rate 倍速播放值.
+
+@fn void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
+@brief 设置当前媒体源.
+@param[in] media 媒体内容相关的资源.
+@param[in] stream I/O设备.
+
+@fn void DMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
+@brief 设置播放列表.
+@param[in] playlist 播放列表.
+
+@fn void DMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);
+@brief 设置远程媒体播放的网络访问点.
+@param[in] configurations 网络访问点列表.
+
+@fn void DMediaPlayer::setVideoOutput(QVideoWidget *)
+@brief 设置播放界面.
+@param[in] QVideoWidget 播放界面.
+
+@fn void DMediaPlayer::setPlayer(DPlatformMediaPlayer *player)
+@brief 设置播放工具实例.
+@param[in] player 播放工具实例.
+
+*/

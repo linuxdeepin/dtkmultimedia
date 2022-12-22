@@ -1,0 +1,267 @@
+/*!
+@~chinese
+@file dplayerbackend.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DPlayerBackend dplayerbackend.h
+@brief DPlayerBackend类提供播放功能的引擎类.
+
+@enum Dtk::Multimedia::DPlayerBackend::PlayState
+@brief 播放状态类型
+@var Dtk::Multimedia::DPlayerBackend::Playing
+        播放状态
+@var Dtk::Multimedia::DPlayerBackend::Paused
+        暂停状态
+@var Dtk::Multimedia::DPlayerBackend::Stopped
+        停止状态
+
+@enum Dtk::Multimedia::DPlayerBackend::DebugLevel
+@brief 调试等级
+@var Dtk::Multimedia::DPlayerBackend::Info
+        Info级别
+@var Dtk::Multimedia::DPlayerBackend::Debug
+        Debug级别
+@var Dtk::Multimedia::DPlayerBackend::Verbose
+        Verbose级别
+
+@enum Dtk::Multimedia::DPlayerBackend::SoundMode
+@brief 声音模式
+@var Dtk::Multimedia::DPlayerBackend::Stereo
+        立体声
+@var Dtk::Multimedia::DPlayerBackend::Left
+        左声道
+@var Dtk::Multimedia::DPlayerBackend::Right
+        右声道
+
+@enum Dtk::Multimedia::DPlayerBackend::hwaccelMode
+@brief 硬件加速
+@var Dtk::Multimedia::DPlayerBackend::hwaccelAuto
+        自动
+@var Dtk::Multimedia::DPlayerBackend::hwaccelOpen
+        硬件解码
+@var Dtk::Multimedia::DPlayerBackend::hwaccelClose
+        软件解码
+
+@fn virtual void DPlayerBackend::setPlayFile(const QUrl &url)
+@brief 虚函数-设置播放媒体流地址.
+@param[in] url 媒体流地址.
+
+@fn virtual void DPlayerBackend::setDVDDevice(const QString &path)
+@brief 虚函数-设置DVD地址.
+@param[in] path DVD地址.
+
+@fn virtual bool DPlayerBackend::isPlayable() const = 0
+@brief 纯虚函数-当前媒体是否能够播放.
+@return 是否能够播放.
+
+@fn virtual qint64 DPlayerBackend::duration() const
+@brief 虚函数-获取媒体时长.
+@return 媒体时长.
+
+@fn virtual qint64 DPlayerBackend::elapsed() const
+@brief 虚函数-获取媒体已播放时长.
+@return 媒体已播放时长.
+
+@fn virtual bool DPlayerBackend::paused()
+@brief 虚函数-获取播放是否被暂停.
+@return 是否暂停， true为暂停，其他为非暂停状态.
+
+@fn virtual PlayState DPlayerBackend::state() const
+@brief 虚函数-获取媒体分辨率.
+@return 媒体分辨率.
+
+@fn virtual void DPlayerBackend::setState(PlayState state)
+@brief 虚函数-设置媒体播放状态.
+@param[in] state 媒体播放状态.
+
+@fn virtual const PlayingMovieInfo &DPlayerBackend::playingMovieInfo() = 0
+@brief 纯虚函数-获取当前播放媒体信息.
+@return 当前播放媒体信息.
+
+@fn virtual void DPlayerBackend::setPlaySpeed(double speed) = 0
+@brief 纯虚函数-设置媒体播放速度.
+@param[in] speed 媒体播放速度.
+
+@fn virtual void DPlayerBackend::savePlaybackPosition() = 0
+@brief 纯虚函数-保存当前视频播放位置.
+
+@fn virtual void DPlayerBackend::updateSubStyle(const QString &font, int sz) = 0
+@brief 纯虚函数-更新媒体播放文字显示样式.
+@param[in] font 媒体播放显示字体.
+@param[in] sz 媒体播放显示字体大小.
+
+@fn virtual void DPlayerBackend::setSubCodepage(const QString &cp) = 0
+@brief 纯虚函数-设置媒体Sub字幕编码页.
+@param[in] cp 编码页.
+
+@fn virtual QString DPlayerBackend::subCodepage() = 0
+@brief 纯虚函数-获取媒体Sub字幕编码页.
+@return Sub字幕编码页.
+
+@fn virtual void DPlayerBackend::addSubSearchPath(const QString &path) = 0
+@brief 纯虚函数-添加媒体Sub字幕路径.
+@param[in] path 媒体Sub字幕路径.
+
+@fn virtual void DPlayerBackend::firstInit() = 0
+@brief 纯虚函数-第一次打开播放器播放视频.
+
+@fn virtual bool DPlayerBackend::loadSubtitle(const QFileInfo &fi) = 0
+@brief 纯虚函数-加载媒体Sub字幕标题.
+@param[in] fi 媒体Sub字幕文件信息.
+
+@fn virtual void DPlayerBackend::toggleSubtitle() = 0
+@brief 纯虚函数-设置是否显示Sub字幕.
+
+@fn virtual bool DPlayerBackend::isSubVisible() = 0
+@brief 纯虚函数-Sub字幕是否显示.
+@return Sub字幕是否显示， true为显示， 其他为不显示.
+
+@fn virtual void DPlayerBackend::selectSubtitle(int id) = 0
+@brief 纯虚函数-根据id选择加载媒体Sub字幕.
+@param[in] id 媒体Sub字幕id.
+
+@fn virtual void DPlayerBackend::selectTrack(int id) = 0
+@brief 纯虚函数-根据id选择音频轨道.
+@param[in] id 音频轨道id.
+
+@fn virtual void DPlayerBackend::setSubDelay(double secs) = 0
+@brief 纯虚函数-设置Sub字幕延迟显示时间.
+@param[in] secs Sub字幕延迟显示时间.
+
+@fn virtual double DPlayerBackend::subDelay() const = 0
+@brief 纯虚函数-获取Sub字幕延迟显示时间.
+@return Sub字幕延迟显示时间.
+
+@fn virtual int DPlayerBackend::aid() const = 0
+@brief 纯虚函数-获取音轨id.
+@return 音轨id.
+
+@fn virtual int DPlayerBackend::sid() const = 0
+@brief 纯虚函数-获取Sub字幕id.
+@return Sub字幕id.
+
+@fn virtual void DPlayerBackend::changeSoundMode(SoundMode mode) = 0
+@brief 纯虚函数-改变声音播放模式.
+@param[in] mode 声音播放模式.
+
+@fn virtual int DPlayerBackend::volume() const = 0
+@brief 纯虚函数-获取媒体播放音量.
+@return 媒体播放音量.
+
+@fn virtual bool DPlayerBackend::muted() const = 0
+@brief 纯虚函数-获取媒体播放是否静音.
+@return 是否静音， true为静音.
+
+@fn virtual void DPlayerBackend::setVideoAspect(double r) = 0
+@brief 纯虚函数-设置媒体播放显示长宽比.
+@param[in] r 媒体播放长宽比.
+
+@fn virtual double DPlayerBackend::videoAspect() const = 0
+@brief 纯虚函数-获取媒体播放显示长宽比.
+@return 播放显示长宽比.
+
+@fn virtual int DPlayerBackend::videoRotation() const = 0
+@brief 纯虚函数-获取顺时针旋转视频角度.
+@return 顺时针旋转视频角度.
+
+@fn virtual void DPlayerBackend::setVideoRotation(int degree) = 0
+@brief 纯虚函数-设置顺时针旋转视频角度.
+@param[in] degree 顺时针旋转视频角度.
+
+@fn virtual QImage DPlayerBackend::takeScreenshot() const = 0
+@brief 纯虚函数-获取当前视频播放的截图.
+@return 当前视频播放的截图.
+
+@fn virtual void DPlayerBackend::burstScreenshot() = 0
+@brief 纯虚函数-连拍截图，截图间隔时间为5秒.
+
+@fn virtual void DPlayerBackend::stopBurstScreenshot() = 0
+@brief 纯虚函数-停止连拍截图.
+@return 当前视频播放的截图.
+
+@fn virtual QVariant DPlayerBackend::getProperty(const QString &key) const = 0
+@brief 纯虚函数-根据参数获取播放属性.
+@param[in] key 主键.
+@return 播放属性.
+
+@fn virtual void DPlayerBackend::setProperty(const QString &key, const QVariant &value) = 0
+@brief 纯虚函数-设置播放属性.
+@param[in] key 主键.
+@param[in] value 主键对应的值.
+
+@fn virtual void DPlayerBackend::nextFrame() = 0
+@brief 纯虚函数-媒体下一帧.
+
+@fn virtual void DPlayerBackend::previousFrame() = 0
+@brief 纯虚函数-媒体上一帧.
+
+@fn virtual void DPlayerBackend::makeCurrent() = 0
+@brief 纯虚函数-指定绘制设备.
+
+@fn virtual void DPlayerBackend::changehwaccelMode(hwaccelMode hwaccelMode) = 0
+@brief 纯虚函数-改变硬件加速模式.
+@param[in] hwaccelMode 硬件加速模式.
+
+@fn static void DPlayerBackend::setDebugLevel(DebugLevel lvl)
+@brief 静态函数-设置调试等级.
+@param[in] lvl 调试等级.
+
+@fn static DebugLevel DPlayerBackend::debugLevel()
+@brief 静态函数-获取调试等级.
+@return 调试等级.
+
+@fn QUrl DPlayerBackend::urlFile() const
+@brief 获取播放媒体地址.
+@return 播放媒体地址.
+
+@fn virtual void DPlayerBackend::play() = 0
+@brief 纯虚函数-播放媒体.
+
+@fn virtual void DPlayerBackend::pauseResume() = 0
+@brief 纯虚函数-暂停播放.
+
+@fn virtual void DPlayerBackend::stop() = 0
+@brief 纯虚函数-停止播放.
+
+@fn virtual void DPlayerBackend::seekForward(int secs) = 0
+@brief 纯虚函数-向前seek播放媒体.
+@param[in] nSecs seek时长.
+
+@fn virtual void DPlayerBackend::seekBackward(int secs) = 0
+@brief 纯虚函数-向后seek播放媒体.
+@param[in] nSecs seek时长.
+
+@fn virtual void DPlayerBackend::seekAbsolute(int) = 0
+@brief 纯虚函数-seek播放媒体.
+@param[in] nPos seek位置.
+
+@fn virtual void DPlayerBackend::volumeUp() = 0
+@brief 纯虚函数-音量上升.
+
+@fn virtual void DPlayerBackend::volumeDown() = 0
+@brief 纯虚函数-音量下降.
+
+@fn virtual void DPlayerBackend::changeVolume(int val) = 0
+@brief 纯虚函数-音量改变.
+@param[in] nVol 音量值.
+
+@fn virtual void DPlayerBackend::toggleMute() = 0
+@brief 纯虚函数-执行静音与取消操作.
+
+@fn virtual void DPlayerBackend::setMute(bool bMute) = 0
+@brief 纯虚函数-设置静音与取消操作.
+@param[in] bMute true为静音.
+
+@fn virtual QSize DPlayerBackend::videoSize() const = 0
+@brief 纯虚函数-获取媒体分辨率.
+@return 媒体分辨率.
+
+@fn virtual void DPlayerBackend::setWinID(const qint64 &winID)
+@brief 设置窗口wid.
+@param[in] winID 窗口wid.
+
+@fn qint64 DPlayerBackend::winID() const
+@brief 获取窗口wid.
+@return 窗口wid.
+
+*/

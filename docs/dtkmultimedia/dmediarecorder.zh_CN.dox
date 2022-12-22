@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dmediarecorder.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DMediaRecorder dmediarecorder.h
 @brief DMediaRecorder类提供相机录制相关功能.

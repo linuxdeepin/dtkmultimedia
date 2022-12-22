@@ -1,0 +1,24 @@
+/*!
+@~chinese
+@file dvideowidget.h
+@ingroup dtkmultimediawidgets
+
+@class Dtk::Multimedia::DVideoWidget dvideowidget.h
+@brief DVideoWidget类为播放界面类.
+
+@fn QWidget *DVideoWidget::getPlayer()
+@brief 获取播放界面中播放器界面.
+
+@fn void DVideoWidget::setPlatformMediaPlayer(DPlatformMediaPlayer *mediaPlayer = nullptr)
+@brief 设置播放界面中播放操作类界面.
+@param[in] mediaPlayer 播放操作类界面.
+
+@fn void DVideoWidget::slotFullScreenChanged(bool fullScreen)
+@brief 信号槽-全屏状态改变.
+@param[in] fullScreen 是否全屏，true为全屏，其他为非全屏.
+
+@fn void DVideoWidget::showEvent(QShowEvent *pEvent) override
+@brief 显示事件函数.
+@param[in] pEvent 显示事件.
+
+*/

@@ -1,0 +1,207 @@
+/*!
+@~chinese
+@file dplatformmediaplayer.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DPlatformMediaPlayer dplatformmediaplayer.h
+@brief DPlatformMediaPlayer类提供播放界面操作接口类.
+
+@enum Dtk::Multimedia::DPlatformMediaPlayer::TrackType
+@brief 轨道类型
+@var Dtk::Multimedia::DPlatformMediaPlayer::VideoStream
+        视频轨道
+@var Dtk::Multimedia::DPlatformMediaPlayer::AudioStream
+        音频轨道
+@var Dtk::Multimedia::DPlatformMediaPlayer::SubtitleStream
+        字幕轨道
+@var Dtk::Multimedia::DPlatformMediaPlayer::NTrackTypes
+        多轨道
+
+@fn virtual QMediaPlayer::State DPlatformMediaPlayer::state() const
+@brief 虚函数-获取媒体播放状态.
+@return 媒体播放状态.
+
+@fn virtual QMediaPlayer::MediaStatus DPlatformMediaPlayer::mediaStatus() const
+@brief 虚函数-获取媒体加载状态.
+@return 媒体加载状态.
+
+@fn virtual qint64 DPlatformMediaPlayer::duration() const = 0
+@brief 纯虚函数-获取媒体时长.
+@return 媒体时长.
+
+@fn virtual qint64 DPlatformMediaPlayer::position() const = 0
+@brief 纯虚函数-获取媒体已播放时长.
+@return 媒体已播放时长.
+
+@fn virtual void DPlatformMediaPlayer::setPosition(qint64 position) = 0
+@brief 纯虚函数-设置媒体播放位置.
+@param[in] position 媒体播放位置.
+
+@fn virtual float DPlatformMediaPlayer::bufferProgress() const = 0
+@brief 纯虚函数-设置媒体缓冲进度.
+@return 媒体缓冲进度.
+
+@fn virtual bool DPlatformMediaPlayer::isAudioAvailable() const
+@brief 虚函数-获取音频是否可用.
+@return 音频是否可用，true为可用，其他为不可用.
+
+@fn virtual bool DPlatformMediaPlayer::isVideoAvailable() const
+@brief 虚函数-获取视频是否可用.
+@return 视频是否可用，true为可用，其他为不可用.
+
+@fn virtual bool DPlatformMediaPlayer::isSeekable() const
+@brief 虚函数-获取媒体是否可seek.
+@return 媒体是否可seek，true为可用，其他为不可用.
+
+@fn virtual QMediaTimeRange DPlatformMediaPlayer::availablePlaybackRanges() const = 0
+@brief 纯虚函数-获取媒体播放范围是否可用.
+@return 媒体播放范围是否可用，true为可用，其他为不可用.
+
+@fn virtual qreal DPlatformMediaPlayer::playbackRate() const = 0
+@brief 纯虚函数-获取媒体播放速度.
+@return 媒体播放速度.
+
+@fn virtual void DPlatformMediaPlayer::setPlaybackRate(qreal rate) = 0
+@brief 纯虚函数-设置媒体播放速度.
+@param[in] rate 媒体播放速度.
+
+@fn virtual QUrl DPlatformMediaPlayer::media() const = 0
+@brief 纯虚函数-获取媒体url地址.
+@return 媒体url地址.
+
+@fn virtual const QIODevice *DPlatformMediaPlayer::mediaStream() const = 0
+@brief 纯虚函数-获取媒体对应设备.
+@return 媒体对应设备
+
+@fn virtual void DPlatformMediaPlayer::setMedia(const QUrl &media, QIODevice *stream) = 0
+@brief 纯虚函数-设置媒体对应设备与地址.
+@param[in] media 媒体url地址.
+@param[in] stream 媒体对应设备.
+
+@fn virtual void DPlatformMediaPlayer::setVolume(float volume) = 0
+@brief 纯虚函数-设置媒体播放音量.
+@param[in] volume 播放音量值.
+
+@fn virtual void DPlatformMediaPlayer::setMuted(bool muted) = 0
+@brief 纯虚函数-设置媒体播放是否静音.
+@param[in] muted true为静音.
+
+@fn virtual void DPlatformMediaPlayer::play() = 0
+@brief 纯虚函数-播放媒体.
+
+@fn virtual void DPlatformMediaPlayer::pause() = 0
+@brief 纯虚函数-暂停媒体.
+
+@fn virtual void DPlatformMediaPlayer::stop() = 0
+@brief 纯虚函数-停止媒体.
+
+@fn virtual bool DPlatformMediaPlayer::streamPlaybackSupported() const
+@brief 虚函数-获取是否支持流媒体播放.
+@return 是否支持流媒体播放.
+
+@fn virtual void DPlatformMediaPlayer::setAudioOutput(QPlatformAudioOutput *out)
+@brief 虚函数-设置音频输出平台.
+@param[in] out 音频输出平台.
+
+@fn virtual DMediaMetaData DPlatformMediaPlayer::metaData() const
+@brief 虚函数-获取媒体数据格式.
+@return 媒体数据格式.
+
+@fn virtual void DPlatformMediaPlayer::setVideoSink(DVideoSink *sink) = 0
+@brief 纯虚函数-设置视频链路.
+@param[in] sink 视频链路.
+
+@fn virtual int DPlatformMediaPlayer::trackCount(TrackType type)
+@brief 虚函数-媒体通过轨道类型获取轨道数量.
+@param[in] type 轨道类型.
+@return 轨道数量.
+
+@fn virtual DMediaMetaData DPlatformMediaPlayer::trackMetaData(TrackType type, int id)
+@brief 虚函数-媒体通过轨道类型与轨道id.
+@param[in] type 轨道类型.
+@param[in] id 轨道id.
+@return 媒体数据格式.
+
+@fn virtual int DPlatformMediaPlayer::activeTrack(TrackType type)
+@brief 虚函数-媒体通过轨道类型获取激活的轨道数量.
+@param[in] type 轨道类型.
+@return 激活的轨道数量.
+
+@fn virtual void DPlatformMediaPlayer::setActiveTrack(TrackType type, int id);
+@brief 虚函数-媒体激活轨道通过轨道类型与轨道id.
+@param[in] type 轨道类型.
+@param[in] id 轨道id.
+
+@fn void DPlatformMediaPlayer::durationChanged(qint64 duration)
+@brief 媒体时长改变.
+@param[in] duration 媒体时长.
+
+@fn void DPlatformMediaPlayer::positionChanged(qint64 position)
+@brief 媒体播放播放位置改变.
+@param[in] position 播放播放位置.
+
+@fn void DPlatformMediaPlayer::audioAvailableChanged(bool audioAvailable)
+@brief 音频是否可用改变.
+@param[in] audioAvailable 音频是否可用，true为可用，其他为不可用.
+
+@fn void DPlatformMediaPlayer::videoAvailableChanged(bool videoAvailable)
+@brief 视频是否可用改变.
+@param[in] videoAvailable 视频是否可用，true为可用，其他为不可用.
+
+@fn void DPlatformMediaPlayer::seekableChanged(bool seekable)
+@brief 媒体是否可seek改变.
+@param[in] seekable 媒体是否可seek，true为可用，其他为不可用.
+
+@fn void DPlatformMediaPlayer::volumeChanged(int volume)
+@brief 媒体音量改变.
+@param[in] volume 媒体音量值.
+
+@fn void DPlatformMediaPlayer::mutedChanged(bool muted)
+@brief 媒体静音状态改变.
+@param[in] muted 媒体静音状态， true为静音.
+
+@fn void DPlatformMediaPlayer::playbackRateChanged(qreal rate)
+@brief 媒体静音状态改变.
+@param[in] muted 媒体静音状态， true为静音.
+
+@fn void DPlatformMediaPlayer::bufferProgressChanged(float progress)
+@brief 媒体静音状态改变.
+@param[in] muted 媒体静音状态， true为静音.
+
+@fn void DPlatformMediaPlayer::metaDataChanged()
+@brief 媒体数据改变.
+@param[in] muted 媒体静音状态， true为静音.
+
+@fn void DPlatformMediaPlayer::tracksChanged()
+@brief 媒体轨道数改变.
+
+@fn void DPlatformMediaPlayer::activeTracksChanged()
+@brief 媒体激活轨道数改变.
+
+@fn void DPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
+@brief 媒体播放状态改变.
+@param[in] newState 媒体播放状态.
+
+@fn void DPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
+@brief 媒体加载状态改变.
+@param[in] status 媒体加载状态.
+
+@fn void DPlatformMediaPlayer::error(int error, const QString &errorString)
+@brief 获取媒体错误.
+@param[in] error 错误号.
+@param[in] errorString 错误描述.
+
+@fn void DPlatformMediaPlayer::resetCurrentLoop()
+@brief 复位循环模式.
+
+@fn bool DPlatformMediaPlayer::doLoop()
+@brief 执行循环模式.
+
+@fn int DPlatformMediaPlayer::loops()
+@brief 获取循环模式.
+
+@fn void DPlatformMediaPlayer::setLoops(int loops);
+@brief 设置循环模式.
+@param[in] loops 媒体加载状态.
+
+*/

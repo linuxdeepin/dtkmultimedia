@@ -1,0 +1,170 @@
+/*!
+@~chinese
+@file dmpvproxy.h
+@ingroup dtkmultimedi
+
+@class Dtk::Multimedia::DMpvProxy dmpvproxy.h
+@brief DMpvProxy类提供mpv播放功能的引擎类.
+
+@fn void DMpvProxy::setDecodeModel(const QVariant &value);
+@brief 设置解码模式.
+@param[in] value 解码模式值.
+
+@fn void DMpvProxy::refreshDecode()
+@brief 刷新解码模式.
+
+@fn void DMpvProxy::initMpvFuns()
+@brief 初始化mpv接口函数.
+
+@fn bool DMpvProxy::isPlayable() const
+@brief 当前媒体是否能够播放.
+@return 是否能够播放.
+
+@fn void DMpvProxy::pollingEndOfPlayback()
+@brief 轮询直到播放结束.
+
+@fn qint64 DMpvProxy::duration() const
+@brief 获取媒体时长.
+@return 媒体时长.
+
+@fn qint64 DMpvProxy::elapsed() const
+@brief 获取媒体已播放时长.
+@return 媒体已播放时长.
+
+@fn QSize DMpvProxy::videoSize () const
+@brief 获取媒体分辨率.
+@return 媒体分辨率.
+
+@fn const PlayingMovieInfo &DMpvProxy::playingMovieInfo()
+@brief 获取当前播放媒体信息.
+@return 当前播放媒体信息.
+
+@fn void DMpvProxy::setPlaySpeed(double speed)
+    @brief 设置媒体播放速度.
+    @param[in] speed 媒体播放速度.
+
+@fn void DMpvProxy::savePlaybackPosition()
+@brief 保存当前视频播放位置.
+
+@fn virtual void DMpvProxy::updateSubStyle(const QString &font, int sz)
+@brief 更新媒体播放文字显示样式.
+@param[in] font 媒体播放显示字体.
+@param[in] sz 媒体播放显示字体大小.
+
+@fn void DMpvProxy::setSubCodepage(const QString &cp)
+@brief 设置媒体Sub字幕编码页.
+@param[in] cp 编码页.
+
+@fn QString DMpvProxy::subCodepage()
+@brief 获取媒体Sub字幕编码页.
+@return Sub字幕编码页.
+
+@fn void DMpvProxy::addSubSearchPath(const QString &path)
+@brief 添加媒体Sub字幕路径.
+@param[in] path 媒体Sub字幕路径.
+
+@fn void DMpvProxy::firstInit()
+@brief 第一次打开播放器播放视频.
+
+@fn void DMpvProxy::initSetting()
+@brief 初始化播放设置.
+
+@fn bool DMpvProxy::loadSubtitle(const QFileInfo &fi)
+@brief 加载媒体Sub字幕标题.
+@param[in] fi 媒体Sub字幕文件信息.
+
+@fn void DMpvProxy::toggleSubtitle()
+@brief 设置是否显示Sub字幕.
+
+@fn bool DMpvProxy::isSubVisible()
+@brief Sub字幕是否显示.
+@return Sub字幕是否显示， true为显示， 其他为不显示.
+
+@fn void DMpvProxy::selectSubtitle(int id)
+@brief 根据id选择加载媒体Sub字幕.
+@param[in] id 媒体Sub字幕id.
+
+@fn void DMpvProxy::selectTrack(int id)
+@brief 根据id选择音频轨道.
+@param[in] id 音频轨道id.
+
+@fn void DMpvProxy::setSubDelay(double secs)
+@brief 设置Sub字幕延迟显示时间.
+@param[in] secs Sub字幕延迟显示时间.
+
+@fn double DMpvProxy::subDelay() const
+@brief 获取Sub字幕延迟显示时间.
+@return Sub字幕延迟显示时间.
+
+@fn int DMpvProxy::aid() const
+@brief 获取音轨id.
+@return 音轨id.
+
+@fn int DMpvProxy::sid() const
+@brief 获取Sub字幕id.
+@return Sub字幕id.
+
+@fn void DMpvProxy::changeSoundMode(SoundMode mode)
+@brief 改变声音播放模式.
+@param[in] mode 声音播放模式.
+
+@fn int DMpvProxy::volume() const
+@brief 获取媒体播放音量.
+@return 媒体播放音量.
+
+@fn bool DMpvProxy::muted() const
+@brief 获取媒体播放是否静音.
+@return 是否静音， true为静音.
+
+@fn void DMpvProxy::setVideoAspect(double r)
+@brief 设置媒体播放显示长宽比.
+@param[in] r 媒体播放长宽比.
+
+@fn double DMpvProxy::videoAspect() const
+@brief 获取媒体播放显示长宽比.
+@return 播放显示长宽比.
+
+@fn int DMpvProxy::videoRotation() const
+@brief 获取顺时针旋转视频角度.
+@return 顺时针旋转视频角度.
+
+@fn void DMpvProxy::setVideoRotation(int degree)
+@brief 设置顺时针旋转视频角度.
+@param[in] degree 顺时针旋转视频角度.
+
+@fn QImage DMpvProxy::takeScreenshot() const
+@brief 获取当前视频播放的截图.
+@return 当前视频播放的截图.
+
+@fn void DMpvProxy::burstScreenshot()
+@brief 连拍截图，截图间隔时间为5秒
+
+@fn void DMpvProxy::stopBurstScreenshot()
+@brief 停止连拍截图.
+@return 当前视频播放的截图.
+
+@fn QVariant DMpvProxy::getProperty(const QString &key) const
+@brief 根据参数获取播放属性.
+@param[in] key 主键.
+@return 播放属性.
+
+@fn void DMpvProxy::setProperty(const QString &key, const QVariant &value)
+@brief 设置播放属性.
+@param[in] key 主键.
+@param[in] value 主键对应的值.
+
+@fn void DMpvProxy::nextFrame()
+@brief 媒体下一帧.
+
+@fn virtual void DMpvProxy::previousFrame()
+@brief 媒体上一帧.
+
+@fn void DMpvProxy::makeCurrent()
+@brief 指定绘制设备.
+
+@fn void DMpvProxy::changehwaccelMode(hwaccelMode hwaccelMode)
+@brief 改变硬件加速模式.
+@param[in] hwaccelMode 硬件加速模式.
+
+
+*/
