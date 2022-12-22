@@ -1,0 +1,62 @@
+/*!
+@~chinese
+@file daudiorecorder.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DAudioRecorder daudiorecorder.h
+@brief DAudioRecorder类提供录音相关接口.
+
+@fn void DAudioRecorder::setAudioInput(const QString &name)
+@brief 设置音频设备.
+@param[in] name 音频设备.
+
+@fn void DAudioRecorder::setCodec(const ACodecID &codec)
+@brief 设置音频编码.
+@param[in] codec 编码枚举值, CODEC_ID_AAC aac编码, CODEC_ID_MP3 mp3编码, CODEC_ID_AC3 ac3编码, CODEC_ID_NO 默认编码, 根据输出文件后缀名推导编码格式
+
+@fn void DAudioRecorder::setBitRate(int bitrate)
+@brief 设置音频比特率.
+@param[in] bitrate 比特率.
+
+@fn void DAudioRecorder::setSampleRate(int rate)
+@brief 设置录音采样率.
+@param[in] rate 采样率.
+
+@fn void DAudioRecorder::setChannelCount(AChannelsID channels)
+@brief 设置录音通道数.
+@param[in] channels 通道枚举值, CHANNELS_ID_MONO 单通道, CHANNELS_ID_STEREO 双通道.
+
+@fn bool DAudioRecorder::setOutputLocation(const QUrl &location)
+@brief 设置输出文件路径.
+@param[in] 文件url地址.
+@return 设置成功与否.
+
+@fn QString DAudioRecorder::audioInput() const
+@brief 获取音频设备.
+@return 音频设备.
+
+@fn ACodecID DAudioRecorder::codec() const
+@brief 获取音频编码.
+@return 编码枚举值.
+
+@fn int DAudioRecorder::bitRate() const
+@brief 获取音频比特率.
+@return 比特率.
+
+@fn int DAudioRecorder::sampleRate() const
+@brief 获取音频采样率.
+@return 采样率值.
+
+@fn AChannelsID DAudioRecorder::channelCount() const
+@brief 获取音频通道值.
+@return 通道枚举值.
+
+@fn QUrl DAudioRecorder::outputLocation() const
+@brief 获取音频输出信息.
+@return 音频输出路径信息.
+
+@fn State DAudioRecorder::state() const
+@brief 获取当前状态.
+@return 状态枚举值.
+
+*/

@@ -1,0 +1,129 @@
+/*!
+@~chinese
+@file dcompositemanager.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DCompositeManager dcompositemanager.h
+@brief DCompositeManager类是负责对系统环境判断的类.
+
+@enum Dtk::Multimedia::DCompositeManager::Platform
+@brief 平台类型
+@var Dtk::Multimedia::DCompositeManager::Unknown
+        未知平台
+@var Dtk::Multimedia::DCompositeManager::X86
+        intel & amd 平台
+@var Dtk::Multimedia::DCompositeManager::Mips
+        loongson 平台
+@var Dtk::Multimedia::DCompositeManager::Alpha
+        sunway 平台
+@var Dtk::Multimedia::DCompositeManager::Arm64
+        Arm64 平台
+
+@enum Dtk::Multimedia::DCompositeManager::OpenGLInteropKind
+@brief OPenGL 交互类型
+@var Dtk::Multimedia::DCompositeManager::InteropNone
+        未知交互类型
+@var Dtk::Multimedia::DCompositeManager::InteropAuto
+        自动交互类型
+@var Dtk::Multimedia::DCompositeManager::InteropVaapiEGL
+        Vaapi-EGL交互类型
+@var Dtk::Multimedia::DCompositeManager::InteropVaapiGLX
+        Vaapi-GLX交互类型
+@var Dtk::Multimedia::DCompositeManager::InteropVdpauGLX
+        Vdpau-GLX交互类型
+
+
+@fn static DCompositeManager &DCompositeManager::get()
+@brief 静态函数-获取系统环境判断的实例.
+@return 系统环境实例类.
+
+@fn static void DCompositeManager::detectOpenGLEarly()
+@brief 静态函数-检测opengl硬件环境.
+
+@fn static OpenGLInteropKind DCompositeManager::interopKind()
+@brief 静态函数-获取OPenGL 交互类型.
+@return OPenGL 交互类型.
+
+@fn static bool DCompositeManager::runningOnVmwgfx()
+@brief 静态函数-是否运行在虚拟机中.
+@return 是否运行在虚拟机中，true表示在虚拟机中运行.
+
+@fn static bool DCompositeManager::isPadSystem()
+@brief 静态函数-是否是平板设备.
+@return 是否是平板设备，true表示为平台设备.
+
+@fn static bool DCompositeManager::isCanHwdec()
+@brief 静态函数-是否能被硬解.
+@return 是否能被硬解，true表示为平台设备.
+
+@fn static void DCompositeManager::setCanHwdec(bool bCanHwdec)
+@brief 静态函数-设置是否能被硬解.
+@param[in] bCanHwdec 是否能被硬解，true表示为平台设备.
+
+@fn static bool DCompositeManager::isMpvExists()
+@brief 静态函数-是否存在mpv运行环境.
+@return 是否存在mpv运行环境，true存在mpv运行环境.
+
+@fn void DCompositeManager::overrideCompositeMode(bool useCompositing)
+@brief 设置窗口组合模式.
+@param[in] useCompositing 窗口组合模式，true为OPenGL显示.
+
+@fn bool DCompositeManager::composited() const
+@brief 获取窗口组合模式.
+@param[in] useCompositing 窗口组合模式，true为OPenGL显示.
+
+@fn Platform DCompositeManager::platform() const
+@brief 获取运行平台.
+@return 运行平台.
+
+@fn bool DCompositeManager::isTestFlag() const
+@brief 是否测试运行.
+@return 是否测试运行，true为测试运行.
+
+@fn void DCompositeManager::setTestFlag(bool flag)
+@brief 设置是否测试运行.
+@param[in] flag 是否测试运行，true为测试运行.
+
+@fn bool DCompositeManager::isZXIntgraphics() const
+@brief 是否兆芯集显.
+@return 是否兆芯集显，true为兆芯集显.
+
+@fn PlayerOptionList DCompositeManager::getProfile(const QString &name)
+@brief 获取配置信息.
+@param[in] name 配置名.@return 播放器配置信息列表.
+
+@fn PlayerOptionList DCompositeManager::getBestProfile()
+@brief 获取最佳配置.
+@return 播放器最佳配置信息列表.
+
+@fn static void DCompositeManager::detectPciID()
+@brief 静态函数-检测PCI配置.
+
+@fn static bool DCompositeManager::runningOnNvidia()
+@brief 静态函数-是否运行在Nvidia显卡环境.
+@return 是否运行在Nvidia显卡环境，true表示在在Nvidia显卡环境运行.
+
+@fn void DCompositeManager::softDecodeCheck()
+@brief 软件解码环境检测.
+
+@fn bool DCompositeManager::isOnlySoftDecode()
+@brief 是否运行在Nvidia显卡环境.
+@return 是否运行在Nvidia显卡环境，true表示在Nvidia显卡环境运行.
+
+@fn bool DCompositeManager::isSpecialControls()
+@brief 是否为专用控制器.
+@return 是否为专用控制器，true为专用控制器.
+
+@fn void DCompositeManager::getMpvConfig(QMap<QString, QString> *&aimMap)
+@brief 获取mpv控制参数.
+@param[in,out] aimMap mpv控制参数.
+
+@fn bool DCompositeManager::first_check_wayland_env()
+@brief 第一次检测使用此函数检测是否为wayland环境.
+@return 检测是否为wayland环境，true为wayland环境.
+
+@fn bool DCompositeManager::check_wayland_env();
+@brief 是否为wayland环境.
+@return 是否为wayland环境，true为wayland环境.
+
+*/

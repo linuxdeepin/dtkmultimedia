@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dcamera.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DCamera dcamera.h
 @brief DCamera类提供相机操作功能.

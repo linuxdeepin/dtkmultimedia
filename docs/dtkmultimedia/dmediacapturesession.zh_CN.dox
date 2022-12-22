@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dmediacapturesession.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DMediaCaptureSession dmediacapturesession.h
 @brief DMediaCaptureSession类提供相机连接回话相关信息.

@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file daudioinput.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DAudioInput daudioinput.h
 @brief DAudioInput类提供音频输出相关信息.

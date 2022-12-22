@@ -1,0 +1,201 @@
+/*!
+@~chinese
+@file dgstplayerproxy.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DGstPlayerProxy dgstplayerproxy.h
+@brief DGstPlayerProxy类提供gstreamer播放功能的引擎类.
+
+@fn bool DGstPlayerProxy::isPlayable() const
+@brief 当前媒体是否能够播放.
+@return 是否能够播放.
+
+@fn void DGstPlayerProxy::pollingEndOfPlayback()
+@brief 轮询直到播放结束.
+
+@fn qint64 DGstPlayerProxy::duration() const
+@brief 获取媒体时长.
+@return 媒体时长.
+
+@fn qint64 DGstPlayerProxy::elapsed() const
+@brief 获取媒体已播放时长.
+@return 媒体已播放时长.
+
+@fn QSize DGstPlayerProxy::videoSize () const
+@brief 获取媒体分辨率.
+@return 媒体分辨率.
+
+@fn const PlayingMovieInfo &DGstPlayerProxy::playingMovieInfo()
+@brief 获取当前播放媒体信息.
+@return 当前播放媒体信息.
+
+@fn void DGstPlayerProxy::setPlaySpeed(double speed)
+@brief 设置媒体播放速度.
+@param[in] speed 媒体播放速度.
+
+@fn void DGstPlayerProxy::savePlaybackPosition()
+@brief 保存当前视频播放位置.
+
+@fn virtual void DGstPlayerProxy::updateSubStyle(const QString &font, int sz)
+@brief 更新媒体播放文字显示样式.
+@param[in] font 媒体播放显示字体.
+@param[in] sz 媒体播放显示字体大小.
+
+@fn void DGstPlayerProxy::setSubCodepage(const QString &cp)
+@brief 设置媒体Sub字幕编码页.
+@param[in] cp 编码页.
+
+@fn QString DGstPlayerProxy::subCodepage()
+@brief 获取媒体Sub字幕编码页.
+@return Sub字幕编码页.
+
+@fn void DGstPlayerProxy::addSubSearchPath(const QString &path)
+@brief 添加媒体Sub字幕路径.
+@param[in] path 媒体Sub字幕路径.
+
+@fn void DGstPlayerProxy::firstInit()
+@brief 第一次打开播放器播放视频.
+
+@fn bool DGstPlayerProxy::loadSubtitle(const QFileInfo &fi)
+@brief 加载媒体Sub字幕标题.
+@param[in] fi 媒体Sub字幕文件信息.
+
+@fn void DGstPlayerProxy::toggleSubtitle()
+@brief 设置是否显示Sub字幕.
+
+@fn bool DGstPlayerProxy::isSubVisible()
+@brief Sub字幕是否显示.
+@return Sub字幕是否显示， true为显示， 其他为不显示.
+
+@fn void DGstPlayerProxy::selectSubtitle(int id)
+@brief 根据id选择加载媒体Sub字幕.
+@param[in] id 媒体Sub字幕id.
+
+@fn void DGstPlayerProxy::selectTrack(int id)
+@brief 根据id选择音频轨道.
+@param[in] id 音频轨道id.
+
+@fn void DGstPlayerProxy::setSubDelay(double secs)
+@brief 设置Sub字幕延迟显示时间.
+@param[in] secs Sub字幕延迟显示时间.
+
+@fn double DGstPlayerProxy::subDelay() const
+@brief 获取Sub字幕延迟显示时间.
+@return Sub字幕延迟显示时间.
+
+@fn int DGstPlayerProxy::aid() const
+@brief 获取音轨id.
+@return 音轨id.
+
+@fn int DGstPlayerProxy::sid() const
+@brief 获取Sub字幕id.
+@return Sub字幕id.
+
+@fn void DGstPlayerProxy::changeSoundMode(SoundMode mode)
+@brief 改变声音播放模式.
+@param[in] mode 声音播放模式
+
+@fn int DGstPlayerProxy::volume() const
+@brief 获取媒体播放音量.
+@return 媒体播放音量.
+
+@fn bool DGstPlayerProxy::muted() const
+@brief 获取媒体播放是否静音.
+@return 是否静音， true为静音.
+
+@fn void DGstPlayerProxy::setVideoAspect(double r)
+@brief 设置媒体播放显示长宽比.
+@param[in] r 媒体播放长宽比.
+
+@fn double DGstPlayerProxy::videoAspect() const
+@brief 获取媒体播放显示长宽比.
+@return 播放显示长宽比.
+
+@fn int DGstPlayerProxy::videoRotation() const
+@brief 获取顺时针旋转视频角度.
+@return 顺时针旋转视频角度.
+
+@fn void DGstPlayerProxy::setVideoRotation(int degree)
+@brief 设置顺时针旋转视频角度.
+@param[in] degree 顺时针旋转视频角度.
+
+@fn QImage DGstPlayerProxy::takeScreenshot() const
+@brief 获取当前视频播放的截图.
+@return 当前视频播放的截图.
+
+@fn void DGstPlayerProxy::burstScreenshot()
+@brief 连拍截图，截图间隔时间为5秒.
+
+@fn void DGstPlayerProxy::stopBurstScreenshot()
+@brief 停止连拍截图.
+@return 当前视频播放的截图.
+
+@fn QVariant DGstPlayerProxy::getProperty(const QString &key) const
+@brief 根据参数获取播放设置参数属性.
+@param[in] key 主键.
+@return 参数属性.
+
+@fn void DGstPlayerProxy::setProperty(const QString &key, const QVariant &value)
+@brief 设置播放属性.
+@param[in] key 主键.@param[in] value 主键对应的值.
+
+@fn void DGstPlayerProxy::nextFrame()
+@brief 媒体下一帧.
+
+@fn virtual void DGstPlayerProxy::previousFrame()
+@brief 媒体上一帧.
+
+@fn void DGstPlayerProxy::makeCurrent()
+@brief 指定绘制设备.
+
+@fn void DGstPlayerProxy::changehwaccelMode(hwaccelMode hwaccelMode)
+@brief 改变硬件加速模式.
+@param[in] hwaccelMode 硬件加速模式.
+
+@fn void DGstPlayerProxy::play() override
+@brief 播放媒体.
+
+@fn void DGstPlayerProxy::pauseResume() override
+@brief 暂停恢复播放媒体.
+
+@fn void DGstPlayerProxy::stop () override
+@brief 停止播放媒体.
+
+@fn void DGstPlayerProxy::seekForward(int nSecs) override
+@brief 向前seek播放媒体.
+@param[in] nSecs seek时长
+
+@fn void DGstPlayerProxy::seekBackward(int nSecs) override
+@brief 向后seek播放媒体.
+@param[in] nSecs seek时长.
+
+@fn void DGstPlayerProxy::seekAbsolute(int nPos) override
+@brief seek播放媒体.
+@param[in] nPos seek位置.
+
+@fn void DGstPlayerProxy::volumeUp() override
+@brief 音量上升.
+
+@fn void DGstPlayerProxy::volumeDown() override
+@brief 音量下降.
+
+@fn void DGstPlayerProxy::changeVolume(int nVol) override
+@brief 音量改变.
+@param[in] nVol 音量值.
+
+@fn void DGstPlayerProxy::updateRoundClip(bool roundClip)
+@brief 播放界面圆角显示.
+@param[in] roundClip true显示圆角.
+
+@fn void DGstPlayerProxy::setCurrentFrame(const QImage &img)
+@brief 设置当前帧的值.
+@param[in] img 帧图像
+
+@fn void DGstPlayerProxy::toggleMute() override
+@brief 执行静音与取消操作.
+
+@fn void DGstPlayerProxy::setMute(bool bMute) override
+@brief 设置静音与取消操作.
+@param[in] bMute true为静音.
+
+*/

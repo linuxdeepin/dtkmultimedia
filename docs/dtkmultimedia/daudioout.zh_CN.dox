@@ -1,0 +1,44 @@
+/*!
+@~chinese
+@file daudioout.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DAudioOutput daudioout.h
+@brief DAudioOutput类提供音频相关信息.
+
+@fn void DAudioOutput::setDevice(const DAudioDevice &device)
+@brief 设置音频设备.
+@param[in] device 音频设备.
+
+@fn void DAudioOutput::setVolume(float volume)
+@brief 设置音频音量值.
+@param[in] volume 音频音量值.
+
+@fn void DAudioOutput::setMuted(bool muted)
+@brief 设置音频静音状态.
+@param[in] muted 音频静音状态，true为静音状态，其他为非静音状态.
+
+@fn DAudioDevice DAudioOutput::device() const
+@brief 获取音频设备对象.
+@return 音频设备对象.
+
+@fn float DAudioOutput::volume() const
+@brief 获取音频音量值.
+@return 音频音量值.
+
+@fn bool DAudioOutput::isMuted() const
+@brief 获取音频静音状态.
+@return 音频静音状态，true为静音状态，其他为非静音状态.
+
+@fn void DAudioOutput::deviceChanged()
+@brief 信号-设备信息改变.
+
+@fn void DAudioOutput::volumeChanged(float volume)
+@brief 信号-音量值改变.
+@param[in] volume 音量值.
+
+@fn void DAudioOutput::mutedChanged(bool muted)
+@brief 信号-静音状态改变.
+@param[in] muted，true为静音状态，其他为非静音状态.
+
+*/

@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dscreenshot.h
+@ingroup dtkmultimediawidgets
 
 @class Dtk::Multimedia::DScreenShot dscreenshot.h
 @brief DScreenShot类提供截图相关接口.

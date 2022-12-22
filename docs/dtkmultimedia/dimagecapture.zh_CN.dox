@@ -1,6 +1,7 @@
 /*!
 @~chinese
 @file dimagecapture.h
+@ingroup dtkmultimedia
 
 @class Dtk::Multimedia::DImageCapture dimagecapture.h
 @brief DImageCapture类提供相机拍照相关功能.
