@@ -16,6 +16,9 @@ DOCR_BEGIN_NAMESPACE
 
 PaddleOCRApp::PaddleOCRApp()
 {
+#ifndef QT_NO_DEBUG
+    currentPath = OCR_MODEL_DIR;
+#else
     QString fullPath;
     auto xdgDirs = QProcessEnvironment::systemEnvironment().value("XDG_DATA_DIRS").split(':');
     for (auto &xdgDir : xdgDirs) {
@@ -34,6 +37,7 @@ PaddleOCRApp::PaddleOCRApp()
             qWarning() << "cannot find default model";
         }
     }
+#endif
 }
 
 PaddleOCRApp::~PaddleOCRApp()
@@ -363,6 +367,12 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
 
 bool PaddleOCRApp::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> &hardwareUsed)
 {
+    for (const auto &pair : hardwareUsed) {
+        if (!supportHardwares.contains(pair.first)) {
+            return false;
+        }
+    }
+
     needReset = true;
     hardwareUseInfos = hardwareUsed;
     return true;
@@ -424,6 +434,12 @@ bool PaddleOCRApp::setLanguage(const QString &language)
 bool PaddleOCRApp::analyze()
 {
     inRunning = true;
+
+    if (imageCache.isNull()) {
+        inRunning = false;
+        qWarning() << "imageCache is not valid";
+        return false;
+    }
 
     if (needReset) {
         resetNet();

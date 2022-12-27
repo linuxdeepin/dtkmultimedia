@@ -57,11 +57,11 @@ bool DOcrPluginInterface::setImage(const QImage &image)
     return false;
 }
 
-bool DOcrPluginInterface::pluginExpandParam(const QString &key) const
+QString DOcrPluginInterface::pluginExpandParam(const QString &key) const
 {
     Q_UNUSED(key)
     qWarning() << errorMessage << __FUNCTION__;
-    return false;
+    return "";
 }
 
 bool DOcrPluginInterface::setPluginExpandParam(const QString &key, const QString &value)
