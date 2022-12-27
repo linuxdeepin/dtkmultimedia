@@ -23,7 +23,7 @@ public:
     virtual bool setImageFile(const QString &filePath);
     virtual bool setImage(const QImage &image);
     virtual QImage imageCached() const = 0;
-    virtual bool pluginExpandParam(const QString &key) const;
+    virtual QString pluginExpandParam(const QString &key) const;
     virtual bool setPluginExpandParam(const QString &key, const QString &value);
     virtual bool analyze() = 0;
     virtual bool breakAnalyze();

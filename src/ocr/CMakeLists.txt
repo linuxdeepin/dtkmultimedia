@@ -79,5 +79,11 @@ set(SourcesDir ${CMAKE_INSTALL_PREFIX}/share)
 set(CurrentProjectSourcesDir lib${BIN_NAME})
 set(ModelSaveSubDir dtkocrmodels)
 set(ModelInstallDir ${SourcesDir}/${CurrentProjectSourcesDir})
-ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CurrentProjectSourcesDir}/${ModelSaveSubDir}/")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CMAKE_CURRENT_LIST_DIR}/${ModelSaveSubDir}/")
+else()
+    ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CurrentProjectSourcesDir}/${ModelSaveSubDir}/")
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${ModelSaveSubDir} DESTINATION ${ModelInstallDir})

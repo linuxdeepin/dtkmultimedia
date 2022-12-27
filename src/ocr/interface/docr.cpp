@@ -181,11 +181,11 @@ QImage DOcr::imageCached() const
     return d->plugin->imageCached();
 }
 
-bool DOcr::pluginExpandParam(const QString &key) const
+QString DOcr::pluginExpandParam(const QString &key) const
 {
     if (!pluginReady()) {
         qWarning() << "you need load a plugin first: " << __FUNCTION__;
-        return false;
+        return "";
     }
 
     Q_D(const DOcr);

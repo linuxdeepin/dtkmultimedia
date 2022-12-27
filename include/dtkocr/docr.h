@@ -64,7 +64,7 @@ public:
     bool setImageFile(const QString &filePath);
     bool setImage(const QImage &image);
     QImage imageCached() const;
-    bool pluginExpandParam(const QString &key) const;
+    QString pluginExpandParam(const QString &key) const;
     bool setPluginExpandParam(const QString &key, const QString &value);
     bool analyze();
     bool breakAnalyze();
