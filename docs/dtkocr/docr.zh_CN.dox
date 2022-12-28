@@ -1,0 +1,168 @@
+/*!
+@~chinese
+@file docr.h
+@ingroup dtkocr
+
+@class Dtk::Ocr::DOcr docr.h
+@brief DOcr类为光学图文识别类，负责从给定的图片中提取文字，并提供相应的插件服务，
+其中插件不一定会实现每一个功能，当执行了插件未实现的功能时，程序会通过 `qWarning` 打印错误提示信息
+
+@enum Dtk::Ocr::HardwareID
+@brief 硬件种类ID，用于表示插件可以在何种硬件上进行使用，一个插件可以对应多种硬件
+@var Dtk::Ocr::HardwareID::Network
+插件为在线识别模型，需要通过网络和服务器进行数据交互
+@var Dtk::Ocr::HardwareID::CPU_Any
+插件可以运行在任意CPU上，或是支持的CPU未在枚举列表中
+@var Dtk::Ocr::HardwareID::CPU_X86
+插件可以运行在X86处理器上
+@var Dtk::Ocr::HardwareID::CPU_AArch64
+插件可以运行在AArch64处理器上
+@var Dtk::Ocr::HardwareID::CPU_MIPS
+插件可以运行在MIPS处理器上
+@var Dtk::Ocr::HardwareID::CPU_LoongArch
+插件可以运行在LoongArch处理器上
+@var Dtk::Ocr::HardwareID::CPU_SW
+插件可以运行在SW处理器上
+@var Dtk::Ocr::HardwareID::CPU_RISC_V
+插件可以运行在RISC-V处理器上
+@var Dtk::Ocr::HardwareID::GPU_Any
+插件可以运行在任意GPU上，或是支持的GPU未在枚举列表中
+@var Dtk::Ocr::HardwareID::GPU_Vulkan
+插件可以使用Vulkan接口运行
+@var Dtk::Ocr::HardwareID::GPU_NVIDIA
+插件可以在NVIDIA的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_AMD
+插件可以在AMD的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_Intel
+插件可以在Intel的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_MT
+插件可以在摩尔线程的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_JM
+插件可以在景嘉微的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_Loongson
+插件可以在龙芯的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_Innosilicon
+插件可以在芯动科技的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_LM
+插件可以在凌久微电子的GPU上运行
+@var Dtk::Ocr::HardwareID::GPU_BR
+插件可以在壁仞科技的GPU上运行
+
+@struct Dtk::Ocr::TextBox
+@brief 文本框定义
+@var Dtk::Ocr::TextBox::points
+以顺时针方向为顺序的用于描述文本框的点位列表
+@var Dtk::Ocr::TextBox::angle
+文本的倾斜角度
+
+@fn QStringList DOcr::installedPluginNames()
+@brief 获取已安装的插件名称列表，不包含默认插件
+@return 已安装的插件名称列表
+
+@fn bool DOcr::loadDefaultPlugin()
+@brief 加载默认插件，默认插件内嵌在 `dtkocr` 中，可以直接使用
+@return 是否加载成功，true为加载成功，false为加载失败
+
+@fn bool DOcr::loadPlugin(const QString &pluginName)
+@brief 通过插件名加载已安装的插件
+@param[in] pluginName 插件名称，需要包含于 `DOcr::installedPluginNames` 函数的返回值中
+@return 是否加载成功，true为加载成功，false为加载失败
+
+@fn bool DOcr::pluginReady() const
+@brief 获取插件加载状态
+@return 插件是否已就绪，true为已就绪，false为还未就绪
+
+@fn QList<Dtk::Ocr::HardwareID> DOcr::hardwareSupportList() const
+@brief 获取插件支持的硬件列表，执行此函数前需要确保插件已就绪
+@return 插件支持的硬件列表
+
+@fn bool DOcr::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> &hardwareUsed)
+@brief 设置允许插件使用的设备，可以一次指定多个设备，执行此函数前需要确保插件已就绪
+@param[in] hardwareUsed 可以使用的设备的种类和它对应的设备编号列表
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcr::setUseMaxThreadsCount(int n)
+@brief 设置允许插件最多可以开几个线程，执行此函数前需要确保插件已就绪
+@param[in] n 可以开的线程数量
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QStringList DOcr::authKeys() const
+@brief 获取插件的鉴权参数关键字，此项一般用于需要额外授权才能使用的插件，执行此函数前需要确保插件已就绪
+@return 插件的鉴权参数关键字，如果为空则表示使用插件不需要鉴权
+
+@fn bool DOcr::setAuth(const QStringList &params)
+@brief 设置鉴权参数，执行此函数前需要确保插件已就绪
+@param[in] params 鉴权参数列表，顺序需要和 `DOcr::authKeys` 函数返回的关键字顺序一一对应
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QStringList DOcr::imageFileSupportFormats() const
+@brief 获取支持读取的图片文件类型，执行此函数前需要确保插件已就绪
+@return 支持的图片类型，如果为空则表示插件不支持从文件读取图片
+
+@fn bool DOcr::setImageFile(const QString &filePath)
+@brief 设置图片文件路径，让插件从文件读取图片，图片的类型需要包含于 
+`DOcr::imageFileSupportFormats` 的返回值内，执行此函数前需要确保插件已就绪
+@param[in] filePath 图片文件路径
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcr::setImage(const QImage &image)
+@brief 设置需要识别的图片，执行此函数前需要确保插件已就绪
+@param[in] image 需要识别的图片
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QImage DOcr::imageCached() const
+@brief 获取之前设置成功的图片数据，执行此函数前需要确保插件已就绪
+@return 图片数据
+
+@fn QString DOcr::pluginExpandParam(const QString &key) const
+@brief 获取插件的自定义拓展参数设置情况，执行此函数前需要确保插件已就绪
+@param[in] key 拓展参数关键字
+@return 已设置的值
+
+@fn bool DOcr::setPluginExpandParam(const QString &key, const QString &value)
+@brief 设置插件的自定义拓展参数，执行此函数前需要确保插件已就绪
+@param[in] key 拓展参数关键字
+@param[in] value key所对应的设置值
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcr::analyze()
+@brief 执行识别操作，识别操作一般耗时较长，程序流程会在此阻塞较长时间，执行此函数前需要确保插件已就绪
+@return 本次的识别结果是否有效
+
+@fn bool DOcr::breakAnalyze()
+@brief 设置中断当前识别操作，执行此函数前需要确保插件已就绪
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcr::isRunning() const
+@brief 获取是否正在进行识别操作，此接口的调用位置一般和
+`DOcr::analyze` 函数不在同一个线程内，执行此函数前需要确保插件已就绪
+@return 是否正在进行识别操作，true为识别还在进行中，false为没有在进行识别
+
+@fn QStringList DOcr::languageSupport() const
+@brief 获取插件支持的语种列表，执行此函数前需要确保插件已就绪
+@return 插件支持的语种列表
+
+@fn bool DOcr::setLanguage(const QString &language)
+@brief 设置识别的语种，语种需要在包含于 `DOcr::languageSupport` 函数的返回值中，执行此函数前需要确保插件已就绪
+@param[in] language 语种
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QList<Dtk::Ocr::TextBox> DOcr::textBoxes() const
+@brief 获取识别到的文本框，执行此函数前需要确保插件已就绪
+@return 识别到的文本框列表
+
+@fn QList<Dtk::Ocr::TextBox> DOcr::charBoxes(int index) const
+@brief 获取识别到的文本框中的单个字的字符框，执行此函数前需要确保插件已就绪
+@param[in] index 文本框索引
+@return 识别到的字符框列表
+
+@fn QString DOcr::simpleResult() const
+@brief 获取格式简单的整体识别结果，执行此函数前需要确保插件已就绪
+@return 整体识别结果
+
+@fn QString DOcr::resultFromBox(int index) const
+@brief 获取指定文本框内的识别结果，执行此函数前需要确保插件已就绪
+@param[in] index 文本框索引
+@return 指定文本框内的识别结果
+
+*/
