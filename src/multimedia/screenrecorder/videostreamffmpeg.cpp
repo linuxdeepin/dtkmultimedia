@@ -90,12 +90,20 @@ void VideoStreamFfmpeg::stop()
 
 void VideoStreamFfmpeg::encodeWork()
 {
+    if(!d_avcodec_decode_video2 || !d_avcodec_encode_video2 || !d_avpicture_get_size) {
+        qCritical("can not encode / decode video");
+        return;
+    }
     int ret = 0;
     AVPacket *inputPacket = d_av_packet_alloc();
     AVFrame *inputFrame = d_av_frame_alloc();
     AVFrame *outFrame = d_av_frame_alloc();
 
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    int nbytes = 0;
+#else
     int nbytes = d_avpicture_get_size(pixFormat, resolutionSize.width(), resolutionSize.height());
+#endif
     uint8_t *video_outbuf = static_cast<uint8_t *>(d_av_malloc(nbytes));
 
     ret = d_av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf,
@@ -116,7 +124,11 @@ void VideoStreamFfmpeg::encodeWork()
         if (d_av_read_frame(videoInFormatCtx, inputPacket) < 0) {
             qCritical("can not read frame");
         }
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+        ret = -1;
+#else
         ret = d_avcodec_decode_video2(videoInCodecCtx, inputFrame, &frameFinished, inputPacket);
+#endif
         if (ret < 0) {
             qCritical("unable to decode video");
         }
@@ -141,7 +153,11 @@ void VideoStreamFfmpeg::encodeWork()
             outPacket.data = nullptr;
             outPacket.size = 0;
 
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+            got = -1;
+#else
             d_avcodec_encode_video2(videoOutCodecCtx, &outPacket, outFrame, &got);
+#endif
             if (1 == got) {
                 int64_t curTime = d_av_gettime();
                 if (fristFramePts == 0) {
@@ -164,9 +180,11 @@ bool VideoStreamFfmpeg::openInputVideoCtx()
     }
 
     int ret = 0;
-
-    AVInputFormat *inputFormat = nullptr;
-    inputFormat = d_av_find_input_format("x11grab");
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVInputFormat *inputFormat = d_av_find_input_format("x11grab");
+#else
+    AVInputFormat *inputFormat = d_av_find_input_format("x11grab");
+#endif
     if (inputFormat == nullptr) {
         qCritical("unable to find the input format x11grab");
         return false;
@@ -194,7 +212,11 @@ bool VideoStreamFfmpeg::openInputVideoCtx()
 
     for (unsigned int i = 0; i < videoInFormatCtx->nb_streams; ++i) {
         if (videoInFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+            videoInCodecCtx = nullptr;
+#else
             videoInCodecCtx = videoInFormatCtx->streams[i]->codec;
+#endif
             break;
         }
     }
@@ -202,9 +224,11 @@ bool VideoStreamFfmpeg::openInputVideoCtx()
         qCritical("unable to find the video stream index");
         return false;
     }
-
-    AVCodec *inputAVCodec = nullptr;
-    inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVCodec *inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
+#else
+    AVCodec *inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
+#endif
     if (inputAVCodec == nullptr) {
         qCritical("unable to find the decoder");
         return false;
@@ -232,8 +256,15 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
     }
 
     videoOutStream = d_avformat_new_stream(videoOutFormatCtx, nullptr);
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVCodec *outAVCodec = d_avcodec_find_encoder(codecId);
+    videoOutCodecCtx = nullptr;
+    qCritical("error find encoder the avcodec");
+    return false;
+#else
     AVCodec *outAVCodec = d_avcodec_find_encoder(codecId);
     videoOutCodecCtx = videoOutStream->codec;
+#endif
     videoOutCodecCtx->codec_id = codecId;   // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     videoOutCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
     videoOutCodecCtx->pix_fmt = pixFormat;
@@ -315,13 +346,24 @@ bool VideoStreamFfmpeg::loadFunction()
     d_avcodec_find_decoder = reinterpret_cast<decltype(avcodec_find_decoder) *>(libavcodec.resolve("avcodec_find_decoder"));
     d_avcodec_open2 = reinterpret_cast<decltype(avcodec_open2) *>(libavcodec.resolve("avcodec_open2"));
     d_av_packet_alloc = reinterpret_cast<decltype(av_packet_alloc) *>(libavcodec.resolve("av_packet_alloc"));
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    d_avcodec_decode_video2 = nullptr;
+#else
     d_avcodec_decode_video2 = reinterpret_cast<decltype(avcodec_decode_video2) *>(libavcodec.resolve("avcodec_decode_video2"));
+#endif
     d_avcodec_find_encoder = reinterpret_cast<decltype(avcodec_find_encoder) *>(libavcodec.resolve("avcodec_find_encoder"));
     d_avcodec_alloc_context3 = reinterpret_cast<decltype(avcodec_alloc_context3) *>(libavcodec.resolve("avcodec_alloc_context3"));
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    d_avcodec_encode_video2 = nullptr;
+#else
     d_avcodec_encode_video2 = reinterpret_cast<decltype(avcodec_encode_video2) *>(libavcodec.resolve("avcodec_encode_video2"));
+#endif
     d_av_packet_unref = reinterpret_cast<decltype(av_packet_unref) *>(libavcodec.resolve("av_packet_unref"));
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    d_avpicture_get_size = nullptr;
+#else
     d_avpicture_get_size = reinterpret_cast<decltype(avpicture_get_size) *>(libavcodec.resolve("avpicture_get_size"));
-
+#endif
     d_av_dict_set = reinterpret_cast<decltype(av_dict_set) *>(libavutil.resolve("av_dict_set"));
     d_av_frame_alloc = reinterpret_cast<decltype(av_frame_alloc) *>(libavutil.resolve("av_frame_alloc"));
     d_av_malloc = reinterpret_cast<decltype(av_malloc) *>(libavutil.resolve("av_malloc"));

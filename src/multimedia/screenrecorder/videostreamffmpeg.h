@@ -9,6 +9,14 @@
 #include <QLibrary>
 #include <QObject>
 
+#ifdef LIBAVUTIL_VERSION_MAJOR
+#define LIBAVUTIL_VER_AT_LEAST(major,minor)  (LIBAVUTIL_VERSION_MAJOR > major || \
+                                              (LIBAVUTIL_VERSION_MAJOR == major && \
+                                               LIBAVUTIL_VERSION_MINOR >= minor))
+#else
+#define LIBAVUTIL_VER_AT_LEAST(major,minor) 0
+#endif
+
 DMULTIMEDIA_USE_NAMESPACE
 
 class VideoStreamFfmpeg : public VideoStreamInterface
@@ -52,14 +60,25 @@ private:
     decltype(avcodec_find_decoder) *d_avcodec_find_decoder { nullptr };
     decltype(avcodec_open2) *d_avcodec_open2 { nullptr };
     decltype(av_packet_alloc) *d_av_packet_alloc { nullptr };
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    void *d_avcodec_decode_video2 { nullptr };
+#else
     decltype(avcodec_decode_video2) *d_avcodec_decode_video2 { nullptr };
+#endif
     decltype(avcodec_find_encoder) *d_avcodec_find_encoder { nullptr };
     decltype(avcodec_alloc_context3) *d_avcodec_alloc_context3 { nullptr };
-    decltype(avcodec_encode_video2) *d_avcodec_encode_video2 { nullptr };
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    void *d_avcodec_encode_video2 { nullptr };
+#else
+     decltype(avcodec_encode_video2) *d_avcodec_encode_video2 { nullptr };
+#endif
     decltype(av_init_packet) *d_av_init_packet { nullptr };
     decltype(av_packet_unref) *d_av_packet_unref { nullptr };
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    void *d_avpicture_get_size { nullptr };
+#else
     decltype(avpicture_get_size) *d_avpicture_get_size { nullptr };
-
+#endif
     decltype(av_dict_set) *d_av_dict_set { nullptr };
     decltype(av_frame_alloc) *d_av_frame_alloc { nullptr };
     decltype(av_malloc) *d_av_malloc { nullptr };
