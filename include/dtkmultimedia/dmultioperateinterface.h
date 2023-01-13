@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
@@ -43,7 +43,7 @@ public:
 
 public:
     QStringList showVideoMuxList(const videoCodecName &name);
-    QStringList showAideoMuxList(const audioCodecName &name);
+    QStringList showAudioMuxList(const audioCodecName &name);
     QString nameOfMuxer(const muxerName &name);
     QString nameOfVideoCodec(const videoCodecName &name);
     QString nameOfAudioCodec(const audioCodecName &name);
