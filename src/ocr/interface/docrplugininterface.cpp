@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2022 - 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
@@ -86,6 +86,7 @@ QList<TextBox> DOcrPluginInterface::textBoxes() const
 
 QList<TextBox> DOcrPluginInterface::charBoxes(int index) const
 {
+    Q_UNUSED(index)
     qWarning() << errorMessage << __FUNCTION__;
     return QList<TextBox>();
 }

@@ -1,0 +1,19 @@
+Source: dtkocrpluginexample
+Section: libdevel
+Priority: optional
+Maintainer: Packages Builder <packages@deepin.com>
+Build-Depends:
+ debhelper-compat (= 12),
+ cmake,
+ qtbase5-dev,
+ pkg-config, 
+ libdtkocr-dev
+
+Standards-Version: 4.5.0
+Package: libdtkocrpluginexample
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libdtkocr
+Description: A example plugin for Development Tool Kit ocr library
+ libdtkocr is base library of Deepin Qt/C++ applications.
+ .
+ This package is a example plugin for libdtkocr.
