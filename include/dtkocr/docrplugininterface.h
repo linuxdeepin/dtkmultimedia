@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2022 - 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #ifndef DOCRPLUGININTERFACE_H
@@ -38,6 +38,7 @@ public:
 
 DOCR_END_NAMESPACE
 
-Q_DECLARE_INTERFACE(Dtk::Ocr::DOcrPluginInterface, "Dtk.Plugin.DOcrPluginInterface/1.0")
+#define DOcrPluginInterface_iid "Dtk.Plugin.DOcrPluginInterface/1.0"
+Q_DECLARE_INTERFACE(Dtk::Ocr::DOcrPluginInterface, DOcrPluginInterface_iid)
 
 #endif

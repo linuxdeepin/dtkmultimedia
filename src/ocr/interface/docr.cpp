@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2022 - 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
@@ -10,6 +10,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QImage>
+#include <QPluginLoader>
+#include <QThread>
 #include <QtDebug>
 
 #include <dlfcn.h>
@@ -17,33 +19,59 @@
 DOCR_BEGIN_NAMESPACE
 
 DOcrPrivate::DOcrPrivate(DOcr *parent)
-    : q_ptr(parent)
+    : qtPluginLoader(new QPluginLoader(this))
+    , q_ptr(parent)
 {
-    ;
+    auto dlDir = currentModuleDir();
+    if (!dlDir.isEmpty()) {
+        pluginInstallDir = currentModuleDir() + "/libdtkocr/plugins";
+    } else {
+        qWarning() << "Unable to locate dtkocr library path";
+        qWarning() << "Normal plugins will be disabled";
+    }
 }
 
-bool DOcrPrivate::isCompatible()
-{
-    return false;
-}
+static void dlAnchor() {}
 
 void DOcrPrivate::resetPlugin()
 {
-    ;
+    if (currentPluginType != Plugin_None && plugin->isRunning()) {
+        plugin->breakAnalyze();
+        while (plugin->isRunning()) {
+            QThread::msleep(50);
+        }
+    }
+
+    switch (currentPluginType) {
+        default:
+            delete plugin;
+            break;
+        case Plugin_Qt:
+            qtPluginLoader->unload();
+            break;
+        case Plugin_Cpp:
+            delete plugin;
+            break;
+        case Plugin_None:
+            delete plugin;
+            break;
+    }
+
+    plugin = nullptr;
+    currentPluginType = Plugin_None;
 }
 
 QString DOcrPrivate::currentModuleDir()
 {
     Dl_info dlInfo;
     int rc = 1;
-    rc = dladdr(this, &dlInfo);
+    rc = dladdr(reinterpret_cast<const void *>(&dlAnchor), &dlInfo);
     if (rc == 0) {
-        qWarning() << "Unable to locate dtkocr library path";
         return "";
     }
 
-    const QString &modelFullPath = dlInfo.dli_fname;
-    QFileInfo info(modelFullPath);
+    const QString &moduleFullPath = dlInfo.dli_fname;
+    QFileInfo info(moduleFullPath);
     return info.absoluteDir().path();
 }
 
@@ -57,7 +85,18 @@ DOcr::~DOcr() {}
 
 QStringList DOcr::installedPluginNames()
 {
-    return {};
+    Q_D(DOcr);
+    if (d->pluginInstallDir.isEmpty()) {
+        qWarning() << "Normal plugin is disabled";
+        return {};
+    }
+
+    QDir pluginDir(d->pluginInstallDir);
+    if (!pluginDir.exists()) {
+        return {};
+    }
+
+    return pluginDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 }
 
 bool DOcr::loadDefaultPlugin()
@@ -67,19 +106,47 @@ bool DOcr::loadDefaultPlugin()
         d->resetPlugin();
     }
     d->plugin = new PaddleOCRApp;
-    d->pluginIsLoaded = true;
+    d->currentPluginType = DOcrPrivate::Plugin_Default;
     return true;
 }
 
 bool DOcr::loadPlugin(const QString &pluginName)
 {
+    Q_D(DOcr);
+    if (d->pluginInstallDir.isEmpty()) {
+        qWarning() << "Normal plugin is disabled";
+        return {};
+    }
+
+    auto pluginLibPath = d->pluginInstallDir + "/" + pluginName + "/libload.so";
+    if (!QFile::exists(pluginLibPath)) {
+        qWarning() << "Cannot find plugin entrance file:" << pluginLibPath;
+        return false;
+    }
+
+    d->qtPluginLoader->setFileName(pluginLibPath);
+    auto pluginObject = d->qtPluginLoader->instance();
+    if (pluginObject != nullptr) {
+        auto pluginDetail = qobject_cast<DOcrPluginInterface *>(pluginObject);
+        if (pluginDetail != nullptr) {
+            if (pluginReady()) {
+                d->resetPlugin();
+            }
+            d->plugin = pluginDetail;
+            d->currentPluginType = DOcrPrivate::Plugin_Qt;
+            return true;
+        }
+    }
+
+    qWarning() << "Cannot load plugin from" << pluginLibPath;
+    qWarning() << "Error message:" << d->qtPluginLoader->errorString();
     return false;
 }
 
 bool DOcr::pluginReady() const
 {
     Q_D(const DOcr);
-    return d->pluginIsLoaded;
+    return d->currentPluginType != DOcrPrivate::Plugin_None;
 }
 
 QList<HardwareID> DOcr::hardwareSupportList() const
