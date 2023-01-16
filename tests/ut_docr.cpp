@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2022 - 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <QImage>
+#include <cmath>
 #include <cstring>
 
 DOCR_USE_NAMESPACE
@@ -178,10 +179,10 @@ TEST_F(ut_DOcr, textBoxes)
     ASSERT_EQ(box.points.size(), 4);
     ASSERT_EQ(box.angle, 0);
 
-    ASSERT_LT(box.points[0].y() - box.points[1].y(), floatPrecision);
-    ASSERT_LT(box.points[1].x() - box.points[2].x(), floatPrecision);
-    ASSERT_LT(box.points[2].y() - box.points[3].y(), floatPrecision);
-    ASSERT_LT(box.points[3].x() - box.points[0].x(), floatPrecision);
+    ASSERT_LT(std::fabs(box.points[0].y() - box.points[1].y()), floatPrecision);
+    ASSERT_LT(std::fabs(box.points[1].x() - box.points[2].x()), floatPrecision);
+    ASSERT_LT(std::fabs(box.points[2].y() - box.points[3].y()), floatPrecision);
+    ASSERT_LT(std::fabs(box.points[3].x() - box.points[0].x()), floatPrecision);
 }
 
 TEST_F(ut_DOcr, charBoxes)
@@ -196,7 +197,7 @@ TEST_F(ut_DOcr, charBoxes)
 
     for (int i = 1; i != boxes.size(); ++i) {
         ASSERT_EQ(boxes[i].points.size(), 4);
-        ASSERT_LT(boxes[i].points[0].y() - boxes[i - 1].points[0].y(), floatPrecision);
+        ASSERT_LT(std::fabs(boxes[i].points[0].y() - boxes[i - 1].points[0].y()), floatPrecision);
     }
 }
 

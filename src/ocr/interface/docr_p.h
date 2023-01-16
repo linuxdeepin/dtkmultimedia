@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2022 - 2023 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #ifndef DOCR_P_H
@@ -8,6 +8,7 @@
 #include "dtkocr.h"
 
 #include <QAtomicInt>
+#include <QPluginLoader>
 
 DOCR_BEGIN_NAMESPACE
 
@@ -20,8 +21,9 @@ class DOcrPrivate : public QObject
 public:
     explicit DOcrPrivate(DOcr *parent = nullptr);
 
+    enum PluginType { Plugin_Default, Plugin_Qt, Plugin_Cpp, Plugin_None };
+
 private:
-    bool isCompatible();
     void resetPlugin();
     QString currentModuleDir();
 
@@ -30,7 +32,8 @@ private:
     int pluginVersion = 0;
     QAtomicInt isRunning = 0;
     DOcrPluginInterface *plugin = nullptr;
-    bool pluginIsLoaded = false;
+    QPluginLoader *qtPluginLoader;
+    PluginType currentPluginType = Plugin_None;
 
     DOcr *q_ptr;
 };
