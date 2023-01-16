@@ -69,18 +69,21 @@ void PaddleOCRApp::initNet()
         return;
     }
 
-    int gpuCount = ncnn::get_gpu_count();
     QSet<int> gpuCanUseSet;
-    if (gpuCount != 0) {
-        for (auto &eachPair : hardwareUseInfos) {
-            if (eachPair.first == Dtk::Ocr::HardwareID::GPU_Vulkan) {
-                if (eachPair.second < gpuCount) {
-                    gpuCanUseSet.insert(eachPair.second);
-                }
-            }
+    for (auto &eachPair : hardwareUseInfos) {
+        if (eachPair.first == Dtk::Ocr::HardwareID::GPU_Vulkan) {
+            gpuCanUseSet.insert(eachPair.second);
         }
     }
     QList<int> gpuCanUse = gpuCanUseSet.toList();
+    if (!gpuCanUse.isEmpty()) {
+        int gpuCount = ncnn::get_gpu_count();
+        for (int i = gpuCanUse.size() - 1; i >= 0; --i) {
+            if (gpuCanUse[i] < 0 || gpuCanUse[i] >= gpuCount) {
+                gpuCanUse.removeAt(i);
+            }
+        }
+    }
 
     int maxThreads = QThread::idealThreadCount();
     if (maxThreads <= 0) {

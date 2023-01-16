@@ -8,7 +8,13 @@
 #include <QDebug>
 #include <QLibrary>
 #include <QLibraryInfo>
-
+#ifdef LIBAVUTIL_VERSION_MAJOR
+#define LIBAVUTIL_VER_AT_LEAST(major,minor)  (LIBAVUTIL_VERSION_MAJOR > major || \
+                                              (LIBAVUTIL_VERSION_MAJOR == major && \
+                                               LIBAVUTIL_VERSION_MINOR >= minor))
+#else
+#define LIBAVUTIL_VER_AT_LEAST(major,minor) 0
+#endif
 DMULTIMEDIA_USE_NAMESPACE
 
 static QString libPath(const QString &sLib)
@@ -184,7 +190,11 @@ bool DAudioEncoderInterface::openInputAudioCtx()
 
     AVDictionary *options = nullptr;
     int ret = 0;
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVInputFormat *inputFormat = d->d_av_find_input_format("pulse");
+#else
     AVInputFormat *inputFormat = d->d_av_find_input_format("pulse");
+#endif
     ret = d->d_avformat_open_input(&(d->audioInFormatCtx), d->deviceName.toLatin1(), inputFormat, &options);
     if (ret != 0) {
         qCritical("Couldn't open input audio stream.");
@@ -206,8 +216,11 @@ bool DAudioEncoderInterface::openInputAudioCtx()
         qCritical("Couldn't find audio stream.");
         return false;
     }
-
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVCodec *audioInCodec = d->d_avcodec_find_decoder(d->audioInStream->codecpar->codec_id);
+#else
     AVCodec *audioInCodec = d->d_avcodec_find_decoder(d->audioInStream->codecpar->codec_id);
+#endif
     d->audioInCodecCtx = d->d_avcodec_alloc_context3(audioInCodec);
     d->d_avcodec_parameters_to_context(d->audioInCodecCtx, d->audioInStream->codecpar);
     if (d->d_avcodec_open2(d->audioInCodecCtx, audioInCodec, nullptr) < 0) {
@@ -254,8 +267,11 @@ bool DAudioEncoderInterface::openOutputAudioCtx()
         qCritical("Fail to open output file.");
         return false;
     }
-
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    const AVCodec *audioOutCodec = d->d_avcodec_find_encoder(d->codecAdaptation());
+#else
     AVCodec *audioOutCodec = d->d_avcodec_find_encoder(d->codecAdaptation());
+#endif
     if (!audioOutCodec) {
         qCritical("Fail to find aac encoder. Please check your DLL.");
         return false;
