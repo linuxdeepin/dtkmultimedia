@@ -1,0 +1,201 @@
+/*!
+@~chinese
+@file dmultioperateinterface.h
+@ingroup dtkmultimedia
+
+@class Dtk::Multimedia::DMultiOperateInterface dmultioperateinterface.h
+@brief DMultiOperateInterface类提供多媒体信息查看与转换功能.
+
+@enum Dtk::Multimedia::DMultiOperateInterface::videoCodecName
+@brief 多媒体视频格式
+@var Dtk::Multimedia::DMultiOperateInterface::h264
+    h264视频
+@var Dtk::Multimedia::DMultiOperateInterface::Hevc
+    h265视频
+@var Dtk::Multimedia::DMultiOperateInterface::mpeg4
+    mpeg4视频
+@var Dtk::Multimedia::DMultiOperateInterface::vp8
+    vp8视频
+@var Dtk::Multimedia::DMultiOperateInterface::vp9
+    vp9视频
+@var Dtk::Multimedia::DMultiOperateInterface::avs2
+    avs2视频
+
+@enum Dtk::Multimedia::DMultiOperateInterface::audioCodecName
+@brief 多媒体音频格式
+@var Dtk::Multimedia::DMultiOperateInterface::aac
+    aac音频
+@var Dtk::Multimedia::DMultiOperateInterface::mp3
+    mp3音频
+@var Dtk::Multimedia::DMultiOperateInterface::ac_3
+    ac-3音频
+@var Dtk::Multimedia::DMultiOperateInterface::flac
+    flac音频
+@var Dtk::Multimedia::DMultiOperateInterface::vorbis
+    vorbis音频    
+@var Dtk::Multimedia::DMultiOperateInterface::opus
+    opus音频    
+
+@enum Dtk::Multimedia::DMultiOperateInterface::muxerName
+@brief 多媒体音频格式
+@var Dtk::Multimedia::DMultiOperateInterface::mp4
+    mp4容器
+@var Dtk::Multimedia::DMultiOperateInterface::mkv
+    mkv容器
+@var Dtk::Multimedia::DMultiOperateInterface::webm
+    webm容器
+
+@fn QStringList DMultiOperateInterface::showVideoMuxList(const videoCodecName &name)
+@brief 获取视频格式支持的容器格式列表.
+@param[in] name 视频格式.
+@return 视频格式支持的容器格式列表.
+
+@fn QStringList DMultiOperateInterface::showAudioMuxList(const audioCodecName &name)
+@brief 获取音频格式支持的容器格式列表.
+@param[in] name 视频格式.
+@return 音频格式支持的容器格式列表.
+
+@fn QString DMultiOperateInterface::nameOfMuxer(const muxerName &name)
+@brief 获取容器格式的名称.
+@param[in] name 容器格式.
+@return 容器格式的名称.
+
+@fn QString DMultiOperateInterface::nameOfVideoCodec(const videoCodecName &name)
+@brief 获取视频格式的名称.
+@param[in] name 视频格式.
+@return 视频格式的名称.
+
+@fn QString DMultiOperateInterface::nameOfAudioCodec(const audioCodecName &name)
+@brief 获取音频格式的名称.
+@param[in] name 音频格式.
+@return 音频格式的名称.
+
+@fn void DMultiOperateInterface::setOutFilePath(const QString &outFileName)
+@brief 设置输出文件路径.
+@param[in] outFileName 输出文件路径.
+
+@fn QString DMultiOperateInterface::outFilePath()
+@brief 获取输出文件路径.
+@return 输出文件路径.
+
+@fn QString DMultiOperateInterface::showFileInfo(const QString &fileName)
+@brief 显示媒体文件媒体信息.
+@param[in] fileName 媒体文件名.
+@return 媒体文件媒体信息.
+
+@fn QString DMultiOperateInterface::showVideoInfo(const QString &fileName)
+@brief 显示媒体文件视频流信息.
+@param[in] fileName 媒体文件名.
+@return 媒体文件视频流信息.
+
+@fn QString DMultiOperateInterface::showAudioInfo(const QString &fileName)
+@brief 显示媒体文件音频流信息.
+@param[in] fileName 媒体文件名.
+@return 媒体文件音频流信息.
+
+@fn QString DMultiOperateInterface::showSubtitleInfo(const QString &fileName)
+@brief 显示媒体文件字幕流信息.
+@param[in] fileName 媒体文件名.
+@return 媒体文件字幕流信息.
+
+@fn bool DMultiOperateInterface::videoConvert(const QString &fileName, const videoCodecName &destCodecName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc)
+@brief 指定格式视频转换.
+@param[in] fileName 媒体文件名.
+@param[in] destCodecName 目标视频编码名称.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::audioConvert(const QString &fileName, const audioCodecName &destCodecName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc)
+@brief 指定格式音频转换.
+@param[in] fileName 媒体文件名.
+@param[in] destCodecName 目标音频编码名称.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::muxerConvert(const QString &fileName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 指定媒体容器格式转换.
+@param[in] fileName 媒体文件名.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::adjustRate(const QString &fileName, const qint64 &minSize, const qint64 &maxSize, const qint64 &cacheSize, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc)
+@brief 调整视频码率.
+@param[in] fileName 媒体文件名.
+@param[in] minSize 最小码率.
+@param[in] maxSize 最大码率.
+@param[in] cacheSize 缓存区大小.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::changeResolution(const QString &fileName, const QSize &Resolution, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 改变视频分辨率.
+@param[in] fileName 媒体文件名.
+@param[in] Resolution 视频分辨率大小.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::changeResolution(const QString &fileName, const int &nWidth, const int &nHeight, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 改变视频分辨率.
+@param[in] fileName 媒体文件名.
+@param[in] nWidth 视频分辨率宽.
+@param[in] nHeight 视频分辨率高.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::audioStreamFile(const QString &fileName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc, const int audioId)
+@brief 媒体文件中提取音频流.
+@param[in] fileName 媒体文件名.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@param[in] audioId 音频id，默认为-1,自动取媒体中的默认音频流.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::videoStreamFile(const QString &fileName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 媒体文件中提取视频流.
+@param[in] fileName 媒体文件名.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::addAudioforVideo(const QString &videoName, const QString &audioName, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 为媒体文件添加音轨.
+@param[in] videoName 媒体文件名.
+@param[in] audioName 音频文件名.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::cutVideoToDuration(const QString &fileName, const QString &startTime, const QString &durationTime, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc)
+                            @brief 为媒体文件添加音轨.
+@brief 媒体文件裁剪视频，根据持续时间.
+@param[in] startTime 视频开始时间.
+@param[in] durationTime 视频持续时间.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+
+@fn bool DMultiOperateInterface::cutVideoToEnd(const QString &fileName, const QString &startTime, const QString &endTime, const muxerName &outMuxerFormat, const QString &sOutFileName, QString &strErrDesc);
+@brief 媒体文件裁剪视频，根据时间段，指定开始时间与结束时间.
+@param[in] startTime 剪切视频开始时间.
+@param[in] endTime 剪切视频结束时间.
+@param[in] outMuxerFormat 目标媒体容器格式名称.
+@param[in] sOutFileName 输出媒体容器文件名.
+@param[out] strErrDesc 错误描述.
+@return true表示转换成功，false为失败.
+*/
