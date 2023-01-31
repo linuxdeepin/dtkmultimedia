@@ -61,6 +61,11 @@ Files: src/ocr/ppocr/clipper.*
 Copyright: 2010-2017, Angus Johnson
 License: BSL-1.0
 
+# dtkocr test resource
+Files: tests/ocrplugin/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: LGPL-3.0-or-later
+
 # examples
 Files: examples/*
 Copyright: UnionTech Software Technology Co., Ltd.
