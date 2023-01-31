@@ -1,0 +1,109 @@
+/*!
+@~chinese
+@file docrplugininterface.h
+@ingroup dtkocr
+
+@class Dtk::Ocr::DOcrPluginInterface docrplugininterface.h
+@brief DOcrPluginInterface类为dtkocr的插件类，你可以通过此类完成OCR的插件开发以拓展dtkocr的功能，
+同时不必过多修改上层应用的代码
+
+@fn QList<Dtk::Ocr::HardwareID> DOcrPluginInterface::hardwareSupportList() const = 0
+@brief 获取支持的硬件列表
+@return 支持的硬件列表
+
+@fn bool DOcrPluginInterface::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> &hardwareUsed)
+@brief 设置允许使用的设备，可以一次指定多个设备
+@param[in] hardwareUsed 可以使用的设备的种类和它对应的设备编号列表
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcrPluginInterface::setUseMaxThreadsCount(int n)
+@brief 设置最多可以开几个线程
+@param[in] n 可以开的线程数量
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QStringList DOcrPluginInterface::authKeys() const
+@brief 获取鉴权参数关键字，此项一般用于需要额外授权才能使用的场景，例如需要联网才能使用或需要CDKEY的场景
+@return 鉴权参数关键字
+
+@fn bool DOcrPluginInterface::setAuth(const QStringList &params)
+@brief 设置鉴权参数
+@param[in] params 鉴权参数列表，顺序和自身实现的 `authKeys` 函数返回的关键字顺序一一对应
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QStringList DOcrPluginInterface::imageFileSupportFormats() const
+@brief 获取支持读取的图片文件类型
+@return 支持的图片类型
+
+@fn bool DOcrPluginInterface::setImageFile(const QString &filePath)
+@brief 设置图片文件路径，让插件从文件读取图片，图片的类型包含于自身实现的 
+`imageFileSupportFormats` 函数的返回值内，插件应当自身做好读取结果的校验
+@param[in] filePath 图片文件路径
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcrPluginInterface::setImage(const QImage &image)
+@brief 设置需要识别的图片，此处传入的图片不保证就是插件所需的格式，插件应当做好格式校验并转换到所需的格式
+@param[in] image 需要识别的图片
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QImage DOcrPluginInterface::imageCached() const = 0
+@brief 获取之前设置成功的图片数据，插件应当在执行 `setImageFile` 或 `setImage` 
+成功后对图片进行一次深拷贝，以此来实现此函数
+@return 图片数据
+
+@fn QString DOcrPluginInterface::pluginExpandParam(const QString &key) const
+@brief 获取自定义拓展参数设置情况，此函数用于一些较为高级或复杂的设置项，例如限制显存占用等操作，使用此接口
+需要向你的用户准备额外的说明书或操作手册，为了保持插件的简单和兼容性，不推荐使用此接口来实现功能
+@param[in] key 拓展参数关键字
+@return 已设置的值
+
+@fn bool DOcrPluginInterface::setPluginExpandParam(const QString &key, const QString &value)
+@brief 设置自定义拓展参数，此函数用于一些较为高级或复杂的设置项，例如限制显存占用等操作，使用此接口
+需要向你的用户准备额外的说明书或操作手册，为了保持插件的简单和兼容性，不推荐使用此接口来实现功能
+@param[in] key 拓展参数关键字
+@param[in] value key所对应的设置值
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcrPluginInterface::analyze() = 0
+@brief 执行识别操作，建议在执行此接口的时候阻塞线程，同时注意激活和取消 `isRunning` 函数的效果
+@return 本次的识别结果是否有效
+
+@fn bool DOcrPluginInterface::breakAnalyze()
+@brief 设置中断当前识别操作
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn bool DOcrPluginInterface::isRunning() const
+@brief 获取是否正在进行识别操作，此接口的调用位置一般和`analyze` 函数不在同一个线程内，
+实现的时候需要注意线程安全
+@return 是否正在进行识别操作，true为识别还在进行中，false为没有在进行识别
+
+@fn QStringList DOcrPluginInterface::languageSupport() const = 0
+@brief 获取支持的语种列表，建议使用和 `ISO-639` 标准兼容的字符串
+@return 支持的语种列表
+
+@fn bool DOcrPluginInterface::setLanguage(const QString &language) = 0
+@brief 设置识别的语种，语种和 `languageSupport` 函数的返回值对应，插件自身需要做好判断工作
+@param[in] language 语种
+@return 是否设置成功，true为设置成功，false为设置失败
+
+@fn QList<Dtk::Ocr::TextBox> DOcrPluginInterface::textBoxes() const
+@brief 获取识别到的文本框
+@return 识别到的文本框列表
+
+@fn QList<Dtk::Ocr::TextBox> DOcrPluginInterface::charBoxes(int index) const
+@brief 获取识别到的文本框中的单个字的字符框
+@param[in] index 文本框索引
+@return 识别到的字符框列表
+
+@fn QString DOcrPluginInterface::simpleResult() const = 0
+@brief 获取格式简单的整体识别结果，建议以换行符为每个文本框结果的分界线
+@return 整体识别结果
+
+@fn QString DOcrPluginInterface::resultFromBox(int index) const
+@brief 获取指定文本框内的识别结果
+@param[in] index 文本框索引
+@return 指定文本框内的识别结果
+
+@var #define DOcrPluginInterface_iid
+@brief 用于描述插件接口ID的字符串宏定义，用于Qt在加载时进行识别的依据
+
+*/
