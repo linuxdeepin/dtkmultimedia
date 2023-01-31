@@ -63,7 +63,8 @@ endif ()
 
 # test
 if (BUILD_TESTING)
-   add_subdirectory(tests)
+    enable_testing()
+    add_subdirectory(tests)
 endif ()
 
 # for pc file config
