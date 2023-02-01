@@ -150,20 +150,8 @@ void PaddleOCRApp::initNet()
 std::vector<std::vector<std::vector<int>>>
 PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio)
 {
-    int w = src.cols;
-    int h = src.rows;
-
-    float ratio = 1.f;
-    if (std::max(w, h) > 960) {
-        if (h > w) {
-            ratio = 960.0f / h;
-        } else {
-            ratio = 960.0f / w;
-        }
-    }
-
-    int resizeH = int(h * ratio);
-    int resizeW = int(w * ratio);
+    int resizeH = src.rows;
+    int resizeW = src.cols;
 
     float ratio2 = 1.f;
     if (std::min(resizeW, resizeH) < 64) {
@@ -179,10 +167,10 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     resizeH = int(round(float(resizeH) / 32) * 32);
     resizeW = int(round(float(resizeW) / 32) * 32);
 
+    float ratio_h = float(resizeH) / float(src.rows);
+    float ratio_w = float(resizeW) / float(src.cols);
     cv::Mat resize_img;
     cv::resize(src, resize_img, cv::Size(resizeW, resizeH));
-    float ratio_h = float(resizeH) / float(h);
-    float ratio_w = float(resizeW) / float(w);
 
     ncnn::Mat in_pad = ncnn::Mat::from_pixels(resize_img.data, ncnn::Mat::PIXEL_RGB, resizeW, resizeH);
 

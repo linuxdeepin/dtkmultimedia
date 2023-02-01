@@ -1,3 +1,11 @@
+dtkmultimedia (1.0.3) unstable; urgency=medium
+
+  * add multimedia info and convert feature
+  * add ocr normal plugin feature
+  * update version
+
+ -- Deepin Packages Builder <packages@deepin.com>  Wed, 04 Jan 2023 13:10:07 +0800
+
 dtkmultimedia (1.0.2) unstable; urgency=medium
 
   * add ocr feature
