@@ -155,10 +155,6 @@ DMpvProxy::DMpvProxy(QObject *parent)
 {
     qRegisterMetaType<MpvHandle>("MpvHandle");
     initMember();
-
-#if defined(__mips__) || defined(__aarch64__)
-    setAttribute(Qt::WA_TransparentForMouseEvents, true);
-#endif
 }
 
 DMpvProxy::~DMpvProxy()
