@@ -62,7 +62,9 @@ void DCameraPrivate::initCamera()
         imgPrcThread = new MajorImageProcessingThread;
         imgPrcThread->setParent(this);
         imgPrcThread->setObjectName("MajorThread");
+#ifndef __mips__
         connect(imgPrcThread, &MajorImageProcessingThread::sigYUVFrame, q, &DCamera::signalbuffer);
+#endif
     }
     captureSession = new DMediaCaptureSession(q);
 }
