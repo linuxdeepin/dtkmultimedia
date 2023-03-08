@@ -1,3 +1,9 @@
+dtkmultimedia (1.0.4) unstable; urgency=medium
+
+  * update version
+
+ -- Deepin Packages Builder <packages@deepin.com>  Wed, 08 Mar 2023 10:13:45 +0800
+
 dtkmultimedia (1.0.3) unstable; urgency=medium
 
   * add multimedia info and convert feature
