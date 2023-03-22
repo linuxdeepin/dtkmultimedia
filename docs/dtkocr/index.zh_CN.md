@@ -1,7 +1,7 @@
 @page dtkocr dtkocr
 @brief dtk光学图文识别模块
 
-## 项目介绍
+# 项目介绍
 
 TODO: 补充项目介绍
 
