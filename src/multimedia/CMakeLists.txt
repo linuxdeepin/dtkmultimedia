@@ -100,7 +100,6 @@ target_include_directories(${BIN_NAME} PUBLIC
 target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::GuiPrivate
     ${TARGET_LIBS}
     ${RSVG2_LIBRARIES}
     )
