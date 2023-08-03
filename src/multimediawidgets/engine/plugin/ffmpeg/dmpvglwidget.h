@@ -6,6 +6,14 @@
 #define DMPV_GLWIDGET_H
 
 #include <QtWidgets>
+#ifdef BUILD_Qt6
+#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QtOpenGL/QOpenGLBuffer>
+#include <QtOpenGL/QOpenGLVertexArrayObject>
+#include <QtOpenGL/QOpenGLTexture>
+#include <QtOpenGL/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLFramebufferObject>
+#endif
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
 #include <DMpvProxy>

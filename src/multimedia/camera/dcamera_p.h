@@ -31,9 +31,17 @@ private:
 private:
     MajorImageProcessingThread *imgPrcThread = nullptr;
     bool bVideoStatus = false;
+#ifdef BUILD_Qt6
+    QWidget *viewfinder = nullptr;
+#else
     QVideoWidget *viewfinder = nullptr;
+#endif
     bool isWayland = false;
+#ifdef BUILD_Qt6
+    DCamera::State state = DCamera::UnloadedState;
+#else
     QCamera::State state = QCamera::UnloadedState;
+#endif
     DMediaCaptureSession *captureSession = nullptr;
 
 private:

@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     recoder.setCodec(DScreenRecorder::CODEC_ID_MPEG4);
     recoder.setOutputLocation(QUrl("mpeg4.mp4"));
 #endif
+
     recoder.record();
     qDebug() << recoder.state();
     QThread::sleep(5);

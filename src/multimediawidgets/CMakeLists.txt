@@ -32,24 +32,35 @@ set_target_properties(${BIN_NAME} PROPERTIES
 
 target_compile_definitions(${BIN_NAME} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}")
 
-find_package(Qt5Widgets)
-find_package(Qt5DBus)
-find_package(Qt5X11Extras)
-find_package(Qt5LinguistTools)
-find_package(Qt5Network)
-find_package(Qt5Concurrent)
-find_package(Qt5Multimedia)
-find_package(Qt5MultimediaWidgets)
+find_package(Qt${QT_VERSION_MAJOR}Widgets)
+find_package(Qt${QT_VERSION_MAJOR}DBus)
+find_package(Qt${QT_VERSION_MAJOR}LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR}Network)
+find_package(Qt${QT_VERSION_MAJOR}Concurrent)
+find_package(Qt${QT_VERSION_MAJOR}Multimedia)
+find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
+if (ENABLE_Qt6)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+endif()
 find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
-pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
+if (ENABLE_Qt6)
+    message("find_package................")
+    find_package(Dtk${QT_VERSION_MAJOR}Core)
+    find_package(Dtk${QT_VERSION_MAJOR}Widget)
+#    find_package(Qt6 COMPONENTS Core5Compat REQUIRED)
+else()
+    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
+    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
+    pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
+    message("pkg_check_modules................")
+endif()
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 
-set(TARGET_LIBS Xtst Qt5::Widgets Qt5::Network Qt5::DBus Qt5::Multimedia Qt5::X11Extras
-    Qt5::MultimediaWidgets PkgConfig::Dtk PkgConfig::DBusextended PkgConfig::Gst GL
-    Qt5::Concurrent dtkmultimedia)
+
+set(TARGET_LIBS Xtst Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::DBus Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::MultimediaWidgets PkgConfig::Gst GL
+    Qt${QT_VERSION_MAJOR}::Concurrent dtkmultimedia)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
@@ -59,7 +70,7 @@ target_include_directories(${BIN_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::DBus
     ${RSVG2_INCLUDE_DIRS}
     ${PROJECT_INCLUDE}
-)
+    )
 
 target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
@@ -67,7 +78,29 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::DBus
     ${TARGET_LIBS}
     ${RSVG2_LIBRARIES}
-)
+    )
+
+if (ENABLE_Qt6)
+    target_link_libraries(${BIN_NAME} PRIVATE
+        Dtk${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::GuiPrivate
+        Dtk${QT_VERSION_MAJOR}::Widget
+        Qt${QT_VERSION_MAJOR}::OpenGLWidgets
+#        Qt6::Core5Compat
+        )
+else()
+    target_link_libraries(${BIN_NAME} PRIVATE
+        PkgConfig::DBusextended
+        PkgConfig::Dtk
+        )
+endif()
+
+if("${QT_VERSION_MAJOR}" STREQUAL "5")
+    find_package(Qt5X11Extras)
+    target_link_libraries(${BIN_NAME} PRIVATE
+        Qt5::X11Extras
+    )
+endif()
 
 install(FILES ${INSTALL_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME})
 install(TARGETS ${BIN_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})

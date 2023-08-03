@@ -9,10 +9,9 @@ set(CMAKE_AUTOUIC ON)
 # 2.project name
 PROJECT(screenRecorder)
 
-
-find_package(Qt5Widgets)
-find_package(Qt5Network)
-find_package(Qt5MultimediaWidgets)
+find_package(Qt${QT_VERSION_MAJOR}Widgets)
+find_package(Qt${QT_VERSION_MAJOR}Network)
+find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
 
 # 4.source directory
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
@@ -29,7 +28,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/../../include/dtkmultimedia
     ${PROJECT_SOURCE_DIR})
 
-set(TARGET_LIBS  Qt5::Network Qt5::MultimediaWidgets)
+set(TARGET_LIBS
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 
 # 7.add link library
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia)

@@ -5,15 +5,27 @@
 cmake_minimum_required(VERSION 3.13)
 
 # If do't define version number, specify the version number
-set (VERSION "1.0.0" CACHE STRING "define project version")
+set (DTK_VERSION "1.0.0" CACHE STRING "define project version")
 
-set(BIN_NAME dtkmultimedia)
+set(ENABLE_Qt6 CACHE BOOL OFF)
+if (ENABLE_Qt6)
+    set(DTK_VERSION_MAJOR 6)
+    set(QT_VERSION_MAJOR 6)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
+    add_definitions(-DBUILD_Qt6)
+else()
+    set(QT_VERSION_MAJOR 5)
+    set(BUILD_EXAMPLES ON CACHE BOOL "Build examples")
+endif()
 
-project(${BIN_NAME}
+#set(LIB_NAME dtk${DTK_VERSION_MAJOR}multimedia)
+set(LIB_NAME dtkmultimedia)
+
+project(${LIB_NAME}
     LANGUAGES CXX
     HOMEPAGE_URL https://github.com/linuxdeepin/dtk-template
     DESCRIPTION "dtk library template"
-    VERSION ${VERSION}
+    VERSION ${DTK_VERSION}
 )
 
 # specify install dir
@@ -35,7 +47,9 @@ endif ()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(BUILD_TESTING ON)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address -fno-omit-frame-pointer")
-else ()
+elseif(ENABLE_Qt6)
+    set(BUILD_TESTING OFF)
+else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
 endif ()
 
@@ -55,11 +69,13 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 
-set(BUILD_DOCS ON CACHE BOOL "Generate doxygen-based documentation")
-find_package(Doxygen)
-if (BUILD_DOCS AND DOXYGEN_FOUND)
-    add_subdirectory(docs)
-endif ()
+if (!ENABLE_Qt6)
+    set(BUILD_DOCS ON CACHE BOOL "Generate doxygen-based documentation")
+    find_package(Doxygen)
+    if (BUILD_DOCS AND DOXYGEN_FOUND)
+        add_subdirectory(docs)
+    endif ()
+endif()
 
 # test
 if (BUILD_TESTING)
@@ -67,21 +83,22 @@ if (BUILD_TESTING)
     add_subdirectory(tests)
 endif ()
 
+
 # for pc file config
 set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)
 set(PC_REQ_PRIVATE)
 set(PC_REQ_PUBLIC)
 
 # config pkgconfig file
-configure_file(misc/${BIN_NAME}.pc.in ${BIN_NAME}.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+configure_file(misc/${LIB_NAME}.pc.in ${LIB_NAME}.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 # config cmake file
-configure_file(misc/${BIN_NAME}Config.cmake.in ${BIN_NAME}Config.cmake @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}Config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BIN_NAME})
+configure_file(misc/${LIB_NAME}Config.cmake.in ${LIB_NAME}Config.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
 
 # config qmake moudule file
-set(DTK_MODULE ${BIN_NAME})
+set(DTK_MODULE ${LIB_NAME})
 set(DTK_DEPS "core dbus")
 set(QMKSPECS_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/qt${QT_VERSION_MAJOR}/mkspecs/modules" CACHE STRING "INSTALL DIR FOR qt pri files")
-configure_file(misc/qt_lib_${BIN_NAME}.pri.in qt_lib_${BIN_NAME}.pri @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${BIN_NAME}.pri DESTINATION "${QMKSPECS_INSTALL_DIR}")
+configure_file(misc/qt_lib_${LIB_NAME}.pri.in qt_lib_${LIB_NAME}.pri @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${LIB_NAME}.pri DESTINATION "${QMKSPECS_INSTALL_DIR}")

@@ -22,7 +22,11 @@ private:
     DPlatformMediaPlayer *q_ptr;
     QMediaPlayer *player = nullptr;
     QMediaPlayer::MediaStatus status = QMediaPlayer::NoMedia;
+#if BUILD_Qt6
+    QMediaPlayer::PlaybackState playbackState = QMediaPlayer::StoppedState;
+#else
     QMediaPlayer::State state = QMediaPlayer::StoppedState;
+#endif
     bool seekable = false;
     bool videoAvailable = false;
     bool audioAvailable = false;

@@ -38,7 +38,11 @@ public:
     };
     Q_ENUM(EncodingMode)
 public:
+#ifdef BUILD_Qt6
+    explicit DMediaRecorder(QObject *parent = nullptr);
+#else
     explicit DMediaRecorder(QMediaObject *parent = nullptr);
+#endif
     ~DMediaRecorder();
 
     bool isAvailable() const;
@@ -48,7 +52,11 @@ public:
 
     QUrl actualLocation() const;
 
+#ifdef BUILD_Qt6
+    RecorderState recorderState() const;
+#else
     State recorderState() const;
+#endif
 
     Error error() const;
     QString errorString() const;
@@ -85,14 +93,22 @@ public:
 
     DMediaMetaData metaData() const;
     void setMetaData(const DMediaMetaData &metaData);
+#ifdef BUILD_Qt6
+    /// qt6 removed void setMetaData(const QString &key, const QVariant &value);
+#else
     void setMetaData(const QString &key, const QVariant &value);
+#endif
     void addMetaData(const DMediaMetaData &metaData);
 
     DMediaCaptureSession *captureSession() const;
     QMediaRecorder *platformRecoder() const;
 
 Q_SIGNALS:
+#ifdef BUILD_Qt6
+    void recorderStateChanged(RecorderState state);
+#else
     void recorderStateChanged(State state);
+#endif
     void actualLocationChanged(const QUrl &location);
     void encoderSettingsChanged();
 

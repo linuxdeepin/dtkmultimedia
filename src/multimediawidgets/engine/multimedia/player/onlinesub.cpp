@@ -199,8 +199,14 @@ void OnlineSubtitle::replyReceived(QNetworkReply *reply)
                 }
             }
             if(!name.isEmpty()) {
+#ifdef BUILD_Qt6
+                //// QTextCodec is removed in Qt6
+
+
+#else
                 auto codec = QTextCodec::codecForName("UTF-8");
                 name_tmpl  = codec->toUnicode(name);
+#endif
             }
         }
         else {
@@ -249,7 +255,11 @@ bool OnlineSubtitle::hasHashConflict(const QString &path, const QString &tmpl, Q
         auto s = di.fileName();
         if(fi.fileName() == di.fileName()) continue;
 
+#ifdef BUILD_Qt6
+        s = s.replace(QRegularExpression("\\[\\d+\\]"), "");
+#else
         s = s.replace(QRegExp("\\[\\d+\\]"), "");
+#endif
         if(tmpl == s) {
             auto h = utils::FullFileHash(di.fileInfo());
             qInfo() << "found " << di.fileName() << h;

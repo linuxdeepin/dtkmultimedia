@@ -4,7 +4,13 @@
 
 #ifndef DMULTIOPERATEINTER_H
 #define DMULTIOPERATEINTER_H
+
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaRecorder>
+#else
 #include <QMediaObject>
+#endif
+
 #include <dtkmultimedia.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE

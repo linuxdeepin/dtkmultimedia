@@ -49,6 +49,7 @@ mvideo_avcodec_alloc_context3 g_mvideo_avcodec_alloc_context3               = nu
 mvideo_avcodec_parameters_to_context g_mvideo_avcodec_parameters_to_context = nullptr;
 
 DMULTIMEDIA_BEGIN_NAMESPACE
+using namespace DGUI_NAMESPACE;
 QDataStream &operator<<(QDataStream &st, const ModeMovieInfo &mi)
 {
     st << mi.valid;
@@ -344,8 +345,16 @@ struct ModeMovieInfo DPlaylistModel::parseFromFile(const QFileInfo &fi, bool *ok
     mi.resolution = QString("%1x%2").arg(mi.width).arg(mi.height);
     mi.title      = fi.fileName(); // FIXME this
     mi.filePath   = fi.canonicalFilePath();
+#ifdef BUILD_Qt6
+    //// creation已弃用。使用birthTime函数获取文件创建的时间，使用metadataChangeTime获取其元数据上次更改的时间，或使用lastModified获取上次修改的时间。
+    //// 此处需要确定具体需要使用哪一个时间，暂时使用birthTime。
+
+    qInfo() << __func__ << "birthTime:" << fi.birthTime() << "       toString:" << fi.birthTime().toString();
+    mi.creation = fi.birthTime().toString();
+#else
     qInfo() << __func__ << "created:" << fi.created() << "       toString:" << fi.created().toString();
     mi.creation = fi.created().toString();
+#endif
     mi.fileSize = fi.size();
     mi.fileType = fi.suffix();
 #ifdef _MOVIE_USE_
@@ -1620,7 +1629,13 @@ ModeMovieInfo ModeMovieInfo::parseFromFile(const QFileInfo &fi, bool *ok)
     mi.resolution = QString("%1x%2").arg(mi.width).arg(mi.height);
     mi.title      = fi.fileName(); // FIXME this
     mi.filePath   = fi.canonicalFilePath();
+#ifdef BUILD_Qt6
+    //// creation已弃用。使用birthTime函数获取文件创建的时间，使用metadataChangeTime获取其元数据上次更改的时间，或使用lastModified获取上次修改的时间。
+    //// 此处需要确定具体需要使用哪一个时间，暂时使用birthTime。
+    mi.creation   = fi.birthTime().toString();
+#else
     mi.creation   = fi.created().toString();
+#endif
     mi.fileSize   = fi.size();
     mi.fileType   = fi.suffix();
 
