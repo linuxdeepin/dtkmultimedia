@@ -26,7 +26,11 @@ class Q_MULTIMEDIA_EXPORT DPlatformMediaPlayer : public QObject
 
 public:
     virtual ~DPlatformMediaPlayer();
+#if BUILD_Qt6
+    virtual QMediaPlayer::PlaybackState playbackState() const;
+#else
     virtual QMediaPlayer::State state() const;
+#endif
     virtual QMediaPlayer::MediaStatus mediaStatus() const;
     virtual qint64 duration() const = 0;
     virtual qint64 position() const = 0;
@@ -70,7 +74,11 @@ public:
     void metaDataChanged();
     void tracksChanged();
     void activeTracksChanged();
+#if BUILD_Qt6
+    void playbackStateChanged(QMediaPlayer::PlaybackState newState);
+#else
     void stateChanged(QMediaPlayer::State newState);
+#endif
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void error(int error, const QString &errorString);
     void resetCurrentLoop();

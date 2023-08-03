@@ -26,7 +26,11 @@ DGstPlayerProxy::DGstPlayerProxy(QObject *parent)
     d->pVideoSurface = new VideoSurface;
     d->pPlayer->setVideoOutput(d->pVideoSurface);
 
+#ifdef BUILD_Qt6
+    connect(d->pPlayer, &QMediaPlayer::playbackStateChanged, this, &DGstPlayerProxy::slotStateChanged);
+#else
     connect(d->pPlayer, &QMediaPlayer::stateChanged, this, &DGstPlayerProxy::slotStateChanged);
+#endif
     connect(d->pPlayer, &QMediaPlayer::mediaStatusChanged, this, &DGstPlayerProxy::slotMediaStatusChanged);
     connect(d->pPlayer, &QMediaPlayer::positionChanged, this, &DGstPlayerProxy::slotPositionChanged);
     connect(d->pPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(slotMediaError(QMediaPlayer::Error)));
@@ -89,7 +93,11 @@ bool DGstPlayerProxy::isPlayable() const
     return true;
 }
 
+#ifdef BUILD_Qt6
+void DGstPlayerProxy::slotStateChanged(QMediaPlayer::PlaybackState newState)
+#else
 void DGstPlayerProxy::slotStateChanged(QMediaPlayer::State newState)
+#endif
 {
     Q_D(DGstPlayerProxy);
     switch (newState) {
@@ -131,7 +139,9 @@ void DGstPlayerProxy::slotMediaError(QMediaPlayer::Error error)
     case QMediaPlayer::FormatError:
     case QMediaPlayer::NetworkError:
     case QMediaPlayer::AccessDeniedError:
+#ifndef BUILD_Qt6
     case QMediaPlayer::ServiceMissingError:
+#endif
         emit sigMediaError();
         break;
     default:
@@ -171,13 +181,23 @@ void DGstPlayerProxy::volumeDown()
 void DGstPlayerProxy::changeVolume(int nVol)
 {
     Q_D(DGstPlayerProxy);
+#ifdef BUILD_Qt6
+    //// Qt6 QMediaPlayer没有setVolume
+
+#else
     d->pPlayer->setVolume(nVol);
+#endif
 }
 
 int DGstPlayerProxy::volume() const
 {
     Q_D(const DGstPlayerProxy);
+#ifdef BUILD_Qt6
+    //// Qt6 QMediaPlayer没有volume()
+    int nActualVol = 100;
+#else
     int nActualVol = d->pPlayer->volume();
+#endif
     int nDispalyVol = static_cast<int>((nActualVol - 40) / 60.0 * 200.0);
     return nDispalyVol;
 }
@@ -185,7 +205,12 @@ int DGstPlayerProxy::volume() const
 bool DGstPlayerProxy::muted() const
 {
     Q_D(const DGstPlayerProxy);
+#ifdef BUILD_Qt6
+    //// Qt6 QMediaPlayer没有 isMuted
+
+#else
     return d->pPlayer->isMuted();
+#endif
 }
 
 void DGstPlayerProxy::toggleMute()
@@ -193,14 +218,25 @@ void DGstPlayerProxy::toggleMute()
     Q_D(DGstPlayerProxy);
     bool bMute = false;
 
+#ifdef BUILD_Qt6
+    //// Qt6 QMediaPlayer没有 setMuted
+
+#else
     bMute = d->pPlayer->isMuted();
     d->pPlayer->setMuted(!bMute);
+#endif
 }
 
 void DGstPlayerProxy::setMute(bool bMute)
 {
     Q_D(DGstPlayerProxy);
+
+#ifdef BUILD_Qt6
+    //// Qt6 QMediaPlayer没有 setMuted
+
+#else
     d->pPlayer->setMuted(bMute);
+#endif
 }
 
 void DGstPlayerProxy::updateSubStyle(const QString &font, int sz)
@@ -372,12 +408,22 @@ void DGstPlayerProxy::play()
 {
     Q_D(DGstPlayerProxy);
 
+#ifdef BUILD_Qt6
+    //// 需要确认setMedia与setSource功能是否相同
+    if (urlFile().isLocalFile()) {
+        QString strFilePath = QFileInfo(urlFile().toLocalFile()).absoluteFilePath();
+        d->pPlayer->setSource(QUrl::fromLocalFile(strFilePath));
+    } else {
+        d->pPlayer->setSource(urlFile());
+    }
+#else
     if (urlFile().isLocalFile()) {
         QString strFilePath = QFileInfo(urlFile().toLocalFile()).absoluteFilePath();
         d->pPlayer->setMedia(QMediaContent(QUrl::fromLocalFile(strFilePath)));
     } else {
         d->pPlayer->setMedia(QMediaContent(urlFile()));
     }
+#endif
     d->pPlayer->play();
 }
 

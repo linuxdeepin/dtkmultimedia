@@ -4,8 +4,13 @@
 
 #include "videosurface.h"
 DMULTIMEDIA_USE_NAMESPACE
+#ifdef BUILD_Qt6
+VideoSurface::VideoSurface(QObject *parent)
+    : QObject(parent)
+#else
 VideoSurface::VideoSurface(QObject *parent)
     : QAbstractVideoSurface(parent)
+#endif
 {
 }
 
@@ -13,6 +18,16 @@ VideoSurface::~VideoSurface()
 {
 }
 
+#ifdef BUILD_Qt6
+QList<QVideoFrameFormat::PixelFormat> VideoSurface::pixelFormat() const
+{
+    QList<QVideoFrameFormat::PixelFormat> listPixelFormats;
+
+    listPixelFormats << QVideoFrameFormat::Format_ARGB8888;
+
+    return listPixelFormats;
+}
+#else
 QList<QVideoFrame::PixelFormat> VideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> listPixelFormats;
@@ -21,6 +36,7 @@ QList<QVideoFrame::PixelFormat> VideoSurface::supportedPixelFormats(QAbstractVid
 
     return listPixelFormats;
 }
+#endif
 
 bool  VideoSurface::present(const QVideoFrame &frame)
 {

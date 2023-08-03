@@ -150,6 +150,19 @@ void DEnginePlayer::setPlayer(QWidget *Player)
     connect(engine, &PlayerEngine::durationChanged, this, &DEnginePlayer::durationChanged);
     connect(engine, &PlayerEngine::elapsedChanged, this, &DEnginePlayer::positionProxyChanged);
     connect(engine, &PlayerEngine::stateChanged, [=]() {
+#ifdef BUILD_Qt6
+        switch(engine->state()) {
+        case PlayerEngine::Playing:
+            playbackStateChanged(QMediaPlayer::PlayingState);
+            break;
+        case PlayerEngine::Idle:
+            playbackStateChanged(QMediaPlayer::StoppedState);
+            break;
+        case PlayerEngine::Paused:
+            playbackStateChanged(QMediaPlayer::PausedState);
+            break;
+        }
+#else
         switch(engine->state()) {
         case PlayerEngine::Playing:
             stateChanged(QMediaPlayer::PlayingState);
@@ -161,6 +174,7 @@ void DEnginePlayer::setPlayer(QWidget *Player)
             stateChanged(QMediaPlayer::PausedState);
             break;
         }
+#endif
         connect(d->audioOutput, &DAudioOutput::volumeChanged, this, &DEnginePlayer::volumeChanged);
         connect(d->audioOutput, &DAudioOutput::mutedChanged, this, &DEnginePlayer::mutedChanged);
     });

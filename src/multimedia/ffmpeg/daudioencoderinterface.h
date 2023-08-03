@@ -46,7 +46,11 @@ public:
     void stopEncode();
     void pauseEncode();
 
+#if BUILD_Qt6
+    QMediaRecorder::RecorderState recorderState() const;
+#else
     QMediaRecorder::State state() const;
+#endif
 
 private:
     bool loadFunction();

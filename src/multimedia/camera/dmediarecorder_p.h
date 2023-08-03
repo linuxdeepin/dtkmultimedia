@@ -23,7 +23,11 @@ private:
 
 private:
     DCamera *camera;
+#ifdef BUILD_Qt6
+    QMediaRecorder::RecorderState state = QMediaRecorder::StoppedState;
+#else
     QMediaRecorder::State state = QMediaRecorder::StoppedState;
+#endif
     qint64 nDuration = 0;
     QTimer *pTimer = nullptr;
     bool bAvailable = true;

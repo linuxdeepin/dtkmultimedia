@@ -5,20 +5,33 @@
 #ifndef VIDEOSURFACE_H
 #define VIDEOSURFACE_H
 
+#ifdef BUILD_Qt6
+#include <QObject>
+#include <QVideoFrame>
+#include <QVideoSink>
+#else
 #include <QAbstractVideoSurface>
+#endif
 #include <dtkmultimedia.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
+#ifdef BUILD_Qt6
+class VideoSurface : public QObject
+#else
 class VideoSurface : public QAbstractVideoSurface
+#endif
 {
         Q_OBJECT
 
 public:
-        explicit VideoSurface(QObject *parent = Q_NULLPTR);
+explicit VideoSurface(QObject *parent = Q_NULLPTR);
         ~VideoSurface();
-
-        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
+#ifdef BUILD_Qt6
+    QList<QVideoFrameFormat::PixelFormat> pixelFormat() const;
+#else
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
+#endif
         bool present(const QVideoFrame &frame);
 
 signals:

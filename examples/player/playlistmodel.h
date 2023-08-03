@@ -8,7 +8,15 @@
 #include <QAbstractItemModel>
 #include <QScopedPointer>
 
+#ifdef BUILD_Qt6
+//#include <DMediaPlaylist>
+#endif
+
+//#ifdef BUILD_Qt6
+//class DMediaPlaylist;
+//#else
 class QMediaPlaylist;
+//#endif
 
 class PlaylistModel : public QAbstractItemModel
 {
@@ -46,6 +54,7 @@ private slots:
 
 private:
     QScopedPointer<QMediaPlaylist> m_playlist;
+//    DMediaPlaylist * m_playlist = nullptr;
     QMap<QModelIndex, QVariant> m_data;
 };
 

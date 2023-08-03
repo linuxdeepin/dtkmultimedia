@@ -9,9 +9,15 @@
 //#include "histogramwidget.h"
 #include "videowidget.h"
 
+#ifdef BUILD_Qt6
+#include <QFileDialog>
+
+#else
 #include <QMediaService>
-#include <QVideoProbe>
-#include <QAudioProbe>
+#endif
+
+// #include <QVideoProbe>
+// #include <QAudioProbe>
 //#include <dmediametadata.h>
 #include <QMediaMetaData>
 #include <QtWidgets>
@@ -25,26 +31,35 @@ Player::Player(QWidget *parent)
 //! [create-objs]
     m_player = new DMediaPlayer(this);
 //    m_player->setAudioRole(QAudio::VideoRole);
+#ifndef BUILD_Qt6
     m_player->setAudioRole(QAudio::MusicRole);
     qInfo() << "Supported audio roles:";
     for (QAudio::Role role : m_player->supportedAudioRoles())
         qInfo() << "    " << role;
+#endif
     // owned by PlaylistModel
+#ifndef BUILD_Qt6
     m_playlist = new DMediaPlaylist();
     m_player->setPlaylist(m_playlist);
+#else
+    m_playlist = new QMediaPlaylist();
+#endif
 //! [create-objs]
 
     connect(m_player, &QMediaPlayer::durationChanged, this, &Player::durationChanged);
     connect(m_player, &DMediaPlayer::positionChanged, this, &Player::positionChanged);
     connect(m_player, QOverload<>::of(&DMediaPlayer::metaDataChanged), this, &Player::metaDataChanged);
-    connect(m_playlist, &DMediaPlaylist::currentIndexChanged, this, &Player::playlistPositionChanged);
+    connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistPositionChanged);
     connect(m_player, &DMediaPlayer::mediaStatusChanged, this, &Player::statusChanged);
+#ifdef BUILD_Qt6
+    connect(m_player, &QMediaPlayer::errorChanged, this, &Player::displayErrorMessage);
+#else
     connect(m_player, &DMediaPlayer::bufferStatusChanged, this, &Player::bufferingProgress);
-    connect(m_player, QOverload<DMediaPlayer::Error>::of(&DMediaPlayer::error), this, &Player::displayErrorMessage);
+    connect(m_player, QOverload<>::of(&DMediaPlayer::error), this, &Player::displayErrorMessage);
+#endif
 //! [2]
     m_videoWidget = new DVideoWidget(this, new DEnginePlayer(m_player));
     m_videoWidget->setMinimumWidth(400);
-//    m_videoWidget = new QVideoWidget(this);
     m_player->setVideoOutput(m_videoWidget);
 
     m_playlistModel = new PlaylistModel(this);
@@ -68,23 +83,35 @@ Player::Player(QWidget *parent)
     connect(openButton, &QPushButton::clicked, this, &Player::open);
 
     PlayerControls *controls = new PlayerControls(this);
+#ifdef BUILD_Qt6
+
+            controls->setState(m_player->playbackState());
+            controls->setVolume(100);
+#else
     controls->setState(m_player->state());
     controls->setVolume(m_player->volume());
+#endif
     controls->setMuted(controls->isMuted());
 
     connect(controls, &PlayerControls::play, m_player, &DMediaPlayer::play);
     connect(controls, &PlayerControls::pause, m_player, &DMediaPlayer::pause);
     connect(controls, &PlayerControls::stop, m_player, &DMediaPlayer::stop);
-    connect(controls, &PlayerControls::next, m_playlist, &DMediaPlaylist::next);
+    connect(controls, &PlayerControls::next, m_playlist, &QMediaPlaylist::next);
     connect(controls, &PlayerControls::previous, this, &Player::previousClicked);
     connect(controls, &PlayerControls::changeVolume, m_player, &DMediaPlayer::setVolume);
     connect(controls, &PlayerControls::changeMuting, m_player, &DMediaPlayer::setMuted);
     connect(controls, &PlayerControls::changeRate, m_player, &DMediaPlayer::setPlaybackRate);
     connect(controls, &PlayerControls::stop, m_videoWidget, QOverload<>::of(&QVideoWidget::update));
 
+#ifdef BUILD_Qt6
+    connect(m_player, &DMediaPlayer::playbackStateChanged, controls, &PlayerControls::setState);
+    connect(controls, &PlayerControls::changeVolume, controls, &PlayerControls::setVolume);
+    connect(controls, &PlayerControls::changeMuting, controls, &PlayerControls::setMuted);
+#else
     connect(m_player, &DMediaPlayer::stateChanged, controls, &PlayerControls::setState);
     connect(m_player, &DMediaPlayer::volumeChanged, controls, &PlayerControls::setVolume);
     connect(m_player, &DMediaPlayer::mutedChanged, controls, &PlayerControls::setMuted);
+#endif
 
     QBoxLayout *displayLayout = new QHBoxLayout;
     displayLayout->addWidget(m_videoWidget, 2);
@@ -134,11 +161,13 @@ void Player::open()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Files"));
+#ifndef BUILD_Qt6
     QStringList supportedMimeTypes = m_player->supportedMimeTypes();
     if (!supportedMimeTypes.isEmpty()) {
         supportedMimeTypes.append("audio/x-m3u"); // MP3 playlists
         fileDialog.setMimeTypeFilters(supportedMimeTypes);
     }
+#endif
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         addToPlaylist(fileDialog.selectedUrls());
@@ -154,17 +183,27 @@ static bool isPlaylist(const QUrl &url) // Check for ".m3u" playlists.
 
 void Player::addToPlaylist(const QList<QUrl> &urls)
 {
+#ifdef BUILD_Qt6
+    if(m_player && urls.count() > 0) {
+        m_player->setProperty("canonicalUrl",urls.at(0));
+        m_player->setSource(urls.at(0));
+    }
+#endif
     for (auto &url: urls) {
         if (isPlaylist(url))
             m_playlist->load(url);
         else
             m_playlist->addMedia(url);
     }
+
+
 }
 
 void Player::setCustomAudioRole(const QString &role)
 {
+#ifndef BUILD_Qt6
     m_player->setCustomAudioRole(role);
+#endif
 }
 
 void Player::durationChanged(qint64 duration)
@@ -184,12 +223,23 @@ void Player::positionChanged(qint64 progress)
 void Player::metaDataChanged()
 {
     if (m_player->isMetaDataAvailable()) {
+#ifdef BUILD_Qt6
+        setTrackInfo(QString("%1 - %2")
+                     .arg(m_player->metaData().value(QMediaMetaData::AlbumArtist).toString())
+                     .arg(m_player->metaData().value(QMediaMetaData::Title).toString()));
+
+#else
         setTrackInfo(QString("%1 - %2")
                 .arg(m_player->metaData(QMediaMetaData::AlbumArtist).toString())
                 .arg(m_player->metaData(QMediaMetaData::Title).toString()));
+#endif
 
         if (m_coverLabel) {
+#ifdef BUILD_Qt6
+            QUrl url = m_player->metaData().value(QMediaMetaData::CoverArtImage).toUrl();
+#else
             QUrl url = m_player->metaData(QMediaMetaData::CoverArtUrlLarge).value<QUrl>();
+#endif
 
             m_coverLabel->setPixmap(!url.isEmpty()
                     ? QPixmap(url.toString())
@@ -219,6 +269,13 @@ void Player::jump(const QModelIndex &index)
 void Player::playlistPositionChanged(int currentItem)
 {
     m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
+#ifdef BUILD_Qt6
+    m_player->setProperty("canonicalUrl",m_playlist->currentMedia());
+    m_player->setSource(m_playlist->currentMedia());
+    m_player->play();
+#else
+    m_player->setMedia(m_playlist->currentMedia());
+#endif
 }
 
 void Player::seek(int seconds)
@@ -232,7 +289,9 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
 
     // handle status message
     switch (status) {
+#ifndef BUILD_Qt6
     case QMediaPlayer::UnknownMediaStatus:
+#endif
     case QMediaPlayer::NoMedia:
     case QMediaPlayer::LoadedMedia:
         setStatusInfo(QString());
@@ -242,10 +301,18 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         break;
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
+#ifdef BUILD_Qt6
+        setStatusInfo(tr("Buffering %1%").arg(m_player->bufferProgress()));
+#else
         setStatusInfo(tr("Buffering %1%").arg(m_player->bufferStatus()));
+#endif
         break;
     case QMediaPlayer::StalledMedia:
+#ifdef BUILD_Qt6
+        setStatusInfo(tr("Stalled %1%").arg(m_player->bufferProgress()));
+#else
         setStatusInfo(tr("Stalled %1%").arg(m_player->bufferStatus()));
+#endif
         break;
     case QMediaPlayer::EndOfMedia:
         QApplication::alert(this);
@@ -328,6 +395,7 @@ void Player::updateDurationInfo(qint64 currentInfo)
     m_labelDuration->setText(tStr);
 }
 
+#ifndef BUILD_Qt6
 void Player::showColorDialog()
 {
     if (!m_colorDialog) {
@@ -372,3 +440,4 @@ void Player::showColorDialog()
     }
     m_colorDialog->show();
 }
+#endif

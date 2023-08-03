@@ -18,6 +18,10 @@ class Q_MULTIMEDIA_EXPORT DScreenRecorder : public QMediaRecorder
     Q_OBJECT
     Q_DECLARE_PRIVATE(DScreenRecorder)
 
+#ifdef BUILD_Qt6
+typedef RecorderState State ;
+#endif
+
 public:
     enum VCodecID {
         CODEC_ID_NO,
@@ -61,7 +65,12 @@ public:
     QPoint topLeft() const;
     void setTopLeft(const int x, const int y);
 
+#if BUILD_Qt6
     State state() const;
+#else
+    State state() const;
+#endif
+
 Q_SIGNALS:
     void screenStreamData(QImage);
 public Q_SLOTS:
