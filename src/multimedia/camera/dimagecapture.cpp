@@ -8,17 +8,30 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#if BUILD_Qt6
+DImageCapture::DImageCapture(QObject *parent)
+    : QImageCapture(parent), d_ptr(new DImageCapturePrivate(this))
+#else
 DImageCapture::DImageCapture(QMediaObject *parent)
     : QCameraImageCapture(parent), d_ptr(new DImageCapturePrivate(this))
+#endif
 {
     Q_D(DImageCapture);
     d->camera = qobject_cast<DCamera *>(parent);
+#if BUILD_Qt6
+    if (d->camera->isFfmpegEnv()) {
+        connect(d->camera, &QCamera::activeChanged, [=]() {
+            emit QImageCapture::readyForCaptureChanged(true);
+        });
+    }
+#else
     if (d->camera->isFfmpegEnv()) {
         connect(d->camera, &QCamera::stateChanged, [=](QCamera::State state) {
             bool ready = (state == QCamera::ActiveState);
             emit QCameraImageCapture::readyForCaptureChanged(ready);
         });
     }
+#endif
 }
 
 DImageCapture::~DImageCapture()
@@ -31,7 +44,12 @@ bool DImageCapture::isAvailable() const
     if (d->camera->isFfmpegEnv()) {
         return DataManager::instance()->getdevStatus() == CAM_CANUSE;
     }
+
+#if BUILD_Qt6
+    return QImageCapture::isAvailable();
+#else
     return QCameraImageCapture::isAvailable();
+#endif
 }
 
 DMediaCaptureSession *DImageCapture::captureSession() const
@@ -40,6 +58,22 @@ DMediaCaptureSession *DImageCapture::captureSession() const
     return d->camera->captureSession();
 }
 
+#if BUILD_Qt6
+QImageCapture::Error DImageCapture::error() const
+{
+    return QImageCapture::error();
+}
+
+QString DImageCapture::errorString() const
+{
+    return QImageCapture::errorString();
+}
+
+bool DImageCapture::isReadyForCapture() const
+{
+    return QImageCapture::isReadyForCapture();
+}
+#else
 QCameraImageCapture::Error DImageCapture::error() const
 {
     return QCameraImageCapture::error();
@@ -54,7 +88,7 @@ bool DImageCapture::isReadyForCapture() const
 {
     return QCameraImageCapture::isReadyForCapture();
 }
-
+#endif
 DImageCapture::FileFormat DImageCapture::fileFormat() const
 {
     Q_D(const DImageCapture);
@@ -183,8 +217,14 @@ int DImageCapture::captureToFile(const QString &location)
     if (d->camera->isFfmpegEnv()) {
         d->camera->takeOne(location);
         return 0;
+    } else {
+#if BUILD_Qt6
+        return QImageCapture::captureToFile(location);
+#else
+        return -1;
+#endif
     }
-    return -1;
+
 }
 
 int DImageCapture::capture(const QString &location)
@@ -194,6 +234,10 @@ int DImageCapture::capture(const QString &location)
         d->camera->takeOne(location);
         return 0;
     } else {
+#if BUILD_Qt6
+        return QImageCapture::captureToFile(location);
+#else
         return QCameraImageCapture::capture(location);
+#endif
     }
 }

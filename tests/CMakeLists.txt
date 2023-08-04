@@ -44,14 +44,13 @@ add_executable(${BIN_NAME}
     ${DFAKE_INTERFACE_DBUS_XML}
 )
 
-find_package(Qt5Widgets)
-find_package(Qt5DBus)
-find_package(Qt5X11Extras)
-find_package(Qt5LinguistTools)
-find_package(Qt5Network)
-find_package(Qt5Concurrent)
-find_package(Qt5Multimedia)
-find_package(Qt5MultimediaWidgets)
+find_package(Qt${QT_VERSION_MAJOR}Widgets)
+find_package(Qt${QT_VERSION_MAJOR}DBus)
+find_package(Qt${QT_VERSION_MAJOR}LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR}Network)
+find_package(Qt${QT_VERSION_MAJOR}Concurrent)
+find_package(Qt${QT_VERSION_MAJOR}Multimedia)
+find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
 find_package(PkgConfig REQUIRED)
 
 find_package(OpenMP)
@@ -60,15 +59,27 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
-pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
+
+if (ENABLE_Qt6)
+    find_package(Dtk${DTK_VERSION_MAJOR}Core)
+    find_package(Dtk${DTK_VERSION_MAJOR}Widget)
+else()
+    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
+    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
+    pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
+endif()
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 pkg_check_modules(InferenceEngine REQUIRED ncnn opencv_mobile)
 
-set(TARGET_LIBS Xtst Qt5::Widgets Qt5::Network Qt5::DBus Qt5::Multimedia Qt5::X11Extras
-    Qt5::MultimediaWidgets PkgConfig::Dtk PkgConfig::DBusextended PkgConfig::Gst GL dl
-    Qt5::Concurrent dtkmultimedia dtkocr)
+set(TARGET_LIBS Xtst
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::DBus
+    Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+    Qt${QT_VERSION_MAJOR}::Concurrent
+    PkgConfig::Gst
+    GL dl dtkmultimedia dtkocr)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
@@ -91,7 +102,26 @@ target_link_libraries(${BIN_NAME} PRIVATE
     -lpthread
     -lgcov
     -lgtest
-)
+    )
+if (ENABLE_Qt6)
+    target_link_libraries(${BIN_NAME} PRIVATE
+        Qt${QT_VERSION_MAJOR}::GuiPrivate
+        Dtk${QT_VERSION_MAJOR}::Core
+        Dtk${QT_VERSION_MAJOR}::Widget
+        )
+else()
+    target_link_libraries(${BIN_NAME} PRIVATE
+        PkgConfig::Dtk
+        PkgConfig::DBusextended
+        )
+endif()
+
+if("${QT_VERSION_MAJOR}" STREQUAL "5")
+    find_package(Qt5X11Extras)
+    target_link_libraries(${BIN_NAME} PRIVATE
+        Qt5::X11Extras
+    )
+endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(${BIN_NAME} PRIVATE -fprofile-instr-generate -ftest-coverage)

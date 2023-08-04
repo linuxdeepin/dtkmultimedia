@@ -5,7 +5,14 @@
 #ifndef DIMAGECAPTURE_H
 #define DIMAGECAPTURE_H
 
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaCaptureSession>
+#include <QtMultimedia/QImageCapture>
+#include <QtMultimedia/QCamera>
+#else
 #include <QCameraImageCapture>
+#endif
+
 #include "dtkmultimedia.h"
 #include "dmediametadata.h"
 
@@ -14,7 +21,11 @@ class DCamera;
 class DImageCapturePrivate;
 class DMediaCaptureSession;
 
+#if BUILD_Qt6
+class Q_MULTIMEDIA_EXPORT DImageCapture : public QImageCapture
+#else
 class Q_MULTIMEDIA_EXPORT DImageCapture : public QCameraImageCapture
+#endif
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(DImageCapture)
@@ -39,7 +50,11 @@ public:
     };
     Q_ENUM(FileFormat)
 public:
+#if BUILD_Qt6
+    explicit DImageCapture(QObject *parent = nullptr);
+#else
     explicit DImageCapture(QMediaObject *parent = nullptr);
+#endif
     ~DImageCapture();
 
     bool isAvailable() const;
@@ -73,6 +88,7 @@ public Q_SLOTS:
     int captureToFile(const QString &location = QString());
     int capture(const QString &location = QString());
 
+    #ifndef BUILD_Qt6
 Q_SIGNALS:
     void errorChanged();
     void errorOccurred(int id, DImageCapture::Error error, const QString &errorString);
@@ -83,6 +99,7 @@ Q_SIGNALS:
     void fileFormatChanged();
     void qualityChanged();
     void resolutionChanged();
+#endif
 
 protected:
     QScopedPointer<DImageCapturePrivate> d_ptr;

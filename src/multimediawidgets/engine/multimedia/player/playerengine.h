@@ -7,7 +7,12 @@
 
 #include "dplayerbackend.h"
 #include <DMpvProxy>
+#ifdef BUILD_Qt6
+#include <QtNetwork>
+#include <QtOpenGLWidgets/QOpenGLWidget>
+#else
 #include <QNetworkConfigurationManager>
+#endif
 #include <QtWidgets>
 #include <dplaylistmodel.h>
 #include <dtkmultimedia.h>
@@ -229,7 +234,11 @@ protected:
     bool showOpenGLWgt(QOpenGLWidget *pVideoWidget);
 
 private:
+#ifdef BUILD_Qt6
+
+#else
     QNetworkConfigurationManager m_networkConfigMng;
+#endif
     bool m_bAudio;
     bool m_stopRunningThread;
     QOpenGLWidget *m_pVideoWidget;

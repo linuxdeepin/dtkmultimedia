@@ -7,7 +7,11 @@
 #include <QDir>
 #include <QLibraryInfo>
 #include <QProcessEnvironment>
+#ifdef BUILD_Qt6
+
+#else
 #include <QCameraExposure>
+#endif
 #include <QStandardPaths>
 #include "datamanager.h"
 #include "majorimageprocessingthread.h"
@@ -28,8 +32,13 @@ DCamera::DCamera(QCamera *parent)
     d->initCamera();
 }
 
+#ifdef BUILD_Qt6
+DCamera::DCamera(const QCameraDevice &cameraDevice, QObject *parent)
+    : QCamera(cameraDevice, parent), d_ptr(new DCameraPrivate(this))
+#else
 DCamera::DCamera(const QCameraInfo &cameraInfo, QObject *parent)
     : QCamera(cameraInfo.deviceName().toLatin1(), parent), d_ptr(new DCameraPrivate(this))
+#endif
 {
     Q_D(DCamera);
     d->initCamera();
@@ -216,11 +225,21 @@ void DCamera::start()
 {
     Q_D(DCamera);
     if (isFfmpegEnv()) {
+#ifdef BUILD_Qt6
+        if (isActive()) {
+            return;
+        }
+        d->dcamInit();
+        setActive(true);
+        emit QCamera::activeChanged(true);
+        setstate(DCamera::ActiveState);
+#else
         if (d->state == QCamera::ActiveState) {
             return;
         }
         d->dcamInit();
         setstate(QCamera::ActiveState);
+#endif
     } else {
         QCamera::start();
     }
@@ -234,11 +253,16 @@ void DCamera::stop()
     } else {
         QCamera::stop();
     }
+#ifdef BUILD_Qt6
+    setActive(false);
+#else
     setstate(QCamera::UnloadedState);
+#endif
 }
 
 bool DCamera::isFfmpegEnv()
 {
+//    return false;
     return DataManager::instance()->encodeEnv() == FFmpeg_Env;
 }
 
@@ -247,17 +271,39 @@ bool DCamera::isWaylandEnv()
     Q_D(DCamera);
     return d->isWayland;
 }
-
+#ifdef BUILD_Qt6
+void DCamera::setViewfinder(QWidget *viewfinder)
+#else
 void DCamera::setViewfinder(QVideoWidget *viewfinder)
+#endif
 {
     Q_D(DCamera);
     if (isFfmpegEnv()) {
         d->viewfinder = viewfinder;
     } else {
+#ifdef BUILD_Qt6
+        // Qt6已移除setViewfinder接口
+        QVideoWidget *wigdet = new QVideoWidget(viewfinder);
+        wigdet->resize(429, 334);
+        d->captureSession->setVideoOutput(wigdet);
+        // d->captureSession->setVideoOutput(viewfinder);
+        d->captureSession->setCamera(this);
+#else
         QCamera::setViewfinder(viewfinder);
+#endif
     }
 }
 
+#ifdef BUILD_Qt6
+void DCamera::setstate(State newState)
+{
+    Q_D(DCamera);
+    if (d->state != newState) {
+        d->state = newState;
+        emit DCamera::stateChanged(newState);
+    }
+}
+#else
 void DCamera::setstate(QCamera::State newState)
 {
     Q_D(DCamera);
@@ -266,6 +312,7 @@ void DCamera::setstate(QCamera::State newState)
         emit QCamera::stateChanged(newState);
     }
 }
+#endif
 
 DMediaCaptureSession *DCamera::captureSession() const
 {
@@ -364,7 +411,11 @@ void DCamera::setExposure(const int &exposure)
     if (d->imgPrcThread->isRunning()) {
         d->imgPrcThread->setExposure(exposure);
     }
+#ifdef BUILD_Qt6
+    QCamera::setExposureCompensation(exposure);
+#else
     QCamera::exposure()->setExposureCompensation(exposure);
+#endif
 }
 
 QList<uint32_t> DCamera::supportedViewfinderPixelFormats()

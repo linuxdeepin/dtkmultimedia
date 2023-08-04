@@ -8,8 +8,13 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#if BUILD_Qt6
+DScreenRecorder::DScreenRecorder(QObject *parent)
+    : QMediaRecorder(parent), d_ptr(new DScreenRecorderPrivate(this))
+#else
 DScreenRecorder::DScreenRecorder(QObject *parent)
     : QMediaRecorder(nullptr, parent), d_ptr(new DScreenRecorderPrivate(this))
+#endif
 {
     Q_D(DScreenRecorder);
     d->videoInterface = new VideoStreamFfmpeg(this);
@@ -113,12 +118,19 @@ void DScreenRecorder::setTopLeft(const int x, const int y)
     d->videoInterface->setTopLeft(x, y);
 }
 
+#if BUILD_Qt6
+DScreenRecorder::State DScreenRecorder::state() const
+{
+    Q_D(const DScreenRecorder);
+    return d->videoInterface->state();
+}
+#else
 QMediaRecorder::State DScreenRecorder::state() const
 {
     Q_D(const DScreenRecorder);
     return d->videoInterface->state();
 }
-
+#endif
 void DScreenRecorder::record()
 {
     Q_D(DScreenRecorder);

@@ -10,6 +10,15 @@
 #include <DGuiApplicationHelper>
 #include <dtkmultimedia.h>
 
+#ifdef BUILD_Qt6
+#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QtOpenGL/QOpenGLVertexArrayObject>
+#include <QtOpenGL/QOpenGLBuffer>
+#include <QtOpenGL/QOpenGLTexture>
+#include <QtOpenGL/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLFramebufferObject>
+#endif
+
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DGstPlayerGLWidget : public QOpenGLWidget
 {

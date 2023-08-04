@@ -12,12 +12,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
 set(QtModule Core Gui)
-find_package(Qt5 REQUIRED ${QtModule})
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED ${QtModule})
 
 include_directories(
-    ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5Gui_INCLUDE_DIRS}
+    ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
+    ${Qt${QT_VERSION_MAJOR}Gui_INCLUDE_DIRS}
 )
 add_definitions(${QT_DEFINITIONS})
 
@@ -36,4 +37,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/../../include/dtkocr
     ${PROJECT_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} dtkocr Qt5::Core Qt5::Gui)
+target_link_libraries(${PROJECT_NAME} dtkocr Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui)

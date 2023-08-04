@@ -4,6 +4,8 @@
 
 #ifndef DMEDIACAPTURESESSION_P_H
 #define DMEDIACAPTURESESSION_P_H
+
+#include <QObject>
 #include <dmediacapturesession.h>
 #include "dplatformmediaplayer.h"
 

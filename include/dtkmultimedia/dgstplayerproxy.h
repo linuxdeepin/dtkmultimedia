@@ -76,7 +76,11 @@ public slots:
     void changehwaccelMode(hwaccelMode hwaccelMode) override;
 
 protected slots:
+#if BUILD_Qt6
+    void slotStateChanged(QMediaPlayer::PlaybackState newState);
+#else
     void slotStateChanged(QMediaPlayer::State newState);
+#endif
     void slotMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void slotPositionChanged(qint64 position);
     void slotMediaError(QMediaPlayer::Error error);

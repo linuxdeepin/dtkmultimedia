@@ -7,7 +7,12 @@
 #include <QPixmap>
 #include <QGuiApplication>
 #include <QApplication>
+#ifdef BUILD_Qt6
+#include <QWindow>
+
+#else
 #include <QDesktopWidget>
+#endif
 
 DMULTIMEDIA_USE_NAMESPACE
 DScreenShot::DScreenShot(QObject *parent)
@@ -34,11 +39,21 @@ QPixmap DScreenShot::screenShot(const QPoint point, const QSize size)
 QPixmap DScreenShotPrivate::fullScreenShot()
 {
     QScreen *t_primaryScreen = QGuiApplication::primaryScreen();
+#ifdef BUILD_Qt6
+    return t_primaryScreen->grabWindow();
+
+#else
     return t_primaryScreen->grabWindow(QApplication::desktop()->winId());
+#endif
 }
 
 QPixmap DScreenShotPrivate::screenShot(const QPoint point, const QSize size)
 {
     QScreen *t_primaryScreen = QGuiApplication::primaryScreen();
+#ifdef BUILD_Qt6
+    return t_primaryScreen->grabWindow(0, point.x(), point.y(), size.width(), size.height());
+
+#else
     return t_primaryScreen->grabWindow(QApplication::desktop()->winId(), point.x(), point.y(), size.width(), size.height());
+#endif
 }

@@ -4,7 +4,11 @@
 
 #ifndef DAUDIOOUT_H
 #define DAUDIOOUT_H
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaCaptureSession>
+#else
 #include <QMediaObject>
+#endif
 #include <dtkmultimedia.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -26,7 +30,11 @@ private:
 };
 class DAudioOutputPrivate;
 
+#if BUILD_Qt6
+class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaCaptureSession
+#else
 class Q_MULTIMEDIA_EXPORT DAudioOutput : public QMediaObject
+#endif
 {
     Q_OBJECT
     Q_PROPERTY(DAudioDevice device READ device WRITE setDevice NOTIFY deviceChanged)
