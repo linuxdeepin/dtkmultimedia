@@ -12,7 +12,11 @@
 #include <random>
 
 #include <QLibrary>
+#if BUILD_Qt6
+#include <QtGui/private/qtx11extras_p.h>
+#else
 #include <QX11Info>
+#endif
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 
@@ -1271,10 +1275,17 @@ QImage DMpvProxyPrivate::takeOneScreenshot() const
         img.bits();
         int rotationdegree = q->videoRotation();
         if (rotationdegree && (DCompositeManager::get().composited() || bNeedRotate)) {   //只有opengl窗口需要自己旋转
+#if BUILD_Qt6
+            QTransform trans;
+            trans.rotate(rotationdegree);
+            img = QPixmap::fromImage(img).transformed(trans, Qt::SmoothTransformation).toImage();
+#else
             QMatrix matrix;
             matrix.rotate(rotationdegree);
             img = QPixmap::fromImage(img).transformed(matrix, Qt::SmoothTransformation).toImage();
+#endif
         }
+
         freeNodecontents(&res);
         return img;
     }

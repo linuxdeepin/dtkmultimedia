@@ -4,6 +4,18 @@
 
 set(BIN_NAME dtkocr)
 
+if (ENABLE_Qt6)
+    set(DTK_VERSION_MAJOR 6)
+    set(QT_VERSION_MAJOR 6)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
+    add_definitions(-DBUILD_Qt6)
+else()
+    set(QT_VERSION_MAJOR 5)
+    set(BUILD_EXAMPLES ON CACHE BOOL "Build examples")
+endif()
+message(".............Build ${BIN_NAME} with Qt${QT_VERSION_MAJOR}")
+
+
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
 file(GLOB_RECURSE INCLUDE_FILES "./*.h" "${INSTALL_INCLUDE_FILES}")
 file(GLOB_RECURSE SRCS
@@ -12,10 +24,10 @@ file(GLOB_RECURSE SRCS
 )
 include_directories(../../include/${BIN_NAME})
 
-find_package(Qt5Gui)
+find_package(Qt${QT_VERSION_MAJOR}Gui)
 find_package(PkgConfig REQUIRED)
 
-set(TARGET_LIBS Qt5::Gui)
+set(TARGET_LIBS Qt${QT_VERSION_MAJOR}::Gui)
 
 add_library(${BIN_NAME} SHARED
     ${INSTALL_INCLUDE_FILES}

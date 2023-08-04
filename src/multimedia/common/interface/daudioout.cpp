@@ -6,8 +6,13 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#if BUILD_Qt6
+DAudioOutput::DAudioOutput(QObject *parent)
+    : QMediaCaptureSession(parent), d_ptr(new DAudioOutputPrivate(this))
+#else
 DAudioOutput::DAudioOutput(QObject *parent)
     : QMediaObject(parent, NULL), d_ptr(new DAudioOutputPrivate(this))
+#endif
 {
 }
 

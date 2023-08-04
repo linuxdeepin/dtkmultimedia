@@ -11,6 +11,7 @@
 #include <QProcessEnvironment>
 #include <QThread>
 #include <QtDebug>
+#include <QSet>
 
 DOCR_BEGIN_NAMESPACE
 
@@ -75,6 +76,16 @@ void PaddleOCRApp::initNet()
             gpuCanUseSet.insert(eachPair.second);
         }
     }
+
+#if BUILD_Qt6
+    int gpuCount = ncnn::get_gpu_count();
+    QList<int> gpuCanUse;
+    for (QSet<int>::const_iterator it = gpuCanUseSet.constBegin(); it != gpuCanUseSet.constEnd(); ++it) {
+        if (*it > 0 && *it <= gpuCount) {
+            gpuCanUse.append(*it);
+        }
+    }
+#else
     QList<int> gpuCanUse = gpuCanUseSet.toList();
     if (!gpuCanUse.isEmpty()) {
         int gpuCount = ncnn::get_gpu_count();
@@ -84,6 +95,7 @@ void PaddleOCRApp::initNet()
             }
         }
     }
+#endif
 
     int maxThreads = QThread::idealThreadCount();
     if (maxThreads <= 0) {

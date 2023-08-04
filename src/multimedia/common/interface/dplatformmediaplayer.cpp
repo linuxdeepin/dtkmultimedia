@@ -18,6 +18,15 @@ DPlatformMediaPlayer::DPlatformMediaPlayer(QMediaPlayer *parent)
     d->player = parent;
 }
 
+#if BUILD_Qt6
+void DPlatformMediaPlayer::playbackStateChanged(QMediaPlayer::PlaybackState newState)
+{
+    Q_D(DPlatformMediaPlayer);
+    if (newState == d->playbackState) return;
+    d->playbackState = newState;
+    d->player->playbackStateChanged(newState);
+}
+#else
 void DPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
 {
     Q_D(DPlatformMediaPlayer);
@@ -25,6 +34,7 @@ void DPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
     d->state = newState;
     d->player->stateChanged(newState);
 }
+#endif
 
 void DPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
@@ -33,11 +43,19 @@ void DPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
     d->status = status;
 }
 
+#if BUILD_Qt6
+QMediaPlayer::PlaybackState DPlatformMediaPlayer::playbackState() const
+{
+    Q_D(const DPlatformMediaPlayer);
+    return d->playbackState;
+}
+#else
 QMediaPlayer::State DPlatformMediaPlayer::state() const
 {
     Q_D(const DPlatformMediaPlayer);
     return d->state;
 }
+#endif
 
 QMediaPlayer::MediaStatus DPlatformMediaPlayer::mediaStatus() const
 {
@@ -130,20 +148,29 @@ void DPlatformMediaPlayer::seekableChanged(bool seekable)
     d->player->seekableChanged(seekable);
 }
 
+
 void DPlatformMediaPlayer::volumeChanged(int volume)
 {
+#if BUILD_Qt6
+//Qt6 删除了音量和静音设置，需要通过其他方式实现
+#else
     Q_D(DPlatformMediaPlayer);
     if (d->volume == volume) return;
     d->volume = volume;
     d->player->volumeChanged(volume);
+#endif
 }
 
 void DPlatformMediaPlayer::mutedChanged(bool muted)
 {
+#if BUILD_Qt6
+//Qt6 删除了音量和静音设置，需要通过其他方式实现
+#else
     Q_D(DPlatformMediaPlayer);
     if (d->muted == muted) return;
     d->muted = muted;
     d->player->mutedChanged(muted);
+#endif
 }
 
 void DPlatformMediaPlayer::playbackRateChanged(qreal rate)

@@ -6,6 +6,9 @@
 #include <QtDBus>
 #include <QtWidgets>
 #include <QPainterPath>
+#ifdef BUILD_Qt6
+#include <QScreen>
+#endif
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 namespace utils {
@@ -112,7 +115,37 @@ QFileInfoList FindSimilarFiles(const QFileInfo &fi)
 
 bool CompareNames(const QString &fileName1, const QString &fileName2)
 {
+#ifdef BUILD_Qt6
+    static QRegularExpression rd("\\d+");
+    QRegularExpressionMatch match = rd.match(fileName1);
+    QRegularExpressionMatch match2 = rd.match(fileName2);
+
+    int pos = 0;
+    match = rd.match(fileName1, pos);
+    match2 = rd.match(fileName2, pos);
+    while (match.hasMatch()) {
+        auto inc = match.capturedLength();
+        auto id1 = fileName1.mid(pos, inc);
+
+        auto pos2 = match2.capturedStart(1);
+        if (pos == pos2) {
+            auto id2 = fileName2.mid(pos, match2.capturedLength());
+            //qInfo() << "id compare " << id1 << id2;
+            if (id1 != id2) {
+                bool ok1, ok2;
+                bool v = id1.toInt(&ok1) < id2.toInt(&ok2);
+                if (ok1 && ok2) return v;
+                return id1.localeAwareCompare(id2) < 0;
+            }
+        }
+
+        pos += inc;
+        match = rd.match(fileName1, pos);
+        match2 = rd.match(fileName2, pos);
+    }
+#else
     static QRegExp rd("\\d+");
+
     int pos = 0;
     while ((pos = rd.indexIn(fileName1, pos)) != -1) {
         auto inc = rd.matchedLength();
@@ -132,6 +165,7 @@ bool CompareNames(const QString &fileName1, const QString &fileName2)
 
         pos += inc;
     }
+#endif
     return fileName1.localeAwareCompare(fileName2) < 0;
 }
 
@@ -206,9 +240,15 @@ QString FullFileHash(const QFileInfo &fi)
 
 QPixmap MakeRoundedPixmap(QPixmap pm, qreal rx, qreal ry, int rotation)
 {
+#ifdef BUILD_Qt6
+    QTransform trans;
+    trans.rotate(rotation);
+    pm = pm.transformed(trans, Qt::SmoothTransformation);
+#else
     QMatrix matrix;
     matrix.rotate(rotation);
     pm = pm.transformed(matrix, Qt::SmoothTransformation);
+#endif
 
     auto dpr = pm.devicePixelRatio();
     QPixmap dest(pm.size());
@@ -339,8 +379,12 @@ void UnInhibitPower(uint32_t cookie)
 
 void MoveToCenter(QWidget *w)
 {
+#ifdef BUILD_Qt6
+    QRect r = QGuiApplication::primaryScreen()->geometry();
+#else
     QDesktopWidget *dw = QApplication::desktop();
     QRect r = dw->availableGeometry(w);
+#endif
 
     w->move(r.center() - w->rect().center());
 }

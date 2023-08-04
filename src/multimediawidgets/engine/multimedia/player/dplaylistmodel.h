@@ -7,7 +7,11 @@
 
 #include <QtWidgets>
 //#include <QtConcurrent>
+#ifdef BUILD_Qt6
+#include <DGuiApplicationHelper>
+#else
 #include <DApplicationHelper>
+#endif
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
 #include "utils.h"
