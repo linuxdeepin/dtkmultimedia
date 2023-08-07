@@ -5,7 +5,12 @@
 #ifndef DMULTIOPERATEINTER_P_H
 #define DMULTIOPERATEINTER_P_H
 #include "dmultioperateinterface.h"
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaRecorder>
+#include <QtMultimedia/QMediaCaptureSession>
+#else
 #include <QAudioRecorder>
+#endif
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DMultiOperateProcess;

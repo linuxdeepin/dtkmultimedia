@@ -11,7 +11,11 @@ extern "C" {
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#ifdef BUILD_Qt6
+DMediaRecorder::DMediaRecorder(QObject *parent)
+#else
 DMediaRecorder::DMediaRecorder(QMediaObject *parent)
+#endif
     : QMediaRecorder(parent), d_ptr(new DMediaRecorderPrivate(this))
 {
     Q_D(DMediaRecorder);
@@ -62,11 +66,19 @@ QUrl DMediaRecorder::actualLocation() const
     return d->location;
 }
 
+#ifdef BUILD_Qt6
+QMediaRecorder::RecorderState DMediaRecorder::recorderState() const
+{
+    Q_D(const DMediaRecorder);
+    return d->state;
+}
+#else
 QMediaRecorder::State DMediaRecorder::recorderState() const
 {
     Q_D(const DMediaRecorder);
     return d->state;
 }
+#endif
 
 QMediaRecorder::Error DMediaRecorder::error() const
 {
@@ -242,10 +254,14 @@ void DMediaRecorder::setMetaData(const DMediaMetaData &metaData)
     }
 }
 
+#ifdef BUILD_Qt6
+
+#else
 void DMediaRecorder::setMetaData(const QString &key, const QVariant &value)
 {
     QMediaRecorder::setMetaData(key, value);
 }
+#endif
 
 void DMediaRecorder::addMetaData(const DMediaMetaData &metaData)
 {
@@ -277,7 +293,11 @@ void DMediaRecorder::record()
         if (d->state == QMediaRecorder::RecordingState) return;
         d->camera->takeVideo(d->location.toLocalFile());
         d->state = QMediaRecorder::RecordingState;
+#ifdef BUILD_Qt6
+        emit recorderStateChanged(d->state);
+#else
         emit stateChanged(d->state);
+#endif
         d->pTimer->start();
     } else {
         QMediaRecorder::record();
@@ -301,7 +321,11 @@ void DMediaRecorder::stop()
         if (d->state != QMediaRecorder::RecordingState) return;
         d->camera->takeVideo(d->location.toLocalFile());
         d->state = QMediaRecorder::StoppedState;
+#ifdef BUILD_Qt6
+        emit recorderStateChanged(d->state);
+#else
         emit stateChanged(d->state);
+#endif
         d->nDuration = 0;
         d->pTimer->stop();
     } else {

@@ -6,8 +6,13 @@
 
 #include <QFileInfo>
 #include <QUrl>
+#ifdef BUILD_Qt6
+#include <QObject>
+#include "qt6player/qmediaplaylist.h"
+#else
 #include <QMediaPlaylist>
 #include <QMediaContent>
+#endif
 
 PlaylistModel::PlaylistModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -50,7 +55,11 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
         QVariant value = m_data[index];
         if (!value.isValid() && index.column() == Title) {
 //            QUrl location = m_playlist->media(index.row()).request().url();
+#ifdef BUILD_Qt6
+            QUrl location = m_playlist->media(index.row());
+#else
             QUrl location = m_playlist->media(index.row()).canonicalUrl();
+#endif
             return QFileInfo(location.path()).fileName();
         }
 

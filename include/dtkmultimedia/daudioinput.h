@@ -4,13 +4,24 @@
 
 #ifndef DAUDIOINPUTDEVICE_H
 #define DAUDIOINPUTDEVICE_H
+#if BUILD_Qt6
+#include <QMediaRecorder>
+#include <QMediaCaptureSession>
+#include <QAudioInput>
+#else
 #include <QMediaObject>
+#endif
+
 #include <dtkmultimedia.h>
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DAudioInputPrivate;
 
+#ifdef BUILD_Qt6
+class Q_MULTIMEDIA_EXPORT DAudioInput : public QAudioInput
+#else
 class Q_MULTIMEDIA_EXPORT DAudioInput : public QObject
+#endif
 {
     Q_OBJECT
     Q_PROPERTY(QString device READ device WRITE setDevice NOTIFY deviceChanged)
@@ -19,6 +30,10 @@ class Q_MULTIMEDIA_EXPORT DAudioInput : public QObject
     Q_DECLARE_PRIVATE(DAudioInput)
 
 public:
+#ifdef BUILD_Qt6
+    explicit DAudioInput(QObject *parent = nullptr);
+//    explicit DAudioInput(const QAudioDevice &deviceInfo, QObject *parent = nullptr);
+#endif
     explicit DAudioInput(const QString &device, QObject *parent = nullptr);
     ~DAudioInput();
 

@@ -12,10 +12,10 @@ file(GLOB_RECURSE SRCS
 )
 include_directories(../../include/${BIN_NAME})
 
-find_package(Qt5Gui)
+find_package(Qt${QT_VERSION_MAJOR}Gui)
 find_package(PkgConfig REQUIRED)
 
-set(TARGET_LIBS Qt5::Gui)
+set(TARGET_LIBS Qt${QT_VERSION_MAJOR}::Gui)
 
 add_library(${BIN_NAME} SHARED
     ${INSTALL_INCLUDE_FILES}
