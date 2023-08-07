@@ -133,6 +133,6 @@ endif()
 # OCR test setting and resource
 set(ModelSaveSubDir dtkocrmodels)
 ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CMAKE_CURRENT_LIST_DIR}/../src/ocr/${ModelSaveSubDir}/")
-#add_subdirectory(ocrplugin)
+add_subdirectory(ocrplugin)
 
 add_test(NAME ${BIN_NAME} COMMAND ${BIN_NAME})
