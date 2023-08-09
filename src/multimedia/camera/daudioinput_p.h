@@ -5,7 +5,12 @@
 #ifndef DAUDIOINPUTDEVICE_P_H
 #define DAUDIOINPUTDEVICE_P_H
 #include "daudioinput.h"
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaRecorder>
+#include <QtMultimedia/QMediaCaptureSession>
+#else
 #include <QAudioRecorder>
+#endif
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DAudioInputPrivate : public QObject
@@ -20,7 +25,11 @@ public:
 
 private:
     DAudioInput *q_ptr;
+#if BUILD_Qt6
+    QMediaCaptureSession recorder;
+#else
     QAudioRecorder recorder;
+#endif
     float volume;
     bool muted;
     QString device;

@@ -4,8 +4,13 @@
 
 #include "previewopenglwidget.h"
 
+#ifdef BUILD_Qt6
+#include <QtOpenGL/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLTexture>
+#else
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#endif
 
 #include <malloc.h>
 
@@ -50,7 +55,6 @@ void PreviewOpenglWidget::slotShowYuv(uchar *ptr, uint width, uint height)
 
 void PreviewOpenglWidget::initializeGL()
 {
-
     makeCurrent();
     initializeOpenGLFunctions();
     glEnable(GL_DEPTH_TEST);

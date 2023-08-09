@@ -7,7 +7,11 @@
 
 #include <QWidget>
 #include <DMediaPlayer>
+#ifdef BUILD_Qt6
+#include <qt6player/qmediaplaylist.h>
+#else
 #include <DMediaPlaylist>
+#endif
 
 class QAbstractItemView;
 class QLabel;
@@ -15,9 +19,9 @@ class QModelIndex;
 class QPushButton;
 class QSlider;
 class QStatusBar;
-class QVideoProbe;
+// class QVideoProbe;
 class QVideoWidget;
-class QAudioProbe;
+// class QAudioProbe;
 
 class PlaylistModel;
 DMULTIMEDIA_USE_NAMESPACE
@@ -53,7 +57,9 @@ private slots:
     void statusChanged(QMediaPlayer::MediaStatus status);
     void bufferingProgress(int progress);
     void displayErrorMessage();
+#ifndef BUILD_Qt6
     void showColorDialog();
+#endif
 
 private:
     void setTrackInfo(const QString &info);
@@ -62,7 +68,7 @@ private:
     void updateDurationInfo(qint64 currentInfo);
 
     DMediaPlayer *m_player = nullptr;
-    DMediaPlaylist *m_playlist = nullptr;
+    QMediaPlaylist *m_playlist = nullptr;
     QVideoWidget *m_videoWidget = nullptr;
 //    DVideoWidget *m_videoWidget = nullptr;
     QLabel *m_coverLabel = nullptr;

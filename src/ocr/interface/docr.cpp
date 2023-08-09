@@ -125,6 +125,11 @@ bool DOcr::loadPlugin(const QString &pluginName)
     }
 
     d->qtPluginLoader->setFileName(pluginLibPath);
+    bool ret = d->qtPluginLoader->load();
+    qDebug() << "load plugin: " << ret;
+    if (!ret) {
+        qWarning() << "Error message:" << d->qtPluginLoader->errorString();
+    }
     auto pluginObject = d->qtPluginLoader->instance();
     if (pluginObject != nullptr) {
         auto pluginDetail = qobject_cast<DOcrPluginInterface *>(pluginObject);

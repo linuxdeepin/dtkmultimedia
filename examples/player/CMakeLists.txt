@@ -9,10 +9,9 @@ set(CMAKE_AUTOUIC ON)
 # 2.project name
 PROJECT(player)
 
-
-find_package(Qt5Widgets)
-find_package(Qt5Network)
-find_package(Qt5MultimediaWidgets)
+find_package(Qt${QT_VERSION_MAJOR}Widgets)
+find_package(Qt${QT_VERSION_MAJOR}Network)
+find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
 
 # 4.source directory
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
@@ -22,6 +21,11 @@ SET(SRC_PATH ${DIR_SRCS})
 
 # 6.add executable file
 file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
+if (ENABLE_Qt6)
+file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/qt6player/*.cpp)
+include_directories(${PROJECT_SOURCE_DIR}/qt6player/*.h)
+list(APPEND SRC_PATH ${SRC_FILES})
+endif()
 ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_PATH} ${INCLUDE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -29,7 +33,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/../../include/dtkmultimediawidgets
     ${PROJECT_SOURCE_DIR}/../../include/dtkocr)
 
-set(TARGET_LIBS Qt5::Widgets Qt5::Network Qt5::MultimediaWidgets)
+set(TARGET_LIBS Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 
 # 7.add link library
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia dtkmultimediawidgets dtkocr)

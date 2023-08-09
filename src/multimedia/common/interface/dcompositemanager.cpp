@@ -4,9 +4,14 @@
 
 //#include "config.h"
 #include "dcompositemanager_p.h"
-#include <QX11Info>
 #include <QtCore>
 #include <QtGui>
+#if BUILD_Qt6
+#include <QtGui/private/qtx11extras_p.h>
+#include <QRegularExpression>
+#else
+#include <QX11Info>
+#endif
 #include <iostream>
 #include <unistd.h>
 
@@ -48,8 +53,10 @@ public:
                 string machine(data.trimmed().constData());
                 qInfo() << QString("machine: %1").arg(machine.c_str());
 
-                QRegExp re("x86.*|i?86|ia64", Qt::CaseInsensitive);
-                if (re.indexIn(C2Q(machine)) != -1) {
+#if BUILD_Qt6
+                QRegularExpression re("x86.*|i?86|ia64");
+                QRegularExpressionMatch match = re.match(C2Q(machine));
+                if (match.hasMatch()) {
                     qInfo() << "match x86";
                     _pf = Platform::X86;
                 } else if (machine.find("alpha") != string::npos || machine.find("sw_64") != string::npos) {
@@ -63,6 +70,24 @@ public:
                     qInfo() << "match arm";
                     _pf = Platform::Arm64;
                 }
+#else
+                QRegExp re("x86.*|i?86|ia64", Qt::CaseInsensitive);
+                if (re.indexIn(C2Q(machine)) != -1) {
+
+                    qInfo() << "match x86";
+                    _pf = Platform::X86;
+                } else if (machine.find("alpha") != string::npos || machine.find("sw_64") != string::npos) {
+                    // shenwei
+                    qInfo() << "match shenwei";
+                    _pf = Platform::Alpha;
+                } else if (machine.find("mips") != string::npos || machine.find("loongarch64") != string::npos) {   // loongson
+                    qInfo() << "match loongson";
+                    _pf = Platform::Mips;
+                } else if (machine.find("aarch64") != string::npos) {   // ARM64
+                    qInfo() << "match arm";
+                    _pf = Platform::Arm64;
+                }
+#endif
             }
         }
 
@@ -346,10 +371,17 @@ OpenGLInteropKind DCompositeManager::interopKind()
 
 bool DCompositeManagerPrivate::isDriverLoadedCorrectly()
 {
+#if BUILD_Qt6
+    static QRegularExpression aiglx_err("\\(EE\\)\\s+AIGLX error");
+    static QRegularExpression dri_ok("direct rendering: DRI\\d+ enabled");
+    static QRegularExpression swrast("GLX: Initialized DRISWRAST");
+    static QRegularExpression regZX("loading driver: zx");
+#else
     static QRegExp aiglx_err("\\(EE\\)\\s+AIGLX error");
     static QRegExp dri_ok("direct rendering: DRI\\d+ enabled");
     static QRegExp swrast("GLX: Initialized DRISWRAST");
     static QRegExp regZX("loading driver: zx");
+#endif
 
     QString xorglog = QString("/var/log/Xorg.%1.log").arg(QX11Info::appScreen());
     qInfo() << "check " << xorglog;
@@ -360,6 +392,33 @@ bool DCompositeManagerPrivate::isDriverLoadedCorrectly()
     }
 
     QTextStream ts(&f);
+#if BUILD_Qt6
+    while (!ts.atEnd()) {
+        QString ln = ts.readLine();
+        QRegularExpressionMatch match = aiglx_err.match(ln);
+        if (match.hasMatch()) {
+            qInfo() << "found aiglx error";
+            return false;
+        }
+
+        match = dri_ok.match(ln);
+        if (match.hasMatch()) {
+            qInfo() << "dri enabled successfully";
+            return true;
+        }
+
+        match = swrast.match(ln);
+        if (match.hasMatch()) {
+            qInfo() << "swrast driver used";
+            return false;
+        }
+
+        match = regZX.match(ln);
+        if (match.hasMatch()) {
+            bZXIntgraphics = true;
+        }
+    }
+#else
     while (!ts.atEnd()) {
         QString ln = ts.readLine();
         if (aiglx_err.indexIn(ln) != -1) {
@@ -381,6 +440,7 @@ bool DCompositeManagerPrivate::isDriverLoadedCorrectly()
             bZXIntgraphics = true;
         }
     }
+#endif
     f.close();
     return true;
 }

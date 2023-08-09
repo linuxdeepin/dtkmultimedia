@@ -112,7 +112,11 @@ private:
     DAudioRecorder::AChannelsID channels { DAudioRecorder::CHANNELS_ID_STEREO };
     AVCodecID codec { AV_CODEC_ID_NONE };
 
+#if BUILD_Qt6
+    QMediaRecorder::RecorderState state { QMediaRecorder::StoppedState };
+#else
     QMediaRecorder::State state { QMediaRecorder::StoppedState };
+#endif
     std::thread *audioRecorderThread { nullptr };
     std::atomic_bool isRecording { false };
     std::atomic_bool isPause { false };

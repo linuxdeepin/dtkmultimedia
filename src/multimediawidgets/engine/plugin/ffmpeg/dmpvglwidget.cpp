@@ -7,7 +7,11 @@
 #include <DMpvProxy>
 #include "dmpvglwidget.h"
 
+#if BUILD_Qt6
+#include <QtGui/private/qtx11extras_p.h>
+#else
 #include <QtX11Extras/QX11Info>
+#endif
 #include <QLibrary>
 #include <QPainterPath>
 
