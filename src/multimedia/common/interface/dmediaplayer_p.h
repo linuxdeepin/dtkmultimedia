@@ -21,7 +21,13 @@ private:
     DMediaPlayer *q_ptr;
     DPlatformMediaPlayer *pPlayer = nullptr;
     QVideoWidget *videoWidget = nullptr;
+
+#if BUILD_Qt6
+   DMediaPlaylist *pPlayList = nullptr;    //QMediaPlaylist已移除
+#else
+
     QMediaPlaylist *pPlayList = nullptr;
+#endif
 };
 DMULTIMEDIA_END_NAMESPACE
 #endif

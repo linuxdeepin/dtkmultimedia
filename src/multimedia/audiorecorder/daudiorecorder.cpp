@@ -6,8 +6,13 @@
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#if BUILD_Qt6
+DAudioRecorder::DAudioRecorder(QObject *parent)
+    : QMediaRecorder(parent), d_ptr(new DAudioRecorderPrivate(this))
+#else
 DAudioRecorder::DAudioRecorder(QObject *parent)
     : QAudioRecorder(parent), d_ptr(new DAudioRecorderPrivate(this))
+#endif
 {
     Q_D(DAudioRecorder);
     d->encoderInterface = new DAudioEncoderInterface;
@@ -92,11 +97,18 @@ bool DAudioRecorder::setOutputLocation(const QUrl &location)
     return d->encoderInterface->setOutputLocation(location);
 }
 
+#if BUILD_Qt6
+QMediaRecorder::RecorderState DAudioRecorder::state() const {
+    Q_D(const DAudioRecorder);
+    return d->encoderInterface->recorderState();
+}
+#else
 QMediaRecorder::State DAudioRecorder::state() const
 {
     Q_D(const DAudioRecorder);
     return d->encoderInterface->state();
 }
+#endif
 
 void DAudioRecorder::record()
 {

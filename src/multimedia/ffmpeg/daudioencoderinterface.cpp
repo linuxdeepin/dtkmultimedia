@@ -381,11 +381,19 @@ void DAudioEncoderInterface::pauseEncode()
     }
 }
 
+#if BUILD_Qt6
+QMediaRecorder::RecorderState DAudioEncoderInterface::recorderState() const
+{
+    Q_D(const DAudioEncoderInterface);
+    return d->state;
+}
+#else
 QMediaRecorder::State DAudioEncoderInterface::state() const
 {
     Q_D(const DAudioEncoderInterface);
     return d->state;
 }
+#endif
 
 void DAudioEncoderInterface::encodeWork()
 {

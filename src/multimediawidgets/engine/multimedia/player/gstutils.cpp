@@ -239,7 +239,13 @@ ModeMovieInfo GstUtils::parseFileByGst(const QFileInfo &fi)
 
     m_movieInfo.title    = fi.fileName();
     m_movieInfo.filePath = fi.canonicalFilePath();
+#ifdef BUILD_Qt6
+    //// creation已弃用。使用birthTime函数获取文件创建的时间，使用metadataChangeTime获取其元数据上次更改的时间，或使用lastModified获取上次修改的时间。
+    //// 此处需要确定具体需要使用哪一个时间，暂时使用birthTime。
+    m_movieInfo.creation = fi.birthTime().toString();
+#else
     m_movieInfo.creation = fi.created().toString();
+#endif
     m_movieInfo.fileSize = fi.size();
     m_movieInfo.fileType = fi.suffix();
 

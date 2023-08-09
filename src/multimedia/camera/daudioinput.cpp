@@ -3,15 +3,30 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "daudioinput_p.h"
+#ifdef BUILD_Qt6
+#include <QMediaDevices>
+#else
 #include <QAudioDeviceInfo>
 #include <QAudioRecorder>
+#endif
 #include <QtGlobal>
 #include <utility>
 
 DMULTIMEDIA_USE_NAMESPACE
 
+#ifdef BUILD_Qt6
+DAudioInput::DAudioInput(QObject *parent)
+    : QAudioInput(parent)
+{
+
+}
+
+DAudioInput::DAudioInput(const QString &device, QObject *parent)
+    : QAudioInput(parent), d_ptr(new DAudioInputPrivate(this))
+#else
 DAudioInput::DAudioInput(const QString &device, QObject *parent)
     : QObject(parent), d_ptr(new DAudioInputPrivate(this))
+#endif
 {
     setDevice(device);
 }
@@ -61,8 +76,10 @@ void DAudioInput::setDevice(const QString &device)
 {
     Q_D(DAudioInput);
     auto dev = device;
+#ifndef BUILD_Qt6
     if (dev.isNull())
         dev = d->recorder.defaultAudioInput();
+#endif
     if (d->device == dev)
         return;
     d->device = dev;

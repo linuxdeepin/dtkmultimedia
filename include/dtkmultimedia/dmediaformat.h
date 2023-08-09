@@ -5,7 +5,11 @@
 #ifndef DMEDIAFORMAT_H
 #define DMEDIAFORMAT_H
 
+#ifdef BUILD_Qt6
+#include <QMediaCaptureSession>
+#else
 #include <QMediaObject>
+#endif
 #include "dtkmultimedia.h"
 
 DMULTIMEDIA_BEGIN_NAMESPACE

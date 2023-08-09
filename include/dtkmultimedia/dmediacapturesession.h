@@ -5,7 +5,12 @@
 #ifndef DMEDIACAPTURESESSION_H
 #define DMEDIACAPTURESESSION_H
 
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaCaptureSession>
+#else
 #include <QMediaObject>
+#endif
+
 #include "dtkmultimedia.h"
 
 DMULTIMEDIA_BEGIN_NAMESPACE
@@ -16,7 +21,11 @@ class DMediaRecorder;
 class DVideoSink;
 class DAudioOutput;
 class DMediaCaptureSessionPrivate;
+#ifdef BUILD_Qt6
+class Q_MULTIMEDIA_EXPORT DMediaCaptureSession : public QMediaCaptureSession
+#else
 class Q_MULTIMEDIA_EXPORT DMediaCaptureSession : public QObject
+#endif
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(DMediaCaptureSession)
@@ -25,6 +34,7 @@ public:
     ~DMediaCaptureSession();
 
 public:
+#ifndef BUILD_Qt6
     DAudioInput *audioInput() const;
     void setAudioInput(DAudioInput *input);
 
@@ -34,8 +44,10 @@ public:
     DImageCapture *imageCapture();
     void setImageCapture(DImageCapture *imageCapture);
 
+
     DMediaRecorder *recorder();
     void setRecorder(DMediaRecorder *recorder);
+
 
     void setVideoOutput(QObject *output);
     QObject *videoOutput() const;
@@ -55,6 +67,7 @@ Q_SIGNALS:
     void recorderChanged();
     void videoOutputChanged();
     void audioOutputChanged();
+#endif
 
 protected:
     QScopedPointer<DMediaCaptureSessionPrivate> d_ptr;

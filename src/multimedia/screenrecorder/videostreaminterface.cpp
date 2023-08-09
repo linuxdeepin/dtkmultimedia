@@ -131,10 +131,17 @@ void VideoStreamInterface::setStreamAcceptFunc(VideoStreamCallback function, voi
     sendDataObj = obj;
 }
 
+#if BUILD_Qt6
+State VideoStreamInterface::state() const
+{
+    return stateValue;
+}
+#else
 QMediaRecorder::State VideoStreamInterface::state() const
 {
     return stateValue;
 }
+#endif
 
 void VideoStreamInterface::propertyRevise()
 {

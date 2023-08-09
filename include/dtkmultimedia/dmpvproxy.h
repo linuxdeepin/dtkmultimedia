@@ -42,7 +42,7 @@ class DMpvProxy : public DPlayerBackend
     Q_OBJECT
     Q_DECLARE_PRIVATE(DMpvProxy)
 
-signals:
+Q_SIGNALS:
     void has_mpv_events();
     void crashCheck();
     void notifyCreateOpenGL(MpvHandle handle);

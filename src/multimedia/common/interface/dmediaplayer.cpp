@@ -23,21 +23,48 @@ DPlatformMediaPlayer *DMediaPlayer::getPlayer()
     return d->pPlayer;
 }
 
+
+
 QVideoWidget *DMediaPlayer::getVideoOutput()
 {
     Q_D(DMediaPlayer);
     return d->videoWidget;
 }
+#if BUILD_Qt6
+DMediaPlaylist *DMediaPlayer::getPlaylist() {
+    Q_D(DMediaPlayer);
+    return d->pPlayList;
+}
 
+#else
 QMediaPlaylist *DMediaPlayer::getPlaylist()
 {
     Q_D(DMediaPlayer);
     return d->pPlayList;
 }
+#endif
 
 void DMediaPlayer::play()
 {
     Q_D(DMediaPlayer);
+
+#if BUILD_Qt6
+    ////播放列表移除，需要重新实现
+//    if (!d->pPlayer || !d->pPlayList || d->pPlayList->isEmpty()) return;
+//    QUrl url = d->pPlayList->currentMedia().canonicalUrl();
+//    if (url.isEmpty()) {
+//        d->pPlayList->setCurrentIndex(0);
+//        url = d->pPlayList->media(0).canonicalUrl();
+//    }
+    QUrl url  = property("canonicalUrl").toUrl();;
+    if(url.isEmpty() || !url.isValid()) return;
+    if ((d->pPlayer->media() != url) || d->pPlayer->playbackState() == QMediaPlayer::StoppedState) {
+        d->pPlayer->setMedia(url, nullptr);
+        d->pPlayer->play();
+    } else if (d->pPlayer->playbackState() == QMediaPlayer::PausedState) {
+        pause();
+    }
+#else
     if (!d->pPlayer || !d->pPlayList || d->pPlayList->isEmpty()) return;
     QUrl url = d->pPlayList->currentMedia().canonicalUrl();
     if (url.isEmpty()) {
@@ -50,6 +77,7 @@ void DMediaPlayer::play()
     } else if (d->pPlayer->state() == QMediaPlayer::PausedState) {
         pause();
     }
+#endif
 }
 
 void DMediaPlayer::pause()
@@ -94,6 +122,16 @@ void DMediaPlayer::setPlaybackRate(qreal rate)
     d->pPlayer->setPlaybackRate(rate);
 }
 
+#if BUILD_Qt6
+////需要重新实现
+//void setMedia(const QMediaContent &media, QIODevice *stream = nullptr)
+//void setPlaylist(QMediaPlaylist *playlist)
+//void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations)
+void DMediaPlayer::setVideoOutput(QObject *)
+{
+
+}
+#else
 void DMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
 {
     QMediaPlayer::setMedia(media, stream);
@@ -121,7 +159,7 @@ void DMediaPlayer::setVideoOutput(QVideoWidget *videoWidget)
     Q_D(DMediaPlayer);
     d->videoWidget = videoWidget;
 }
-
+#endif
 void DMediaPlayer::setPlayer(DPlatformMediaPlayer *player)
 {
     Q_D(DMediaPlayer);

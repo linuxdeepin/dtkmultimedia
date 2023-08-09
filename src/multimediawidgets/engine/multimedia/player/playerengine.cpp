@@ -179,10 +179,14 @@ PlayerEngine::PlayerEngine(QWidget *parent) : QWidget(parent)
         m_current->setWinID(winId());
     }
 
+#ifdef BUILD_Qt6
+
+#else
     connect(&m_networkConfigMng,
         &QNetworkConfigurationManager::onlineStateChanged,
         this,
         &PlayerEngine::onlineStateChanged);
+#endif
     connect(
         &OnlineSubtitle::get(), &OnlineSubtitle::subtitlesDownloadedFor, this, &PlayerEngine::onSubtitlesDownloaded);
 
@@ -277,9 +281,16 @@ void PlayerEngine::processFrame(QVideoFrame &frame)
 {
     DGstPlayerGLWidget *glwgt = (DGstPlayerGLWidget *) m_pVideoWidget;
     DGstPlayerProxy *proxy    = (DGstPlayerProxy *) m_current;
+#ifdef BUILD_Qt6
+    frame.map(QVideoFrame::ReadOnly);
+    //// bits().......
+    QImage recvImage(
+        frame.bits(frame.planeCount()), frame.width(), frame.height(), QVideoFrameFormat::imageFormatFromPixelFormat(frame.pixelFormat()));
+#else
     frame.map(QAbstractVideoBuffer::ReadOnly);
     QImage recvImage(
         frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+#endif
     proxy->setCurrentFrame(recvImage);
     glwgt->setVideoTex(recvImage);
     glwgt->repaint();
@@ -376,7 +387,12 @@ void PlayerEngine::onBackendStateChanged()
         }
         else {
             QPalette pal(this->palette());
+#ifdef BUILD_Qt6
+            // Background/Foreground已移除，用WindowText/Window替代
+            pal.setColor(QPalette::Window, Qt::black);
+#else
             pal.setColor(QPalette::Background, Qt::black);
+#endif
             this->setAutoFillBackground(true);
             this->setPalette(pal);
         }
@@ -448,7 +464,11 @@ void PlayerEngine::onSubtitlesDownloaded(
     bool res = false;
 
     for(auto &filename : filenames) {
+#ifdef BUILD_Qt6
+        if(true == m_current->loadSubtitle(QFileInfo(filename))) {
+#else
         if(true == m_current->loadSubtitle(filename)) {
+#endif
             res = true;
         }
         else {
@@ -886,7 +906,40 @@ QList<QUrl> PlayerEngine::addPlayDir(const QDir &dir)
     struct {
         bool operator()(const QUrl &fi1, const QUrl &fi2) const
         {
+#ifdef BUILD_Qt6
+            static QRegularExpression rd("\\d+");
+            QRegularExpressionMatch match, match2;
+
+            int pos           = 0;
+            QString fileName1 = QFileInfo(fi1.toLocalFile()).fileName();
+            QString fileName2 = QFileInfo(fi2.toLocalFile()).fileName();
+
+            match = rd.match(fileName1, pos);
+            match2 = rd.match(fileName2, pos);
+            while(match.hasMatch()) {
+                auto inc = match.capturedLength();
+                auto id1 = fileName1.mid(pos, inc);
+
+                auto pos2 = match2.capturedStart(1);
+                if(pos == pos2) {
+                    auto id2 = fileName2.mid(pos, match2.capturedLength());
+                    if(id1 != id2) {
+                        bool ok1, ok2;
+                        bool v = id1.toInt(&ok1) < id2.toInt(&ok2);
+                        if(ok1 && ok2) return v;
+                        return id1.localeAwareCompare(id2) < 0;
+                    }
+                }
+
+                pos += inc;
+                match = rd.match(fileName1, pos);
+                match2 = rd.match(fileName2, pos);
+            }
+
+            return fileName1.localeAwareCompare(fileName2) < 0;
+#else
             static QRegExp rd("\\d+");
+
             int pos           = 0;
             QString fileName1 = QFileInfo(fi1.toLocalFile()).fileName();
             QString fileName2 = QFileInfo(fi2.toLocalFile()).fileName();
@@ -907,7 +960,9 @@ QList<QUrl> PlayerEngine::addPlayDir(const QDir &dir)
 
                 pos += inc;
             }
+
             return fileName1.localeAwareCompare(fileName2) < 0;
+#endif
         }
     } SortByDigits;
 

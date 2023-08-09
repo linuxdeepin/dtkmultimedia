@@ -7,7 +7,11 @@
 DMULTIMEDIA_USE_NAMESPACE
 
 DMediaCaptureSession::DMediaCaptureSession(QObject *parent)
+#ifdef BUILD_Qt6
+    : QMediaCaptureSession(parent), d_ptr(new DMediaCaptureSessionPrivate(this))
+#else
     : QObject(parent), d_ptr(new DMediaCaptureSessionPrivate(this))
+#endif
 {
 }
 
@@ -15,6 +19,7 @@ DMediaCaptureSession::~DMediaCaptureSession()
 {
 }
 
+#ifndef BUILD_Qt6
 DAudioInput *DMediaCaptureSession::audioInput() const
 {
     Q_D(const DMediaCaptureSession);
@@ -60,6 +65,7 @@ void DMediaCaptureSession::setImageCapture(DImageCapture *imageCapture)
     emit imageCaptureChanged();
 }
 
+
 DMediaRecorder *DMediaCaptureSession::recorder()
 {
     Q_D(const DMediaCaptureSession);
@@ -69,9 +75,14 @@ DMediaRecorder *DMediaCaptureSession::recorder()
 void DMediaCaptureSession::setRecorder(DMediaRecorder *recorder)
 {
     Q_D(DMediaCaptureSession);
+
+#ifdef BUILD_Qt6
+
+#else
     if (d->recorder == recorder)
         return;
     d_ptr->recorder = recorder;
+#endif
     emit recorderChanged();
 }
 
@@ -124,3 +135,4 @@ DMediaCaptureSession *DMediaCaptureSession::platformSession() const
     //todo
     return NULL;
 }
+#endif

@@ -26,6 +26,10 @@ extern "C" {
 DMULTIMEDIA_BEGIN_NAMESPACE
 
 DMULTIMEDIA_USE_NAMESPACE
+
+#ifdef BUILD_Qt6
+typedef QMediaRecorder::RecorderState State ;
+#endif
 class VideoStreamInterface : public QObject
 {
     Q_OBJECT
@@ -63,7 +67,17 @@ public:
 
     void setStreamAcceptFunc(VideoStreamCallback function, void *obj);
 
+#if BUILD_Qt6
+    //    enum State
+    //    {
+    //        StoppedState,
+    //        RecordingState,
+    //        PausedState
+    //    };
+    State state() const;
+#else
     QMediaRecorder::State state() const;
+#endif
 
 Q_SIGNALS:
     void screenStreamData(QImage);
@@ -84,7 +98,11 @@ protected:
     AVCodecID codecId { AV_CODEC_ID_NONE };
     AVPixelFormat pixFormat { AV_PIX_FMT_RGBA };
 
+#if BUILD_Qt6
+    QMediaRecorder::RecorderState stateValue { QMediaRecorder::StoppedState };
+#else
     QMediaRecorder::State stateValue { QMediaRecorder::StoppedState };
+#endif
     std::thread *videoRecorderThread { nullptr };
     std::atomic_bool isRecording { false };
     std::atomic_bool isPause { false };

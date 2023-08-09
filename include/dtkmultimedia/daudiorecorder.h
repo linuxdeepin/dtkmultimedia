@@ -6,13 +6,21 @@
 #define DAUDIORECORDER_H
 
 #include <QUrl>
+#if BUILD_Qt6
+#include <QtMultimedia/QMediaRecorder>
+#include <QtMultimedia/QMediaCaptureSession>
+#else
 #include <QAudioRecorder>
+#endif
 #include <dtkmultimedia.h>
 DMULTIMEDIA_BEGIN_NAMESPACE
 
 class DAudioRecorderPrivate;
-
+#if BUILD_Qt6
+class Q_MULTIMEDIA_EXPORT DAudioRecorder : public QMediaRecorder
+#else
 class Q_MULTIMEDIA_EXPORT DAudioRecorder : public QAudioRecorder
+#endif
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(DAudioRecorder)
@@ -52,7 +60,18 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
+#if BUILD_Qt6
+    //    enum State
+    //    {
+    //        StoppedState,
+    //        RecordingState,
+    //        PausedState
+    //    };
+    // Qt6由State改为RecorderState
+    QMediaRecorder::RecorderState state() const;
+#else
     State state() const;
+#endif
 
 public Q_SLOTS:
     void record();
