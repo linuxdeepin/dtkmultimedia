@@ -15,7 +15,7 @@ find_package(Qt${QT_VERSION_MAJOR}Widgets)
 find_package(Qt${QT_VERSION_MAJOR}Network)
 find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
 if (ENABLE_Qt6)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
 endif()
 
 # 4.source directory
