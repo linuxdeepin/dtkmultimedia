@@ -39,21 +39,20 @@ find_package(Qt${QT_VERSION_MAJOR}Network)
 find_package(Qt${QT_VERSION_MAJOR}Concurrent)
 find_package(Qt${QT_VERSION_MAJOR}Multimedia)
 find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
+find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Widget)
 if (ENABLE_Qt6)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS OpenGLWidgets)
+else()
+    find_package(Qt5X11Extras)
 endif()
+
 find_package(PkgConfig REQUIRED)
 
-if (ENABLE_Qt6)
-    message("find_package................")
-    find_package(Dtk${QT_VERSION_MAJOR}Core)
-    find_package(Dtk${QT_VERSION_MAJOR}Widget)
-#    find_package(Qt6 COMPONENTS Core5Compat REQUIRED)
-else()
-    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
-    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
+if (NOT ENABLE_Qt6)
     pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
 endif()
+
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 
 
@@ -81,6 +80,8 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::DBus
+    Dtk${DTK_VERSION_MAJOR}::Core
+    Dtk${DTK_VERSION_MAJOR}::Widget
     ${TARGET_LIBS}
     ${RSVG2_LIBRARIES}
     )
@@ -89,22 +90,12 @@ if (ENABLE_Qt6)
     target_link_libraries(${BIN_NAME} PRIVATE
         Qt${QT_VERSION_MAJOR}::GuiPrivate
         Qt${QT_VERSION_MAJOR}::OpenGLWidgets
-        Dtk${QT_VERSION_MAJOR}::Core
-        Dtk${QT_VERSION_MAJOR}::Widget
-#        Qt6::Core5Compat
         )
 else()
     target_link_libraries(${BIN_NAME} PRIVATE
         PkgConfig::DBusextended
-        PkgConfig::Dtk
-        )
-endif()
-
-if("${QT_VERSION_MAJOR}" STREQUAL "5")
-    find_package(Qt5X11Extras)
-    target_link_libraries(${BIN_NAME} PRIVATE
         Qt5::X11Extras
-    )
+        )
 endif()
 
 install(FILES ${INSTALL_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME})

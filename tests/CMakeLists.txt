@@ -17,7 +17,7 @@ file(GLOB_RECURSE SRCS
     "../src/ocr/*.h"
     "../src/ocr/*.cpp"
     "${INCLUDE_FILES}"
-)
+    )
 file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
 
 include_directories(
@@ -27,7 +27,7 @@ include_directories(
     "../src/multimediawidgets/dbus"
     "3rdparty/cpp-stub"
     "3rdparty/stub-ext"
-)
+    )
 
 include_directories(../src/multimediawidgets/common/utils)
 include_directories(../src/multimediawidgets/engine/interface)
@@ -42,7 +42,7 @@ add_executable(${BIN_NAME}
     ${SRCS}
     ${TEST_FILES}
     ${DFAKE_INTERFACE_DBUS_XML}
-)
+    )
 
 find_package(Qt${QT_VERSION_MAJOR}Widgets)
 find_package(Qt${QT_VERSION_MAJOR}DBus)
@@ -51,6 +51,8 @@ find_package(Qt${QT_VERSION_MAJOR}Network)
 find_package(Qt${QT_VERSION_MAJOR}Concurrent)
 find_package(Qt${QT_VERSION_MAJOR}Multimedia)
 find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
+find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Widget)
 find_package(PkgConfig REQUIRED)
 
 find_package(OpenMP)
@@ -59,15 +61,12 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-
-if (ENABLE_Qt6)
-    find_package(Dtk${DTK_VERSION_MAJOR}Core)
-    find_package(Dtk${DTK_VERSION_MAJOR}Widget)
-else()
-    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
-    pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
+if (NOT ENABLE_Qt6)
+    find_package(Qt5X11Extras)
     pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
 endif()
+pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
+pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 pkg_check_modules(InferenceEngine REQUIRED ncnn opencv_mobile)
 
@@ -90,12 +89,14 @@ target_include_directories(${BIN_NAME} PUBLIC
     ${RSVG2_INCLUDE_DIRS}
     ${InferenceEngine_INCLUDE_DIRS}
     ${PROJECT_INCLUDE}
-)
+    )
 
 target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::DBus
+    Dtk${DTK_VERSION_MAJOR}::Core
+    Dtk${DTK_VERSION_MAJOR}::Widget
     ${RSVG2_LIBRARIES}
     ${InferenceEngine_LIBRARIES}
     ${TARGET_LIBS}
@@ -106,21 +107,12 @@ target_link_libraries(${BIN_NAME} PRIVATE
 if (ENABLE_Qt6)
     target_link_libraries(${BIN_NAME} PRIVATE
         Qt${QT_VERSION_MAJOR}::GuiPrivate
-        Dtk${QT_VERSION_MAJOR}::Core
-        Dtk${QT_VERSION_MAJOR}::Widget
         )
 else()
     target_link_libraries(${BIN_NAME} PRIVATE
-        PkgConfig::Dtk
         PkgConfig::DBusextended
-        )
-endif()
-
-if("${QT_VERSION_MAJOR}" STREQUAL "5")
-    find_package(Qt5X11Extras)
-    target_link_libraries(${BIN_NAME} PRIVATE
         Qt5::X11Extras
-    )
+        )
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
