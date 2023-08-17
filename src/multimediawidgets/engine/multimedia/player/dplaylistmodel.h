@@ -18,6 +18,7 @@
 #include <QMutex>
 #include <QNetworkReply>
 #include <dtkmultimedia.h>
+#include <DGuiApplicationHelper>
 
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
@@ -33,6 +34,7 @@ typedef void (*mvideo_thumbnailer_destroy_image_data)(image_data *data);
 typedef int (*mvideo_thumbnailer_generate_thumbnail_to_buffer)(
         video_thumbnailer *thumbnailer, const char *movie_filename, image_data *generated_image_data);
 
+DUI_USE_NAMESPACE
 DMULTIMEDIA_BEGIN_NAMESPACE
 class PlayerEngine;
 class LoadThread;
