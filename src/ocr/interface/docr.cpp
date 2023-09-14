@@ -81,7 +81,12 @@ DOcr::DOcr(QObject *parent)
 {
 }
 
-DOcr::~DOcr() {}
+DOcr::~DOcr() {
+    Q_D(DOcr);
+    if (pluginReady()) {
+        d->resetPlugin();
+    }
+}
 
 QStringList DOcr::installedPluginNames()
 {

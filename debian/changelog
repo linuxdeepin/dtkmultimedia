@@ -1,3 +1,9 @@
+dtkmultimedia (1.0.6) unstable; urgency=medium
+
+  * fix memory leak
+
+ -- Deepin Packages Builder <packages@deepin.com>  Thur, 14 Sep 2023 15:33:21 +0800
+
 dtkmultimedia (1.0.5) unstable; urgency=medium
 
   * fix compile error
