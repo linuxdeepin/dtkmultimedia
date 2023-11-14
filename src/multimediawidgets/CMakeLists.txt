@@ -54,7 +54,7 @@ if (NOT ENABLE_Qt6)
 endif()
 
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
-
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat)
 
 set(TARGET_LIBS Xtst
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -84,6 +84,7 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Dtk${DTK_VERSION_MAJOR}::Widget
     ${TARGET_LIBS}
     ${RSVG2_LIBRARIES}
+    PkgConfig::FFMPEG
     )
 
 if (ENABLE_Qt6)
