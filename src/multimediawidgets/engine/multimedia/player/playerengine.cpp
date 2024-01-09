@@ -222,6 +222,7 @@ bool PlayerEngine::createOPenGLWgt(MpvHandle handle)
 {
     m_pVideoWidget = new DMpvGLWidget(this, handle);
     showOpenGLWgt(m_pVideoWidget);
+    return showOpenGLWgt(m_pVideoWidget);
 }
 
 bool PlayerEngine::showOpenGLWgt(QOpenGLWidget *pVideoWidget)
@@ -275,6 +276,8 @@ bool PlayerEngine::showOpenGLWgt(QOpenGLWidget *pVideoWidget)
     pLayout->addWidget(pVideoWidget);
     setLayout(pLayout);
     pVideoWidget->show();
+
+    return true;
 }
 
 void PlayerEngine::processFrame(QVideoFrame &frame)
