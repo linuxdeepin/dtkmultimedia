@@ -3,4 +3,3 @@ usr/include/dtkocr
 usr/lib/*/pkgconfig/dtkocr.pc
 usr/lib/*/cmake/dtkocr/*.cmake
 usr/lib/*/*/mkspecs/modules/qt_lib_dtkocr.pri
-usr/share/*/doc/dtkocr.qch

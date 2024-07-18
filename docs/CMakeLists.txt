@@ -27,28 +27,11 @@ set (DOXYGEN_PREDEFINED
     "DMULTIMEDIA_END_NAMESPACE=}}"
     "DMULTIMEDIA_USE_NAMESPACE=using namespace Dtk::Multimedia;"
 )
-doxygen_add_docs (doxygen_Multimedia
+doxygen_add_docs (doxygen
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/dtkmultimedia
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/dtkmultimediawidgets
     ${CMAKE_CURRENT_SOURCE_DIR}/../docs/dtkmultimedia
     ${CMAKE_CURRENT_SOURCE_DIR}/../docs/dtkmultimediawidgets
-    ALL
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../
-    COMMENT "Generate documentation via Doxygen"
-)
-
-#OCR
-set (OCR_BIN_NAME dtkocr)
-set (DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/docs/${OCR_BIN_NAME})
-set (DOXYGEN_QHP_NAMESPACE "org.deepin.dde.${OCR_BIN_NAME}")
-set (DOXYGEN_QCH_FILE "${OCR_BIN_NAME}.qch")
-set (DOXYGEN_QHP_VIRTUAL_FOLDER ${OCR_BIN_NAME})
-set (DOXYGEN_PREDEFINED
-    "DOCR_BEGIN_NAMESPACE=namespace Dtk { namespace Ocr {"
-    "DOCR_END_NAMESPACE=}}"
-    "DOCR_USE_NAMESPACE=using namespace DOCR_NAMESPACE;"
-)
-doxygen_add_docs (doxygen_OCR
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/dtkocr
     ${CMAKE_CURRENT_SOURCE_DIR}/../docs/dtkocr
     ALL
@@ -56,5 +39,18 @@ doxygen_add_docs (doxygen_OCR
     COMMENT "Generate documentation via Doxygen"
 )
 
+#OCR
+# set (OCR_BIN_NAME dtkocr)
+# set (DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/docs/${OCR_BIN_NAME})
+# set (DOXYGEN_QHP_NAMESPACE "org.deepin.dde.${OCR_BIN_NAME}")
+# set (DOXYGEN_QCH_FILE "${OCR_BIN_NAME}.qch")
+# set (DOXYGEN_QHP_VIRTUAL_FOLDER ${OCR_BIN_NAME})
+# set (DOXYGEN_PREDEFINED
+#     "DOCR_BEGIN_NAMESPACE=namespace Dtk { namespace Ocr {"
+#     "DOCR_END_NAMESPACE=}}"
+#     "DOCR_USE_NAMESPACE=using namespace DOCR_NAMESPACE;"
+# )
+
+
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/html/${CMAKE_PROJECT_NAME}.qch DESTINATION ${QCH_INSTALL_DESTINATION})
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${OCR_BIN_NAME}/html/${OCR_BIN_NAME}.qch DESTINATION ${QCH_INSTALL_DESTINATION})
+# install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${OCR_BIN_NAME}/html/${OCR_BIN_NAME}.qch DESTINATION ${QCH_INSTALL_DESTINATION})
