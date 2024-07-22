@@ -112,6 +112,7 @@ QUrl VideoStreamInterface::outputLocation() const
 bool VideoStreamInterface::setOutputLocation(const QUrl &location)
 {
     outFilePath = location;
+    return true;
 }
 
 void VideoStreamInterface::setResolution(const int width, const int height)
