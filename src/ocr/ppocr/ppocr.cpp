@@ -332,9 +332,13 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         ncnn::Extractor extractor = recNet->create_extractor();
 
         if (recNet->opt.use_vulkan_compute) {
+#if defined(_loongarch) || defined(__loongarch__) || defined(__loongarch64)
+            extractor.set_vulkan_compute(false);
+#else
             if (maxThreadsUsed > 1 && i % maxThreadsUsed != 1) {
                 extractor.set_vulkan_compute(false);
             }
+#endif
         }
 
         extractor.input(0, input);
