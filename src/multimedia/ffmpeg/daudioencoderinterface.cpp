@@ -229,6 +229,20 @@ bool DAudioEncoderInterface::openInputAudioCtx()
     }
 
     // audio converter, convert other fmt to requireAudioFmt
+#if LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 5, 100)
+    d->d_av_channel_layout_default(d->ch_layout, d->audioInCodecCtx->ch_layout.nb_channels);
+    if (d->d_swr_alloc_set_opts2(&d->audioConverter,
+                                                d->ch_layout,
+                                                AV_SAMPLE_FMT_FLTP,   // aac encoder only receive this format
+                                                d->sampleRate,
+                                                d->ch_layout,
+                                                (AVSampleFormat)d->audioInStream->codecpar->format,
+                                                d->audioInStream->codecpar->sample_rate,
+                                                0, nullptr) < 0) {
+        qCritical("Could not set audio conversion.");
+        return false;
+    }
+#else
     d->audioConverter = d->d_swr_alloc_set_opts(nullptr,
                                                 d->d_av_get_default_channel_layout(d->channels),
                                                 AV_SAMPLE_FMT_FLTP,   // aac encoder only receive this format
@@ -237,6 +251,7 @@ bool DAudioEncoderInterface::openInputAudioCtx()
                                                 (AVSampleFormat)d->audioInStream->codecpar->format,
                                                 d->audioInStream->codecpar->sample_rate,
                                                 0, nullptr);
+#endif
     d->d_swr_init(d->audioConverter);
     //FIFO buffer
     d->audioFifo = d->d_av_audio_fifo_alloc(AV_SAMPLE_FMT_FLTP,
@@ -278,14 +293,23 @@ bool DAudioEncoderInterface::openOutputAudioCtx()
     }
 
     d->audioOutCodecCtx = d->d_avcodec_alloc_context3(audioOutCodec);
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+    d->audioOutCodecCtx->ch_layout.nb_channels = d->ch_layout->nb_channels;
+    av_channel_layout_default(&d->audioOutCodecCtx->ch_layout, d->ch_layout->nb_channels);
+#else
     d->audioOutCodecCtx->channels = d->channels;
     d->audioOutCodecCtx->channel_layout = d->d_av_get_default_channel_layout(d->channels);
+#endif
     d->audioOutCodecCtx->sample_rate = d->sampleRate;
     d->audioOutCodecCtx->sample_fmt = audioOutCodec->sample_fmts[0];   //for aac , there is AV_SAMPLE_FMT_FLTP =8
     d->audioOutCodecCtx->bit_rate = d->bitRateAdaptation();
     d->audioOutCodecCtx->time_base.num = 1;
     d->audioOutCodecCtx->time_base.den = d->audioOutCodecCtx->sample_rate;
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+    qInfo() << d->audioOutCodecCtx->ch_layout.nb_channels << d->audioOutCodecCtx->sample_rate << d->audioOutCodecCtx->sample_fmt << d->audioOutCodecCtx->time_base.num << d->audioOutCodecCtx->time_base.den;
+#else
     qInfo() << d->audioOutCodecCtx->channels << d->audioOutCodecCtx->channel_layout << d->audioOutCodecCtx->sample_rate << d->audioOutCodecCtx->sample_fmt << d->audioOutCodecCtx->time_base.num << d->audioOutCodecCtx->time_base.den;
+#endif
     if (d->audioOutFormatCtx->oformat->flags & AVFMT_GLOBALHEADER) {
         d->audioOutCodecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
@@ -423,7 +447,11 @@ void DAudioEncoderInterface::encodeWork()
         }
         // encoding
         uint8_t **cSamples = nullptr;
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+        ret = d->d_av_samples_alloc_array_and_samples(&cSamples, nullptr, d->audioOutCodecCtx->ch_layout.nb_channels,
+#else
         ret = d->d_av_samples_alloc_array_and_samples(&cSamples, nullptr, d->audioOutCodecCtx->channels,
+#endif
                                                       inputFrame->nb_samples, AV_SAMPLE_FMT_FLTP, 0);
         if (ret < 0) {
             qCritical("Fail to alloc samples by av_samples_alloc_array_and_samples.");
@@ -450,8 +478,13 @@ void DAudioEncoderInterface::encodeWork()
         while (d->d_av_audio_fifo_size(d->audioFifo) >= d->audioOutCodecCtx->frame_size) {
             AVFrame *outputFrame = d->d_av_frame_alloc();
             outputFrame->nb_samples = d->audioOutCodecCtx->frame_size;
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+            outputFrame->ch_layout.nb_channels = d->audioInCodecCtx->ch_layout.nb_channels;
+            d->d_av_channel_layout_default(&outputFrame->ch_layout, d->audioInCodecCtx->ch_layout.nb_channels);
+#else
             outputFrame->channels = d->audioInCodecCtx->channels;
             outputFrame->channel_layout = d->d_av_get_default_channel_layout(d->audioInCodecCtx->channels);
+#endif
             outputFrame->format = AV_SAMPLE_FMT_FLTP;
             outputFrame->sample_rate = d->audioOutCodecCtx->sample_rate;
 
@@ -538,12 +571,20 @@ bool DAudioEncoderInterface::loadFunction()
     d->d_avcodec_receive_packet = reinterpret_cast<decltype(avcodec_receive_packet) *>(d->libavcodec.resolve("avcodec_receive_packet"));
     d->d_avcodec_free_context = reinterpret_cast<decltype(avcodec_free_context) *>(d->libavcodec.resolve("avcodec_free_context"));
 
+#if LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 5, 100)
+    d->d_swr_alloc_set_opts2 = reinterpret_cast<decltype(swr_alloc_set_opts2) *>(d->libswresample.resolve("swr_alloc_set_opts2"));
+#else
     d->d_swr_alloc_set_opts = reinterpret_cast<decltype(swr_alloc_set_opts) *>(d->libswresample.resolve("swr_alloc_set_opts"));
+#endif
     d->d_swr_init = reinterpret_cast<decltype(swr_init) *>(d->libswresample.resolve("swr_init"));
     d->d_swr_convert = reinterpret_cast<decltype(swr_convert) *>(d->libswresample.resolve("swr_convert"));
     d->d_swr_free = reinterpret_cast<decltype(swr_free) *>(d->libswresample.resolve("swr_free"));
 
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+    d->d_av_channel_layout_default = reinterpret_cast<decltype(av_channel_layout_default) *>(d->libavutil.resolve("av_channel_layout_default"));
+#else
     d->d_av_get_default_channel_layout = reinterpret_cast<decltype(av_get_default_channel_layout) *>(d->libavutil.resolve("av_get_default_channel_layout"));
+#endif
     d->d_av_audio_fifo_alloc = reinterpret_cast<decltype(av_audio_fifo_alloc) *>(d->libavutil.resolve("av_audio_fifo_alloc"));
     d->d_av_frame_alloc = reinterpret_cast<decltype(av_frame_alloc) *>(d->libavutil.resolve("av_frame_alloc"));
     d->d_av_samples_alloc_array_and_samples = reinterpret_cast<decltype(av_samples_alloc_array_and_samples) *>(d->libavutil.resolve("av_samples_alloc_array_and_samples"));
