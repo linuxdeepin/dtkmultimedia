@@ -285,6 +285,7 @@ PlayMode DEnginePlayer::playMode() const
     if(d->engine) {
         return static_cast<PlayMode>(d->engine->playlist().playMode());
     }
+    return PlayMode::OrderPlay;
 }
 
 void DEnginePlayer::playByName(const QUrl &url)
