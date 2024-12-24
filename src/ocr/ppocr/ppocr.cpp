@@ -130,10 +130,12 @@ void PaddleOCRApp::initNet()
         recNet = new ncnn::Net;
         recNet->opt = option;
 
+#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64)
         if (!gpuCanUse.empty()) {
             recNet->set_vulkan_device(gpuCanUse[0]);
             recNet->opt.use_vulkan_compute = true;
         }
+#endif
 
         recNet->load_param_bin((recModelPathPrefix + paramSuffix).toStdString().c_str());
         recNet->load_model((recModelPathPrefix + binSuffix).toStdString().c_str());
@@ -332,13 +334,9 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         ncnn::Extractor extractor = recNet->create_extractor();
 
         if (recNet->opt.use_vulkan_compute) {
-#if defined(_loongarch) || defined(__loongarch__) || defined(__loongarch64)
-            extractor.set_vulkan_compute(false);
-#else
             if (maxThreadsUsed > 1 && i % maxThreadsUsed != 1) {
                 extractor.set_vulkan_compute(false);
             }
-#endif
         }
 
         extractor.input(0, input);
