@@ -42,5 +42,5 @@ set(TARGET_LIBS
     Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 
 # 7.add link library
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtk${DTK_VERSION_MAJOR}multimedia)
 

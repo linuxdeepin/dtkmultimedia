@@ -4,7 +4,7 @@
 
 set(BIN_NAME ${CMAKE_PROJECT_NAME}widgets)
 
-file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
+file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtkmultimediawidgets/*")
 file(GLOB_RECURSE INCLUDE_FILES "./*.h"  "${INSTALL_INCLUDE_FILES}")
 file(GLOB_RECURSE SRCS
     "./*.h"
@@ -63,7 +63,7 @@ set(TARGET_LIBS Xtst
     Qt${QT_VERSION_MAJOR}::MultimediaWidgets
     Qt${QT_VERSION_MAJOR}::Concurrent
     PkgConfig::Gst GL
-    dtkmultimedia)
+    dtk${DTK_VERSION_MAJOR}multimedia)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 

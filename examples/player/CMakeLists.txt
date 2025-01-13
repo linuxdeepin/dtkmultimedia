@@ -6,6 +6,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
 # 2.project name
 PROJECT(player)
 
@@ -21,11 +22,13 @@ SET(SRC_PATH ${DIR_SRCS})
 
 # 6.add executable file
 file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
-if (ENABLE_Qt6)
-file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/qt6player/*.cpp)
-include_directories(${PROJECT_SOURCE_DIR}/qt6player/*.h)
-list(APPEND SRC_PATH ${SRC_FILES})
+
+if(ENABLE_Qt6)
+    file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/qt6player/*.cpp)
+    include_directories(${PROJECT_SOURCE_DIR}/qt6player/*.h)
+    list(APPEND SRC_PATH ${SRC_FILES})
 endif()
+
 ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_PATH} ${INCLUDE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -36,5 +39,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 set(TARGET_LIBS Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 
 # 7.add link library
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${TARGET_LIBS} dtkmultimedia dtkmultimediawidgets dtkocr)
-
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+    ${TARGET_LIBS}
+    dtk${DTK_VERSION_MAJOR}multimedia
+    dtk${DTK_VERSION_MAJOR}multimediawidgets
+    dtk${DTK_VERSION_MAJOR}ocr
+)

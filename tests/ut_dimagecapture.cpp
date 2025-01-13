@@ -7,7 +7,11 @@
 #include <DImageCapture>
 #include <DCamera>
 #include <DMediaCaptureSession>
+#if BUILD_Qt6
+#include <QImageCapture>
+#else
 #include <QCameraImageCapture>
+#endif
 #include <DMediaMetaData>
 #include <stubext.h>
 
@@ -23,10 +27,10 @@ public:
     }
     void TearDown() override
     {
-        delete m_camera;
-        m_camera = nullptr;
         delete m_imageCap;
         m_imageCap = nullptr;
+        delete m_camera;
+        m_camera = nullptr;
     }
 
 public:
@@ -43,7 +47,12 @@ TEST_F(ut_DImageCapture, isAvailable)
         __DBG_STUB_INVOKE__
         return false;
     });
+
+#if BUILD_Qt6
+    fptr ptr2 = (fptr)(&QImageCapture::isAvailable);
+#else
     fptr ptr2 = (fptr)(&QCameraImageCapture::isAvailable);
+#endif
     stub.set_lamda(ptr2, [] {
         __DBG_STUB_INVOKE__
         return true;
@@ -65,14 +74,22 @@ TEST_F(ut_DImageCapture, captureSession)
 
 TEST_F(ut_DImageCapture, error)
 {
+#if BUILD_Qt6
+    EXPECT_EQ(QImageCapture::NoError, m_imageCap->error());
+#else
     EXPECT_EQ(QCameraImageCapture::NoError, m_imageCap->error());
+#endif
 }
 
 TEST_F(ut_DImageCapture, errorString)
 {
     stub_ext::StubExt stub;
     typedef QString (*fptr)();
+#if BUILD_Qt6
+    fptr ptr = (fptr)(&QImageCapture::errorString);
+#else
     fptr ptr = (fptr)(&QCameraImageCapture::errorString);
+#endif
     stub.set_lamda(ptr, [] {
         __DBG_STUB_INVOKE__
         return "";
@@ -84,7 +101,11 @@ TEST_F(ut_DImageCapture, isReadyForCapture)
 {
     stub_ext::StubExt stub;
     typedef bool (*fptr)();
+#if BUILD_Qt6
+    fptr ptr = (fptr)(&QImageCapture::isReadyForCapture);
+#else
     fptr ptr = (fptr)(&QCameraImageCapture::isReadyForCapture);
+#endif
     stub.set_lamda(ptr, [] {
         __DBG_STUB_INVOKE__
         return true;

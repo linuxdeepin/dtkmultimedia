@@ -34,4 +34,4 @@ set(TARGET_LIBS
     )
 
 # 7.add link library
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${TARGET_LIBS} dtkmultimedia dtkmultimediawidgets)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${TARGET_LIBS} dtk${DTK_VERSION_MAJOR}multimedia dtk${DTK_VERSION_MAJOR}multimediawidgets)
