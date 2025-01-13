@@ -18,7 +18,9 @@ public:
     {
         m_player = new DMediaPlayer();
         m_playlist = new DMediaPlaylist();
+#if !BUILD_Qt6
         m_player->setPlaylist(m_playlist);
+#endif
         m_enginePlayer = new DEnginePlayer(m_player);
         m_videoWgt = new DVideoWidget(nullptr, m_enginePlayer);
         m_player->setVideoOutput(m_videoWgt);
@@ -114,51 +116,83 @@ TEST_F(ut_DEnginePlayer, play)
 {
     m_enginePlayer->setMedia(QUrl("test"), nullptr);
     m_enginePlayer->play();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, pause)
 {
     m_enginePlayer->pause();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, stop)
 {
     m_enginePlayer->stop();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, setVideoSink)
 {
     m_enginePlayer->setVideoSink(nullptr);
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, changeSoundMode)
 {
     DPlayerBackend::SoundMode mode = DPlayerBackend::Left;
     m_enginePlayer->changeSoundMode(mode);
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, nextFrame)
 {
     m_enginePlayer->nextFrame();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, previousFrame)
 {
     m_enginePlayer->previousFrame();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, setDecodeModel)
 {
     DPlayerBackend::hwaccelMode mode = DPlayerBackend::hwaccelAuto;
     m_enginePlayer->setDecodeModel(mode);
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, takeScreenshot)
@@ -169,14 +203,22 @@ TEST_F(ut_DEnginePlayer, takeScreenshot)
 TEST_F(ut_DEnginePlayer, burstScreenshot)
 {
     m_enginePlayer->burstScreenshot();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, setVideoRotation)
 {
     int degree = 90;
     m_enginePlayer->setVideoRotation(90);
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, changeVolume)
@@ -204,7 +246,11 @@ TEST_F(ut_DEnginePlayer, setPlayMode)
 TEST_F(ut_DEnginePlayer, playByName)
 {
     m_enginePlayer->playByName(QUrl("test"));
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->playbackState());
+#else
     EXPECT_EQ(QMediaPlayer::StoppedState, m_enginePlayer->state());
+#endif
 }
 
 TEST_F(ut_DEnginePlayer, loadSubtitle)

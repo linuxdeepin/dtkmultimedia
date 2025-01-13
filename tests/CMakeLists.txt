@@ -51,6 +51,8 @@ find_package(Qt${QT_VERSION_MAJOR}Network)
 find_package(Qt${QT_VERSION_MAJOR}Concurrent)
 find_package(Qt${QT_VERSION_MAJOR}Multimedia)
 find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
+find_package(Qt${QT_VERSION_MAJOR}OpenGL)
+find_package(Qt${QT_VERSION_MAJOR}OpenGLWidgets)
 find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Widget)
 find_package(PkgConfig REQUIRED)
@@ -77,8 +79,12 @@ set(TARGET_LIBS Xtst
     Qt${QT_VERSION_MAJOR}::Multimedia
     Qt${QT_VERSION_MAJOR}::MultimediaWidgets
     Qt${QT_VERSION_MAJOR}::Concurrent
+    Qt${QT_VERSION_MAJOR}::OpenGL
+    Qt${QT_VERSION_MAJOR}::OpenGLWidgets
     PkgConfig::Gst
-    GL dl dtkmultimedia dtkocr)
+    GL dl
+    dtk${DTK_VERSION_MAJOR}multimedia
+    dtk${DTK_VERSION_MAJOR}ocr)
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
@@ -107,7 +113,7 @@ target_link_libraries(${BIN_NAME} PRIVATE
 if (ENABLE_Qt6)
     target_link_libraries(${BIN_NAME} PRIVATE
         Qt${QT_VERSION_MAJOR}::GuiPrivate
-        )
+    )
 else()
     target_link_libraries(${BIN_NAME} PRIVATE
         PkgConfig::DBusextended

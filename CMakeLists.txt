@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.13)
 # If do't define version number, specify the version number
 set (DTK_VERSION "1.0.0" CACHE STRING "define project version")
 
-set(ENABLE_Qt6 CACHE BOOL OFF)
+set(ENABLE_Qt6 ON CACHE BOOL "Build with Qt6")
 set(BUILD_DOCS ON CACHE BOOL "Generate doxygen-based documentation")
 set(BUILD_EXAMPLES ON CACHE BOOL "Build examples")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -17,15 +17,14 @@ if (ENABLE_Qt6)
     set(DTK_VERSION_MAJOR 6)
     set(QT_VERSION_MAJOR 6)
 #    set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
-    set(BUILD_DOCS OFF)
+    set(BUILD_DOCS ON)
     set(BUILD_TESTING OFF)
     add_definitions(-DBUILD_Qt6)
 else()
     set(QT_VERSION_MAJOR 5)
 endif()
 
-#set(LIB_NAME dtk${DTK_VERSION_MAJOR}multimedia)
-set(LIB_NAME dtkmultimedia)
+set(LIB_NAME dtk${DTK_VERSION_MAJOR}multimedia)
 
 project(${LIB_NAME}
     VERSION ${DTK_VERSION}

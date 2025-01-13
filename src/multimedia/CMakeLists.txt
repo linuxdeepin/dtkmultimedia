@@ -5,7 +5,7 @@
 set(BIN_NAME ${CMAKE_PROJECT_NAME})
 project(${BIN_NAME} CXX C)
 
-file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
+file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtkmultimedia/*")
 #file(GLOB_RECURSE INCLUDE_FILES "./*.h" "${INSTALL_INCLUDE_FILES}")
 #file(GLOB_RECURSE SRCS
 #    "./*.h"
@@ -49,7 +49,7 @@ file(GLOB_RECURSE SCREENRECORDER_SRCS
 )
 
 
-include_directories(../../include/${BIN_NAME})
+include_directories(../../include/dtkmultimedia)
 include_directories(ffmpeg)
 include_directories(gstreamer)
 include_directories(common/algorithm)

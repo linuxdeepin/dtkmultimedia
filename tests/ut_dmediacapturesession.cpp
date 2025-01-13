@@ -71,6 +71,7 @@ TEST_F(ut_DMediaCaptureSession, videoOutput)
     delete videoOutput;
 }
 
+#if !BUILD_Qt6
 TEST_F(ut_DMediaCaptureSession, videoSink)
 {
     DVideoSink *sink = new DVideoSink();
@@ -78,12 +79,14 @@ TEST_F(ut_DMediaCaptureSession, videoSink)
     EXPECT_EQ(sink, m_session->videoSink());
     delete sink;
 }
+#endif
 
 TEST_F(ut_DMediaCaptureSession, platformSession)
 {
     EXPECT_EQ(nullptr, m_session->platformSession());
 }
 
+#if !BUILD_Qt6
 TEST_F(ut_DMediaCaptureSession, audioOutput)
 {
     DAudioOutput *aOutput = new DAudioOutput();
@@ -91,3 +94,4 @@ TEST_F(ut_DMediaCaptureSession, audioOutput)
     EXPECT_EQ(aOutput, m_session->audioOutput());
     delete aOutput;
 }
+#endif
