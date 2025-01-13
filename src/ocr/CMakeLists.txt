@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-set(BIN_NAME dtkocr)
+set(BIN_NAME dtk${DTK_VERSION_MAJOR}ocr)
 
-file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/${BIN_NAME}/*")
+file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtkocr/*")
 file(GLOB_RECURSE INCLUDE_FILES "./*.h" "${INSTALL_INCLUDE_FILES}")
 file(GLOB_RECURSE SRCS
     "./*.h"
     "./*.cpp"
 )
-include_directories(../../include/${BIN_NAME})
+include_directories(../../include/dtkocr)
 
 find_package(Qt${QT_VERSION_MAJOR}Gui)
 find_package(PkgConfig REQUIRED)

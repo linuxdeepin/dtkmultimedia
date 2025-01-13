@@ -19,7 +19,9 @@ public:
         m_player = new DMediaPlayer();
         m_playlist = new DMediaPlaylist();
         m_enginePlayer = new DEnginePlayer(m_player);
+#if !BUILD_Qt6
         m_player->setPlaylist(m_playlist);
+#endif
         m_videoWgt = new DVideoWidget(nullptr, m_enginePlayer);
         m_player->setVideoOutput(m_videoWgt);
     }

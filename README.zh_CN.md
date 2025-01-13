@@ -8,7 +8,7 @@ Development Tool Kit Core(DtkMultimedia) 是所有C++/Qt开发人员在Deepin上
 
 ### 编译依赖
 
-* Qt >= 5.10
+* Qt >= 6.8
 * libgstreamer1.0-dev
 * libgstreamer-plugins-base1.0-dev
 * libavcodec-dev

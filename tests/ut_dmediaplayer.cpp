@@ -65,6 +65,8 @@ TEST_F(ut_DMediaPlayer, setPlaybackRate)
     EXPECT_EQ(nullptr, m_player->getPlayer());
 }
 
+// FIXME: work on qt6
+#if !BUILD_Qt6
 TEST_F(ut_DMediaPlayer, setMedia)
 {
     QMediaContent content(QUrl(""));
@@ -87,6 +89,7 @@ TEST_F(ut_DMediaPlayer, setNetworkConfigurations)
     QNetworkConfiguration config = m_player->currentNetworkConfiguration();
     EXPECT_EQ(false, config.isValid());
 }
+#endif
 
 TEST_F(ut_DMediaPlayer, setVideoOutput)
 {

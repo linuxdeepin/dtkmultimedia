@@ -8,8 +8,14 @@
 #include <QtCore/qobject.h>
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaenumdebug.h>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QtMultimedia/qmediaenumdebug.h>
+#else
+#include <QMetaObject>
+#include <QMetaEnum>
+#include <QDebug>
+#endif
 
 class QMediaPlaylistPrivate;
 class QMediaPlaylist : public QObject
@@ -86,6 +92,17 @@ private:
     QMediaPlaylistPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QMediaPlaylist)
 };
+
+
+#ifndef Q_MEDIA_ENUM_DEBUG
+#define Q_MEDIA_ENUM_DEBUG(Class,Enum) \
+inline QDebug operator<<(QDebug dbg, Class::Enum value) \
+{ \
+        int index = Class::staticMetaObject.indexOfEnumerator(#Enum); \
+        dbg.nospace() << #Class << "::" << Class::staticMetaObject.enumerator(index).valueToKey(value); \
+        return dbg.space(); \
+}
+#endif
 
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, PlaybackMode)
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, Error)

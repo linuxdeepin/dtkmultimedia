@@ -38,7 +38,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/../../include/dtkocr
     ${PROJECT_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} dtkocr
+target_link_libraries(${PROJECT_NAME} dtk${DTK_VERSION_MAJOR}ocr
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets)
