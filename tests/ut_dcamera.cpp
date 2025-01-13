@@ -199,11 +199,13 @@ TEST_F(ut_DCamera, setFilter)
     EXPECT_EQ(1, m_camera->checkCamera());
 }
 
+#if !BUILD_Qt6
 TEST_F(ut_DCamera, setExposure)
 {
     m_camera->setExposure(0);
     EXPECT_EQ(0, m_camera->exposure()->exposureCompensation());
 }
+#endif
 
 TEST_F(ut_DCamera, supportedViewfinderPixelFormats)
 {

@@ -9,6 +9,8 @@
 #include <QTimer>
 #include <stubext.h>
 
+#include <dmediaplayer.h>
+
 DMULTIMEDIA_USE_NAMESPACE
 
 class ut_DMediaRecorder : public testing::Test
@@ -21,10 +23,10 @@ public:
     }
     void TearDown() override
     {
-        delete m_camera;
-        m_camera = nullptr;
         delete m_mediaRecorder;
         m_mediaRecorder = nullptr;
+        delete m_camera;
+        m_camera = nullptr;
     }
 
 public:
@@ -183,7 +185,11 @@ TEST_F(ut_DMediaRecorder, record)
         return;
     });
     m_mediaRecorder->record();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->recorderState());
+#else
     EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->state());
+#endif
 }
 
 TEST_F(ut_DMediaRecorder, pause)
@@ -196,7 +202,11 @@ TEST_F(ut_DMediaRecorder, pause)
         return true;
     });
     m_mediaRecorder->pause();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->recorderState());
+#else
     EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->state());
+#endif
 }
 
 TEST_F(ut_DMediaRecorder, stop)
@@ -215,5 +225,9 @@ TEST_F(ut_DMediaRecorder, stop)
         return;
     });
     m_mediaRecorder->stop();
+#if BUILD_Qt6
+    EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->recorderState());
+#else
     EXPECT_EQ(QMediaRecorder::StoppedState, m_mediaRecorder->state());
+#endif
 }

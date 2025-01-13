@@ -282,12 +282,15 @@ void DCamera::setViewfinder(QVideoWidget *viewfinder)
         d->viewfinder = viewfinder;
     } else {
 #ifdef BUILD_Qt6
+        // FIXME: can move to multimediawidget?
+        qCritical() << "Create QVideoWidget instead of setViewfinder.";
+
         // Qt6已移除setViewfinder接口
-        QVideoWidget *wigdet = new QVideoWidget(viewfinder);
-        wigdet->resize(429, 334);
-        d->captureSession->setVideoOutput(wigdet);
-        // d->captureSession->setVideoOutput(viewfinder);
-        d->captureSession->setCamera(this);
+        // QVideoWidget *wigdet = new QVideoWidget(viewfinder);
+        // wigdet->resize(429, 334);
+        // d->captureSession->setVideoOutput(wigdet);
+        // // d->captureSession->setVideoOutput(viewfinder);
+        // d->captureSession->setCamera(this);
 #else
         QCamera::setViewfinder(viewfinder);
 #endif

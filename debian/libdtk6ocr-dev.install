@@ -1,0 +1,5 @@
+usr/lib/*/libdtk6ocr*.so
+usr/include/dtk6ocr
+usr/lib/*/pkgconfig/dtk6ocr.pc
+usr/lib/*/cmake/dtk6ocr/*.cmake
+usr/lib/*/*/mkspecs/modules/qt_lib_dtk6ocr.pri

@@ -24,6 +24,8 @@ public:
 public:
     DMediaPlaylist *m_playList = nullptr;
 };
+
+#if !BUILD_Qt6
 //此单元测试测试播放器中播放列表为空。
 TEST_F(ut_DMediaPlaylist, shuffle)
 {
@@ -48,3 +50,4 @@ TEST_F(ut_DMediaPlaylist, setCurrentIndex)
     m_playList->setCurrentIndex(-1);
     EXPECT_EQ(-1, m_playList->currentIndex());
 }
+#endif

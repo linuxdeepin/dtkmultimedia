@@ -189,7 +189,10 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
         connect(m_camera.data(), &DCamera::signalbuffer, (PreviewOpenglWidget *)m_openglwidget, &PreviewOpenglWidget::slotShowYuv);
         m_camera->setViewfinder(ui->viewfinder);
     } else {
-        m_camera->setViewfinder(ui->viewfinder);
+        QVideoWidget *wigdet = new QVideoWidget(ui->viewfinder);
+        wigdet->resize(429, 334);
+        m_camera->captureSession()->setVideoOutput(wigdet);
+        m_camera->captureSession()->setCamera(m_camera.data());
     }
 
     m_camera->start();

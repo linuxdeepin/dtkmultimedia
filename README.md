@@ -8,7 +8,7 @@ You should read the <a href=docs/Specification.md>Deepin Application Specificati
 
 ### Build dependencies
 
-* Qt >= 5.10
+* Qt >= 6.8
 * libgstreamer1.0-dev
 * libgstreamer-plugins-base1.0-dev
 * libavcodec-dev

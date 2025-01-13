@@ -5,54 +5,84 @@ Maintainer: Packages Builder <packages@deepin.com>
 Build-Depends:
  debhelper-compat (= 12),
  cmake,
+ pkg-config,
+# qt
+ qt6-base-dev,
+ qt6-base-private-dev,
+ qt6-tools-dev,
+ qt6-multimedia-dev,
+ qt6-tools-dev-tools,
+ qtbase5-dev <pkg.dtk.qt5>,
+ qttools5-dev <pkg.dtk.qt5>,
+ libqt5x11extras5-dev <pkg.dtk.qt5>,
+ qtmultimedia5-dev <pkg.dtk.qt5>,
+ qhelpgenerator-qt5 | qttools5-dev-tools <pkg.dtk.qt5>,
+# deepin
+ libdtk6core-bin,
+ libdtk6widget-dev,
+ libdtkcore5-bin <pkg.dtk.qt5>,
+ libdtkwidget-dev <pkg.dtk.qt5>,
+ libdbusextended-qt5-dev <pkg.dtk.qt5>,
+ doxygen,
  librsvg2-dev,
- qtbase5-dev, pkg-config, qhelpgenerator-qt5 |qttools5-dev-tools, doxygen,
-                qtmultimedia5-dev, qttools5-dev,
-                libqt5x11extras5-dev, libdtkcore5-bin, libdtkwidget-dev,
-                libmpv-dev, libffmpegthumbnailer-dev,libxtst-dev,
-                libavcodec-dev, libavformat-dev,libavutil-dev,
-                libpulse-dev, libdvdnav-dev, libdbusextended-qt5-dev,
-                libgstreamer-plugins-base1.0-dev, libgstreamer1.0-dev,
-		libavdevice-dev, libswscale-dev, libswresample-dev, libavfilter-dev, libudev-dev, libusb-1.0-0-dev, portaudio19-dev, libv4l-dev,
-                libncnn-dev, libopencv-mobile-dev
+ libmpv-dev,
+ libffmpegthumbnailer-dev,
+ libxtst-dev,
+ libavcodec-dev,
+ libavformat-dev,
+ libavutil-dev,
+ libpulse-dev,
+ libdvdnav-dev,
+ libgstreamer-plugins-base1.0-dev,
+ libgstreamer1.0-dev,
+ libavdevice-dev,
+ libswscale-dev,
+ libswresample-dev,
+ libavfilter-dev,
+ libudev-dev,
+ libusb-1.0-0-dev,
+ portaudio19-dev,
+ libv4l-dev,
+ libncnn-dev,
+ libopencv-mobile-dev
 Standards-Version: 4.5.0
 
-Package: libdtkmultimedia
+Package: libdtk6multimedia
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Development Tool Kit multimedia library
- libdtkmultimedia is base library of Deepin Qt/C++ applications.
+ libdtk6multimedia is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
 
-Package: libdtkmultimediawidgets
+Package: libdtk6multimediawidgets
 Architecture: any
-Depends: ${misc:Depends}, libdtkmultimedia( =${binary:Version})
+Depends: ${misc:Depends}, libdtk6multimedia( =${binary:Version})
 Description: Development Tool Kit multimediawidgets library
- libdtkmultimediawidgets is base library of Deepin Qt/C++ applications.
+ libdtk6multimediawidgets is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
 
-Package: libdtkmultimedia-dev
+Package: libdtk6multimedia-dev
 Architecture: any
-Depends: ${misc:Depends}, libdtkmultimedia( =${binary:Version}), libdtkmultimediawidgets( =${binary:Version})
+Depends: ${misc:Depends}, libdtk6multimedia( =${binary:Version}), libdtk6multimediawidgets( =${binary:Version})
 Description: Development Tool Kit multimedia devel library
- libdtkmultimedia-dev is base devel library of Deepin Qt/C++ applications.
+ libdtk6multimedia-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.
 
-Package: libdtkocr
+Package: libdtk6ocr
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Development Tool Kit ocr library
- libdtkocr is base library of Deepin Qt/C++ applications.
+ libdtk6ocr is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
 
-Package: libdtkocr-dev
+Package: libdtk6ocr-dev
 Architecture: any
-Depends: ${misc:Depends}, libdtkocr( =${binary:Version})
+Depends: ${misc:Depends}, libdtk6ocr( =${binary:Version})
 Description: Development Tool Kit ocr devel library
- libdtkocr-dev is base devel library of Deepin Qt/C++ applications.
+ libdtk6ocr-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.
