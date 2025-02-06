@@ -221,13 +221,26 @@ PlayerEngine::~PlayerEngine()
 bool PlayerEngine::createOPenGLWgt(MpvHandle handle)
 {
     m_pVideoWidget = new DMpvGLWidget(this, handle);
+    
+    if (!m_pVideoWidget) {
+        return false;
+    }
+    
     showOpenGLWgt(m_pVideoWidget);
+    return true;
 }
 
 bool PlayerEngine::showOpenGLWgt(QOpenGLWidget *pVideoWidget)
 {
+    if (!pVideoWidget) {
+        return false;
+    }
+    
     if(DCompositeManager::isMpvExists()) {
         DMpvGLWidget *glwgt = (DMpvGLWidget *) pVideoWidget;
+        if (!glwgt) {
+            return false;
+        }
         connect(m_current, &DPlayerBackend::stateChanged, [=]() {
             glwgt->setPlaying(m_current->state() != DPlayerBackend::PlayState::Stopped);
             glwgt->setRawFormatFlag(getplaylist()->currentInfo().mi.isRawFormat());
@@ -249,6 +262,9 @@ bool PlayerEngine::showOpenGLWgt(QOpenGLWidget *pVideoWidget)
     }
     else {
         DGstPlayerGLWidget *glwgt = (DGstPlayerGLWidget *) pVideoWidget;
+        if (!glwgt) {
+            return false;
+        }
         connect(m_current, &DPlayerBackend::stateChanged, [=]() {
             glwgt->setPlaying(m_current->state() != DPlayerBackend::PlayState::Stopped);
             glwgt->setRawFormatFlag(getplaylist()->currentInfo().mi.isRawFormat());
@@ -275,6 +291,8 @@ bool PlayerEngine::showOpenGLWgt(QOpenGLWidget *pVideoWidget)
     pLayout->addWidget(pVideoWidget);
     setLayout(pLayout);
     pVideoWidget->show();
+    
+    return true;
 }
 
 void PlayerEngine::processFrame(QVideoFrame &frame)

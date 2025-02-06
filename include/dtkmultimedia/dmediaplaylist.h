@@ -30,7 +30,7 @@ public:
     void load(const QUrl &location, const char *format = nullptr) {};
     int mediaCount(){return 1;};
 
-    DMediaPlaylist *getPlaylist(){};
+    DMediaPlaylist *getPlaylist(){ return this; }
 #else
     DMediaPlaylist(QMediaPlaylist *parent = nullptr);
 #endif

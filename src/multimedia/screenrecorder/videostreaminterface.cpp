@@ -111,7 +111,13 @@ QUrl VideoStreamInterface::outputLocation() const
 
 bool VideoStreamInterface::setOutputLocation(const QUrl &location)
 {
+    if (!location.isValid()) {
+        qWarning() << "Invalid URL provided:" << location;
+        return false;
+    }
+
     outFilePath = location;
+    return true;
 }
 
 void VideoStreamInterface::setResolution(const int width, const int height)
