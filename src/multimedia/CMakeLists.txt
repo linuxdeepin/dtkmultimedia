@@ -84,7 +84,9 @@ target_compile_definitions(${BIN_NAME} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}
 
 find_package(Qt${QT_VERSION_MAJOR}Gui)
 find_package(Qt${QT_VERSION_MAJOR}Multimedia)
+find_package(PkgConfig)
 
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil)
 
 set(TARGET_LIBS Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Gui)
 
@@ -102,6 +104,7 @@ target_link_libraries(${BIN_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Gui
     ${TARGET_LIBS}
     ${RSVG2_LIBRARIES}
+    PkgConfig::FFMPEG
     )
 
 if (ENABLE_Qt6)
