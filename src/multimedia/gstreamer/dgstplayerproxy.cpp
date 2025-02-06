@@ -207,7 +207,7 @@ bool DGstPlayerProxy::muted() const
     Q_D(const DGstPlayerProxy);
 #ifdef BUILD_Qt6
     //// Qt6 QMediaPlayer没有 isMuted
-
+    return false;
 #else
     return d->pPlayer->isMuted();
 #endif

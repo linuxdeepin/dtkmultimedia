@@ -188,6 +188,7 @@ int DCameraPrivate::cameraUnInit()
         imgPrcThread->wait();
     }
     camUnInit();
+    return 0;
 }
 
 void DCamera::takeOne(const QString &location)
