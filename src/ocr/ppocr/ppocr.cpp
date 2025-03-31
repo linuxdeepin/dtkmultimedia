@@ -130,7 +130,7 @@ void PaddleOCRApp::initNet()
         recNet = new ncnn::Net;
         recNet->opt = option;
 
-#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64)
+#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64) && !defined(__sw_64__) && !defined(__mips__) 
         if (!gpuCanUse.empty()) {
             recNet->set_vulkan_device(gpuCanUse[0]);
             recNet->opt.use_vulkan_compute = true;
