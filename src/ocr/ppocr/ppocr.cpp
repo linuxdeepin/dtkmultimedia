@@ -39,6 +39,9 @@ PaddleOCRApp::PaddleOCRApp()
         }
     }
 #endif
+#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64) && !defined(__sw_64__) && !defined(__mips__) 
+    cv::setNumThreads(0);
+#endif
 }
 
 PaddleOCRApp::~PaddleOCRApp()
