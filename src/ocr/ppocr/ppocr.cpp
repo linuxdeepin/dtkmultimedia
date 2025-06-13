@@ -39,7 +39,8 @@ PaddleOCRApp::PaddleOCRApp()
         }
     }
 #endif
-#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64) && !defined(__sw_64__) && !defined(__mips__) 
+// sw 64，OpenCV 多线程会导致崩溃，先做规避处理
+#if defined(__sw_64__) || defined(__mips__)
     cv::setNumThreads(0);
 #endif
 }

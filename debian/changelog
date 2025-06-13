@@ -1,3 +1,9 @@
+dtkmultimedia (6.0.2) unstable; urgency=medium
+
+  * fix: ocr crash on sw64(Bug: 319961)
+
+ -- dengzhongyuan <dengzhongyuan@uniontech.com>  Fri, 13 Jun 2025 14:18:54 +0800
+
 dtkmultimedia (6.0.1) unstable; urgency=medium
 
   * fix: ocr crash on sw64(Bug: 310269)
