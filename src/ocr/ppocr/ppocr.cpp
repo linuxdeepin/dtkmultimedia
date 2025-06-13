@@ -39,6 +39,10 @@ PaddleOCRApp::PaddleOCRApp()
         }
     }
 #endif
+// sw 64，OpenCV 多线程会导致崩溃，先做规避处理
+#if defined(__sw_64__) || defined(__mips__)
+    cv::setNumThreads(0);
+#endif
 }
 
 PaddleOCRApp::~PaddleOCRApp()
