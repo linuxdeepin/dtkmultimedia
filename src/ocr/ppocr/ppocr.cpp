@@ -124,8 +124,13 @@ void PaddleOCRApp::initNet()
         detNet = new ncnn::Net;
         detNet->opt = option;
         detNet->opt.num_threads = static_cast<int>(maxThreadsUsed);
+#ifdef PPOCR_V5
+        detNet->load_param((currentPath + "det.ncnn.param").toStdString().c_str());
+        detNet->load_model((currentPath + "det.ncnn.bin").toStdString().c_str());
+#else
         detNet->load_param_bin((detModelPathPrefix + paramSuffix).toStdString().c_str());
         detNet->load_model((detModelPathPrefix + binSuffix).toStdString().c_str());
+#endif
     }
 
     if (recNet == nullptr) {
@@ -140,13 +145,21 @@ void PaddleOCRApp::initNet()
             recNet->opt.use_vulkan_compute = true;
         }
 #endif
-
+#ifdef PPOCR_V5
+        recNet->load_param((currentPath + "rec.ncnn.param").toStdString().c_str());
+        recNet->load_model((currentPath + "rec.ncnn.bin").toStdString().c_str());
+#else
         recNet->load_param_bin((recModelPathPrefix + paramSuffix).toStdString().c_str());
         recNet->load_model((recModelPathPrefix + binSuffix).toStdString().c_str());
+#endif
     }
 
     if (keys.empty()) {
+#ifdef PPOCR_V5
+        auto dictFilePath = currentPath + "zh_Hans_en_v5.txt";
+#else
         auto dictFilePath = currentPath + languageUsed + dictSuffix;
+#endif
         QFile dictFile(dictFilePath);
         dictFile.open(QIODevice::ReadOnly);
         keys.push_back("#");
@@ -189,15 +202,16 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     float ratio_w = float(resizeW) / float(src.cols);
     cv::Mat resize_img;
     cv::resize(src, resize_img, cv::Size(resizeW, resizeH));
-
+#ifdef PPOCR_V5
+    ncnn::Mat in_pad = ncnn::Mat::from_pixels(resize_img.data, ncnn::Mat::PIXEL_BGR, resizeW, resizeH); //CHW,BGR
+#else
     ncnn::Mat in_pad = ncnn::Mat::from_pixels(resize_img.data, ncnn::Mat::PIXEL_RGB, resizeW, resizeH);
-
+#endif
     const float meanValues[3] = {0.485f * 255, 0.456f * 255, 0.406f * 255};
     const float normValues[3] = {1.0f / 0.229f / 255.0f, 1.0f / 0.224f / 255.0f, 1.0f / 0.225f / 255.0f};
 
     in_pad.substract_mean_normalize(meanValues, normValues);
     ncnn::Extractor extractor = detNet->create_extractor();
-
     extractor.input(0, in_pad);
     ncnn::Mat out;
     extractor.extract(detNet->output_indexes()[0], out);
