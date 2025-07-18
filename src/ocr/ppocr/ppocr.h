@@ -64,11 +64,15 @@ private:
     QList<Dtk::Ocr::TextBox> lengthToBox(const std::vector<int> &lengths, QPointF basePoint, float rectHeight, float ratio);
 
     QImage imageCache;
-    QStringList supportLanguages = {"zh-Hans_en", "zh-Hant_en", "en"};
     QList<Dtk::Ocr::HardwareID> supportHardwares = {Dtk::Ocr::HardwareID::CPU_Any, Dtk::Ocr::HardwareID::GPU_Vulkan};
     QList<QPair<Dtk::Ocr::HardwareID, int>> hardwareUseInfos;
     QString languageUsed = "zh-Hans_en";
     int maxThreadsUsed = 1;
+#ifdef PPOCR_V5
+    QStringList supportLanguages = {"zh-Hans_en"};
+#else
+    QStringList supportLanguages = {"zh-Hans_en", "zh-Hant_en", "en"};
+#endif
 
     QList<Dtk::Ocr::TextBox> allTextBoxes;
     QVector<QList<Dtk::Ocr::TextBox>> allCharBoxes;

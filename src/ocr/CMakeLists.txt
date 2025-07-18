@@ -26,6 +26,8 @@ add_library(${BIN_NAME} SHARED
 include_directories(interface)
 include_directories(ppocr)
 
+add_definitions(-DPPOCR_V5)
+
 pkg_check_modules(InferenceEngine REQUIRED ncnn opencv_mobile)
 find_package(OpenMP)
 if(OPENMP_FOUND)
