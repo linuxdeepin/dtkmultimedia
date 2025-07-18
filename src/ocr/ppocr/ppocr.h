@@ -70,8 +70,10 @@ private:
     int maxThreadsUsed = 1;
 #ifdef PPOCR_V5
     QStringList supportLanguages = {"zh-Hans_en"};
+    bool useDilation = false;  //v5 is false
 #else
     QStringList supportLanguages = {"zh-Hans_en", "zh-Hant_en", "en"};
+    bool useDilation = true;
 #endif
 
     QList<Dtk::Ocr::TextBox> allTextBoxes;

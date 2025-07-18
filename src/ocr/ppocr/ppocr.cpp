@@ -242,24 +242,31 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     cv::Mat pred_map(out.h, out.w, CV_32F, static_cast<float *>(pred.data()));
 
     const float threshold = thresh * 255.0f;
-    cv::Mat bit_map;
-    cv::threshold(cbuf_map, bit_map, static_cast<double>(threshold), 255, cv::THRESH_BINARY);
-    cv::Mat dilation_map;
-    cv::Mat dila_ele = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
-    cv::dilate(bit_map, dilation_map, dila_ele);
+    cv::Mat mask;
+    {
+        cv::Mat bit_map;
+        cv::threshold(cbuf_map, bit_map, static_cast<double>(threshold), 255, cv::THRESH_BINARY);
+        if (useDilation) {
+            cv::Mat dilation_map;
+            cv::Mat dila_ele = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
+            cv::dilate(bit_map, dilation_map, dila_ele);
+            mask = dilation_map;
+        } else {
+            mask = bit_map;
+        }
+    }
 
     if (needBreak) {
         return std::vector<std::vector<std::vector<int>>>();
     }
 
-    auto result = postProcessor.BoxesFromBitmap(pred_map, dilation_map, boxThresh, unclipRatio, false);
+    auto result = postProcessor.BoxesFromBitmap(pred_map, mask, boxThresh, unclipRatio, false);
 
     if (needBreak) {
         return std::vector<std::vector<std::vector<int>>>();
     }
 
     result = postProcessor.FilterTagDetRes(result, ratio_h, ratio_w, src);
-
     return result;
 }
 
@@ -270,6 +277,7 @@ std::pair<std::string, std::vector<int>> PaddleOCRApp::ctcDecode(const std::vect
     int currentSize = 0;
     int status = 0;
     size_t lastIndex = 0;
+
     for (int i = 0; i < h; i++) {
         size_t maxIndex = 0;
         maxIndex = utilityTool.argmax(recNetOutputData.begin() + i * w, recNetOutputData.begin() + i * w + w);
@@ -324,33 +332,58 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
             continue;
         }
 
-        //输入图片固定高度32
-        float ratio = static_cast<float>(detectImg[i].cols) / static_cast<float>(detectImg[i].rows);
-        int imgW = static_cast<int>(32 * ratio);
-        int resize_w;
-        if (ceilf(32 * ratio) > imgW)
-            resize_w = imgW;
-        else
-            resize_w = static_cast<int>(ceilf(32 * ratio));
-
         cv::Mat stdMat;
-        cv::resize(detectImg[i], stdMat, cv::Size(resize_w, 32), 0, 0, cv::INTER_LINEAR);
-        cv::copyMakeBorder(stdMat, stdMat, 0, 0, 0, int(imgW - stdMat.cols), cv::BORDER_CONSTANT, {127, 127, 127});
+#ifdef  PPOCR_V5
+        {
+            const int recImgH = 48;
+            const int recImgW = 320;
+            float max_wh_ratio = recImgW / (float)recImgH;
+            float ratio = static_cast<float>(detectImg[i].cols) / static_cast<float>(detectImg[i].rows);
+            max_wh_ratio = std::max(max_wh_ratio, ratio);
 
-        float realRatio = static_cast<float>(stdMat.cols) / detectImg[i].cols;
+            int imgW = int(ceilf(recImgH * max_wh_ratio));
+            if (imgW > 3200) {
+                imgW = 3200;
+                cv::resize(detectImg[i], stdMat, cv::Size(3200, recImgH), 0, 0, cv::INTER_LINEAR);
+            } else {
+                int resized_w = int(ceilf(recImgH * ratio));
+                resized_w = resized_w > imgW ? imgW : resized_w;
+                cv::resize(detectImg[i], stdMat, cv::Size(resized_w, recImgH), 0, 0, cv::INTER_LINEAR);
+            }
+            // Fill in 127, which is approximately equal to fill in 0 after being processed by subtract_cean_normalization
+            cv::copyMakeBorder(stdMat, stdMat, 0, 0, 0, int(imgW - stdMat.cols), cv::BORDER_CONSTANT, {127, 127, 127});
+        }
+#else
+        {
+            //输入图片固定高度32
+            float ratio = static_cast<float>(detectImg[i].cols) / static_cast<float>(detectImg[i].rows);
+            int imgW = static_cast<int>(32 * ratio);
+            int resize_w;
+            if (ceilf(32 * ratio) > imgW)
+                resize_w = imgW;
+            else
+                resize_w = static_cast<int>(ceilf(32 * ratio));
 
+            cv::resize(detectImg[i], stdMat, cv::Size(resize_w, 32), 0, 0, cv::INTER_LINEAR);
+            cv::copyMakeBorder(stdMat, stdMat, 0, 0, 0, int(imgW - stdMat.cols), cv::BORDER_CONSTANT, {127, 127, 127});
+        }
+#endif
         if (needBreak) {
             continue;
         }
 
+        float realRatio = static_cast<float>(stdMat.cols) / detectImg[i].cols;
+        //stdMat HWC,BGR
+#ifdef PPOCR_V5
+        ncnn::Mat input = ncnn::Mat::from_pixels(stdMat.data, ncnn::Mat::PIXEL_BGR, stdMat.cols, stdMat.rows);
+#else
         ncnn::Mat input = ncnn::Mat::from_pixels(stdMat.data, ncnn::Mat::PIXEL_RGB, stdMat.cols, stdMat.rows);
+#endif
         const float mean_vals[3] = {127.5, 127.5, 127.5};
         const float norm_vals[3] = {1.0f / 127.5f, 1.0f / 127.5f, 1.0f / 127.5f};
         input.substract_mean_normalize(mean_vals, norm_vals);
-
         auto outIndexes = recNet->output_indexes();
         ncnn::Extractor extractor = recNet->create_extractor();
-
         if (recNet->opt.use_vulkan_compute) {
             if (maxThreadsUsed > 1 && i % maxThreadsUsed != 1) {
                 extractor.set_vulkan_compute(false);
@@ -369,13 +402,15 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         std::vector<float> recNetOutputData(floatArray, floatArray + out.h * out.w);
 
         auto ctcResult = ctcDecode(recNetOutputData, out.h, out.w);
-
-        allResultVec[i] = ctcResult.first;
-        boxesResult[i] = ctcResult.first.c_str();
-        auto box = allTextBoxes[i];
         auto baseSize = ctcResult.second;
-        auto currentCharBox = lengthToBox(baseSize, allTextBoxes[i].points[0], box.points[2].y() - box.points[0].y(), realRatio);
-        allCharBoxes[i] = currentCharBox;
+        auto box = allTextBoxes[i];
+        auto currentCharBox = lengthToBox(baseSize, box.points[0], box.points[2].y() - box.points[0].y(), realRatio);
+#pragma omp critical
+        {
+            allResultVec[i] = ctcResult.first;
+            boxesResult[i] = ctcResult.first.c_str();
+            allCharBoxes[i] = currentCharBox;
+        }
 
         if (needBreak) {
             continue;
@@ -470,12 +505,15 @@ bool PaddleOCRApp::analyze()
     initNet();
 
     auto image = imageCache.convertToFormat(QImage::Format_RGB888);
-    image = image.rgbSwapped();
-    cv::Mat matrix(image.height(), image.width(), CV_8UC3, image.bits(), image.bytesPerLine());
+    image = image.rgbSwapped(); //BGR
+    cv::Mat matrix(image.height(), image.width(), CV_8UC3, image.bits(), image.bytesPerLine()); //HWC,BGR
 
     do {
+#ifdef PPOCR_V5
+        auto boxes = detect(matrix, 0.3f, 0.6f, 1.5f);
+#else
         auto boxes = detect(matrix, 0.3f, 0.5f, 1.6f);
-
+#endif
         if (needBreak) {
             break;
         }
