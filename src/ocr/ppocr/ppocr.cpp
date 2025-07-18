@@ -335,6 +335,7 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         cv::Mat stdMat;
 #ifdef  PPOCR_V5
         {
+            // input size [1,3,48, ?] 320 <= ? <= 3200
             const int recImgH = 48;
             const int recImgW = 320;
             float max_wh_ratio = recImgW / (float)recImgH;
