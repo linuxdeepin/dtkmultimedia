@@ -136,7 +136,12 @@ bool PostProcessor::XsortInt(std::vector<int> a, std::vector<int> b)
 std::vector<std::vector<float>> PostProcessor::GetMiniBoxes(cv::RotatedRect box,
                                                             float &ssid)
 {
+#ifdef PPOCR_V5
+    //v5 use min
+    ssid = std::min(box.size.width, box.size.height);
+#else
     ssid = std::max(box.size.width, box.size.height);
+#endif
 
     cv::Mat points;
     cv::boxPoints(box, points);
