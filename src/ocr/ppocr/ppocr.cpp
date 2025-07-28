@@ -368,12 +368,13 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
             cv::resize(detectImg[i], stdMat, cv::Size(resize_w, 32), 0, 0, cv::INTER_LINEAR);
             cv::copyMakeBorder(stdMat, stdMat, 0, 0, 0, int(imgW - stdMat.cols), cv::BORDER_CONSTANT, {127, 127, 127});
         }
+        float realRatio = static_cast<float>(stdMat.cols) / detectImg[i].cols;
 #endif
         if (needBreak) {
             continue;
         }
 
-        float realRatio = static_cast<float>(stdMat.cols) / detectImg[i].cols;
+
         //stdMat HWC,BGR
 #ifdef PPOCR_V5
         ncnn::Mat input = ncnn::Mat::from_pixels(stdMat.data, ncnn::Mat::PIXEL_BGR, stdMat.cols, stdMat.rows);
@@ -405,12 +406,18 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         auto ctcResult = ctcDecode(recNetOutputData, out.h, out.w);
         auto baseSize = ctcResult.second;
         auto box = allTextBoxes[i];
+
+        // v5 is not support char boxes
+#ifndef PPOCR_V5
         auto currentCharBox = lengthToBox(baseSize, box.points[0], box.points[2].y() - box.points[0].y(), realRatio);
+#endif
 #pragma omp critical
         {
             allResultVec[i] = ctcResult.first;
             boxesResult[i] = ctcResult.first.c_str();
+#ifndef PPOCR_V5
             allCharBoxes[i] = currentCharBox;
+#endif
         }
 
         if (needBreak) {
