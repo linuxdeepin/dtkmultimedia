@@ -155,11 +155,7 @@ void PaddleOCRApp::initNet()
     }
 
     if (keys.empty()) {
-#ifdef PPOCR_V5
-        auto dictFilePath = currentPath + "zh_Hans_en_v5.txt";
-#else
         auto dictFilePath = currentPath + languageUsed + dictSuffix;
-#endif
         QFile dictFile(dictFilePath);
         dictFile.open(QIODevice::ReadOnly);
         keys.push_back("#");
