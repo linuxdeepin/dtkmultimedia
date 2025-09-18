@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+// SPDX-FileCopyrightText: 2025 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef PPOCR_H
-#define PPOCR_H
+#ifndef PPOCRV5_H
+#define PPOCRV5_H
 
 #include "docrplugininterface.h"
 #include "postprocess_op.h"
@@ -22,13 +22,13 @@ class Net;
 
 DOCR_BEGIN_NAMESPACE
 
-class PaddleOCRApp : public Dtk::Ocr::DOcrPluginInterface
+class PaddleOCRAppV5 : public Dtk::Ocr::DOcrPluginInterface
 {
 public:
-    PaddleOCRApp();
-    ~PaddleOCRApp() override;
+    PaddleOCRAppV5();
+    ~PaddleOCRAppV5() override;
     static inline QString name() {
-        return "PPOCR_V2";
+        return "PPOCR_V5";
     }
 
     QList<Dtk::Ocr::HardwareID> hardwareSupportList() override;
@@ -47,7 +47,13 @@ public:
     QList<Dtk::Ocr::TextBox> charBoxes(int index) const override;
     QString simpleResult() const override;
     QString resultFromBox(int index) const override;
+private:
+    void resetNet();
+    void initNet();
 
+    std::vector<std::vector<std::vector<int>>> detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio);
+    std::pair<std::string, std::vector<int>> ctcDecode(const std::vector<float> &recNetOutputData, int h, int w);
+    void rec(const std::vector<cv::Mat> &detectImg);
 private:
     QString currentPath;
     std::atomic_bool needReset = false;
@@ -58,23 +64,15 @@ private:
     QStringList keys;
     PaddleOCR::PostProcessor postProcessor;
     PaddleOCR::Utility utilityTool;
-    void resetNet();
-    void initNet();
-
-    std::vector<std::vector<std::vector<int>>> detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio);
-    std::pair<std::string, std::vector<int>> ctcDecode(const std::vector<float> &recNetOutputData, int h, int w);
-    void rec(const std::vector<cv::Mat> &detectImg);
-    QList<Dtk::Ocr::TextBox> lengthToBox(const std::vector<int> &lengths, QPointF basePoint, float rectHeight, float ratio);
 
     QImage imageCache;
-    QStringList supportLanguages = {"zh-Hans_en", "zh-Hant_en", "en"};
     QList<Dtk::Ocr::HardwareID> supportHardwares = {Dtk::Ocr::HardwareID::CPU_Any, Dtk::Ocr::HardwareID::GPU_Vulkan};
     QList<QPair<Dtk::Ocr::HardwareID, int>> hardwareUseInfos;
     QString languageUsed = "zh-Hans_en";
     int maxThreadsUsed = 1;
+    QStringList supportLanguages = {"zh-Hans_en"};
 
     QList<Dtk::Ocr::TextBox> allTextBoxes;
-    QVector<QList<Dtk::Ocr::TextBox>> allCharBoxes;
     QString allResult;
     QVector<QString> boxesResult;
 };

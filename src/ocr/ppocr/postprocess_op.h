@@ -49,7 +49,7 @@ public:
   OrderPointsClockwise(std::vector<std::vector<int>> pts);
 
   std::vector<std::vector<float>> GetMiniBoxes(cv::RotatedRect box,
-                                               float &ssid);
+                                               float &ssid, bool minWH);
 
   float BoxScoreFast(std::vector<std::vector<float>> box_array, cv::Mat pred);
   float PolygonScoreAcc(std::vector<cv::Point> contour, cv::Mat pred);
@@ -57,7 +57,7 @@ public:
   std::vector<std::vector<std::vector<int>>>
   BoxesFromBitmap(const cv::Mat pred, const cv::Mat bitmap,
                   const float &box_thresh, const float &det_db_unclip_ratio,
-                  const bool &use_polygon_score);
+                  const bool &use_polygon_score, bool minWH);
 
   std::vector<std::vector<std::vector<int>>>
   FilterTagDetRes(std::vector<std::vector<std::vector<int>>> boxes,

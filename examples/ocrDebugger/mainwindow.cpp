@@ -16,6 +16,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QtDebug>
+#include <QApplication>
 
 static constexpr int ImageMaxWidth = 640;
 static constexpr int ImageMaxHeight = 480;
@@ -113,7 +114,20 @@ void MainWindow::switchBox(int index)
 
 void MainWindow::initOcrEngine()
 {
-    ocrEngine->loadDefaultPlugin();
+    auto plugins = ocrEngine->installedPluginNames();
+    bool load = false;
+    for (const QString &plugin : plugins) {
+        if (qApp->arguments().contains(plugin)) {
+            ocrEngine->loadPlugin(plugin);
+            qInfo() << "load plugin" << plugin;
+            load = true;
+            break;
+        }
+    }
+
+    if (!load)
+        ocrEngine->loadDefaultPlugin();
+
     ocrEngine->setUseMaxThreadsCount(2);
     ocrEngine->setUseHardware({{Dtk::Ocr::GPU_Vulkan, 0}});
 }

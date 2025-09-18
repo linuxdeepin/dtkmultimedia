@@ -6,6 +6,7 @@
 #include "docr_p.h"
 #include "docrplugininterface.h"
 #include "ppocr.h"
+#include "ppocrv5.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -90,18 +91,22 @@ DOcr::~DOcr() {
 
 QStringList DOcr::installedPluginNames()
 {
+    QStringList ret;
+    ret << PaddleOCRApp::name() << PaddleOCRAppV5::name();
+
     Q_D(DOcr);
     if (d->pluginInstallDir.isEmpty()) {
         qWarning() << "Normal plugin is disabled";
-        return {};
+        return ret;
     }
 
     QDir pluginDir(d->pluginInstallDir);
     if (!pluginDir.exists()) {
-        return {};
+        return ret;
     }
 
-    return pluginDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    ret.append(pluginDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot));
+    return ret;
 }
 
 bool DOcr::loadDefaultPlugin()
@@ -118,6 +123,18 @@ bool DOcr::loadDefaultPlugin()
 bool DOcr::loadPlugin(const QString &pluginName)
 {
     Q_D(DOcr);
+    if (pluginName == PaddleOCRApp::name()) {
+        d->plugin = new PaddleOCRApp;
+        d->currentPluginType = DOcrPrivate::Plugin_Default;
+        return true;
+    }
+
+    if (pluginName == PaddleOCRAppV5::name()) {
+        d->plugin = new PaddleOCRAppV5;
+        d->currentPluginType = DOcrPrivate::Plugin_Default;
+        return true;
+    }
+
     if (d->pluginInstallDir.isEmpty()) {
         qWarning() << "Normal plugin is disabled";
         return {};
