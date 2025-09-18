@@ -210,7 +210,7 @@ void DCamera::takeVideo(const QString &location)
             set_video_path(QFileInfo(location).path().toLatin1().data());
             set_video_name(QFileInfo(location).fileName().toLatin1().data());
         }
-        start_encoder_thread();
+        start_encoder_thread(d);
         d->bVideoStatus = true;
     } else {
         if (video_capture_get_save_video() == 1) {
