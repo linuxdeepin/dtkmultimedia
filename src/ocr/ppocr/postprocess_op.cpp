@@ -134,14 +134,12 @@ bool PostProcessor::XsortInt(std::vector<int> a, std::vector<int> b)
 }
 
 std::vector<std::vector<float>> PostProcessor::GetMiniBoxes(cv::RotatedRect box,
-                                                            float &ssid)
+                                                            float &ssid, bool minWH)
 {
-#ifdef PPOCR_V5
-    //v5 use min
-    ssid = std::min(box.size.width, box.size.height);
-#else
-    ssid = std::max(box.size.width, box.size.height);
-#endif
+    if (minWH)
+        ssid = std::max(box.size.width, box.size.height);
+    else
+        ssid = std::min(box.size.width, box.size.height); //v5 use min
 
     cv::Mat points;
     cv::boxPoints(box, points);
@@ -261,9 +259,8 @@ float PostProcessor::BoxScoreFast(std::vector<std::vector<float>> box_array,
     return score;
 }
 
-std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(
-    const cv::Mat pred, const cv::Mat bitmap, const float &box_thresh,
-    const float &det_db_unclip_ratio, const bool &use_polygon_score)
+std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(const cv::Mat pred, const cv::Mat bitmap, const float &box_thresh,
+    const float &det_db_unclip_ratio, const bool &use_polygon_score, bool minWH)
 {
     const int min_size = 3;
     const int max_candidates = 1000;
@@ -288,7 +285,7 @@ std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(
         }
         float ssid;
         cv::RotatedRect box = cv::minAreaRect(contours[_i]);
-        auto array = GetMiniBoxes(box, ssid);
+        auto array = GetMiniBoxes(box, ssid, minWH);
 
         auto box_for_unclip = array;
         // end get_mini_box
@@ -315,7 +312,7 @@ std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(
         // end for unclip
 
         cv::RotatedRect clipbox = points;
-        auto cliparray = GetMiniBoxes(clipbox, ssid);
+        auto cliparray = GetMiniBoxes(clipbox, ssid, minWH);
 
         if (ssid < min_size + 2)
             continue;
