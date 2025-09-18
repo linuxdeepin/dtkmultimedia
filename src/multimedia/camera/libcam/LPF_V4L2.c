@@ -106,7 +106,7 @@ int camInit(const char *devicename)
     }
 
     if (my_options->disable_libv4l2)
-        v4l2core_disable_libv4l2(my_vd);
+        v4l2core_disable_libv4l2();
 
 
     if (strcasecmp(my_config->capture, "read") == 0)
