@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "ppocr.h"
+#include "ppocrv5.h"
 
 #include <ncnn/layer.h>
 #include <ncnn/net.h>
@@ -15,15 +15,15 @@
 
 DOCR_BEGIN_NAMESPACE
 
-PaddleOCRApp::PaddleOCRApp()
+PaddleOCRAppV5::PaddleOCRAppV5()
 {
 #ifndef QT_NO_DEBUG
-    currentPath = QString("%0/v2/").arg(OCR_MODEL_DIR);
+    currentPath = QString("%0/v5/").arg(OCR_MODEL_DIR);
 #else
     QString fullPath;
     auto xdgDirs = QProcessEnvironment::systemEnvironment().value("XDG_DATA_DIRS").split(':');
     for (auto &xdgDir : xdgDirs) {
-        fullPath = QString("%0/%1/v2/").arg(xdgDir).arg(OCR_MODEL_DIR);
+        fullPath = QString("%0/%1/v5/").arg(xdgDir).arg(OCR_MODEL_DIR);
         if (QFile::exists(fullPath)) {
             currentPath = fullPath;
             break;
@@ -31,7 +31,7 @@ PaddleOCRApp::PaddleOCRApp()
     }
 
     if (currentPath.isEmpty()) {
-        fullPath = QString("/usr/share/%0/v2/").arg(OCR_MODEL_DIR);
+        fullPath = QString("/usr/share/%0/v5/").arg(OCR_MODEL_DIR);
         if (QFile::exists(fullPath)) {
             currentPath = fullPath;
         } else {
@@ -39,18 +39,14 @@ PaddleOCRApp::PaddleOCRApp()
         }
     }
 #endif
-// sw 64，OpenCV 多线程会导致崩溃，先做规避处理
-#if defined(__sw_64__) || defined(__mips__)
-    cv::setNumThreads(0);
-#endif
 }
 
-PaddleOCRApp::~PaddleOCRApp()
+PaddleOCRAppV5::~PaddleOCRAppV5()
 {
     resetNet();
 }
 
-void PaddleOCRApp::resetNet()
+void PaddleOCRAppV5::resetNet()
 {
     delete detNet;
     delete recNet;
@@ -63,7 +59,7 @@ void PaddleOCRApp::resetNet()
     needReset = false;
 }
 
-void PaddleOCRApp::initNet()
+void PaddleOCRAppV5::initNet()
 {
     if (currentPath.isEmpty()) {
         qWarning() << "cannot find default model";
@@ -109,8 +105,6 @@ void PaddleOCRApp::initNet()
         maxThreadsUsed = maxThreads;
     }
 
-    const QString paramSuffix = ".param.bin";
-    const QString binSuffix = ".bin";
     const QString dictSuffix = ".txt";
 
     ncnn::Option option;
@@ -119,29 +113,25 @@ void PaddleOCRApp::initNet()
     option.num_threads = 1;
 
     if (detNet == nullptr) {
-        auto detModelPathPrefix = currentPath + "det";
-
         detNet = new ncnn::Net;
         detNet->opt = option;
         detNet->opt.num_threads = static_cast<int>(maxThreadsUsed);
-        detNet->load_param_bin((detModelPathPrefix + paramSuffix).toStdString().c_str());
-        detNet->load_model((detModelPathPrefix + binSuffix).toStdString().c_str());
+        detNet->load_param((currentPath + "det.ncnn.param").toStdString().c_str());
+        detNet->load_model((currentPath + "det.ncnn.bin").toStdString().c_str());
     }
 
     if (recNet == nullptr) {
-        auto recModelPathPrefix = currentPath + "rec_" + languageUsed;
-
         recNet = new ncnn::Net;
         recNet->opt = option;
 
-#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64) && !defined(__sw_64__) && !defined(__mips__) 
+#if !defined(_loongarch) && !defined(__loongarch__) && !defined(__loongarch64)
         if (!gpuCanUse.empty()) {
             recNet->set_vulkan_device(gpuCanUse[0]);
             recNet->opt.use_vulkan_compute = true;
         }
 #endif
-        recNet->load_param_bin((recModelPathPrefix + paramSuffix).toStdString().c_str());
-        recNet->load_model((recModelPathPrefix + binSuffix).toStdString().c_str());
+        recNet->load_param((currentPath + "rec.ncnn.param").toStdString().c_str());
+        recNet->load_model((currentPath + "rec.ncnn.bin").toStdString().c_str());
     }
 
     if (keys.empty()) {
@@ -165,7 +155,7 @@ void PaddleOCRApp::initNet()
 }
 
 std::vector<std::vector<std::vector<int>>>
-PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio)
+PaddleOCRAppV5::detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio)
 {
     int resizeH = src.rows;
     int resizeW = src.cols;
@@ -188,7 +178,8 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     float ratio_w = float(resizeW) / float(src.cols);
     cv::Mat resize_img;
     cv::resize(src, resize_img, cv::Size(resizeW, resizeH));
-    ncnn::Mat in_pad = ncnn::Mat::from_pixels(resize_img.data, ncnn::Mat::PIXEL_RGB, resizeW, resizeH);
+
+    ncnn::Mat in_pad = ncnn::Mat::from_pixels(resize_img.data, ncnn::Mat::PIXEL_BGR, resizeW, resizeH); //CHW,BGR
     const float meanValues[3] = {0.485f * 255, 0.456f * 255, 0.406f * 255};
     const float normValues[3] = {1.0f / 0.229f / 255.0f, 1.0f / 0.224f / 255.0f, 1.0f / 0.225f / 255.0f};
 
@@ -228,17 +219,14 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     {
         cv::Mat bit_map;
         cv::threshold(cbuf_map, bit_map, static_cast<double>(threshold), 255, cv::THRESH_BINARY);
-        cv::Mat dilation_map;
-        cv::Mat dila_ele = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
-        cv::dilate(bit_map, dilation_map, dila_ele);
-        mask = dilation_map;
+        mask = bit_map;
     }
 
     if (needBreak) {
         return std::vector<std::vector<std::vector<int>>>();
     }
 
-    auto result = postProcessor.BoxesFromBitmap(pred_map, mask, boxThresh, unclipRatio, false, false);
+    auto result = postProcessor.BoxesFromBitmap(pred_map, mask, boxThresh, unclipRatio, false, true);
 
     if (needBreak) {
         return std::vector<std::vector<std::vector<int>>>();
@@ -248,7 +236,7 @@ PaddleOCRApp::detect(const cv::Mat &src, float thresh, float boxThresh, float un
     return result;
 }
 
-std::pair<std::string, std::vector<int>> PaddleOCRApp::ctcDecode(const std::vector<float> &recNetOutputData, int h, int w)
+std::pair<std::string, std::vector<int>> PaddleOCRAppV5::ctcDecode(const std::vector<float> &recNetOutputData, int h, int w)
 {
     std::string text;
     std::vector<int> baseSize;
@@ -276,33 +264,12 @@ std::pair<std::string, std::vector<int>> PaddleOCRApp::ctcDecode(const std::vect
     return std::make_pair(text, baseSize);
 }
 
-QList<Dtk::Ocr::TextBox>
-PaddleOCRApp::lengthToBox(const std::vector<int> &lengths, QPointF basePoint, float rectHeight, float ratio)
-{
-    QList<Dtk::Ocr::TextBox> result;
-    float currentPos = basePoint.x();
-    float yAxisT = basePoint.y();
-    float yAxisB = basePoint.y() + rectHeight;
-    for (auto &eachLen : lengths) {
-        Dtk::Ocr::TextBox temp;
-        temp.angle = 0;
-        temp.points.push_back(QPointF(currentPos, yAxisT));
-        temp.points.push_back(QPointF(currentPos + eachLen * 4 / ratio, yAxisT));
-        temp.points.push_back(QPointF(currentPos + eachLen * 4 / ratio, yAxisB));
-        temp.points.push_back(QPointF(currentPos, yAxisB));
-        result.push_back(temp);
-        currentPos += eachLen * 4 / ratio;
-    }
-    return result;
-}
-
-void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
+void PaddleOCRAppV5::rec(const std::vector<cv::Mat> &detectImg)
 {
     size_t size = detectImg.size();
     allResult.clear();
     std::vector<std::string> allResultVec(detectImg.size());
     boxesResult.resize(size);
-    allCharBoxes.resize(size);
 
 #pragma omp parallel for num_threads(maxThreadsUsed)
     for (size_t i = 0; i < size; ++i) {
@@ -312,26 +279,31 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
 
         cv::Mat stdMat;
         {
-            //输入图片固定高度32
+            // input size [1,3,48, ?] 320 <= ? <= 3200
+            const int recImgH = 48;
+            const int recImgW = 320;
+            float max_wh_ratio = recImgW / (float)recImgH;
             float ratio = static_cast<float>(detectImg[i].cols) / static_cast<float>(detectImg[i].rows);
-            int imgW = static_cast<int>(32 * ratio);
-            int resize_w;
-            if (ceilf(32 * ratio) > imgW)
-                resize_w = imgW;
-            else
-                resize_w = static_cast<int>(ceilf(32 * ratio));
+            max_wh_ratio = std::max(max_wh_ratio, ratio);
 
-            cv::resize(detectImg[i], stdMat, cv::Size(resize_w, 32), 0, 0, cv::INTER_LINEAR);
+            int imgW = int(ceilf(recImgH * max_wh_ratio));
+            if (imgW > 3200) {
+                imgW = 3200;
+                cv::resize(detectImg[i], stdMat, cv::Size(3200, recImgH), 0, 0, cv::INTER_LINEAR);
+            } else {
+                int resized_w = int(ceilf(recImgH * ratio));
+                resized_w = resized_w > imgW ? imgW : resized_w;
+                cv::resize(detectImg[i], stdMat, cv::Size(resized_w, recImgH), 0, 0, cv::INTER_LINEAR);
+            }
+            // Fill in 127, which is approximately equal to fill in 0 after being processed by subtract_cean_normalization
             cv::copyMakeBorder(stdMat, stdMat, 0, 0, 0, int(imgW - stdMat.cols), cv::BORDER_CONSTANT, {127, 127, 127});
         }
-
-        float realRatio = static_cast<float>(stdMat.cols) / detectImg[i].cols;
         if (needBreak) {
             continue;
         }
 
         //stdMat HWC,BGR
-        ncnn::Mat input = ncnn::Mat::from_pixels(stdMat.data, ncnn::Mat::PIXEL_RGB, stdMat.cols, stdMat.rows);
+        ncnn::Mat input = ncnn::Mat::from_pixels(stdMat.data, ncnn::Mat::PIXEL_BGR, stdMat.cols, stdMat.rows);
         const float mean_vals[3] = {127.5, 127.5, 127.5};
         const float norm_vals[3] = {1.0f / 127.5f, 1.0f / 127.5f, 1.0f / 127.5f};
         input.substract_mean_normalize(mean_vals, norm_vals);
@@ -357,12 +329,12 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
         auto ctcResult = ctcDecode(recNetOutputData, out.h, out.w);
         auto baseSize = ctcResult.second;
         auto box = allTextBoxes[i];
-        auto currentCharBox = lengthToBox(baseSize, box.points[0], box.points[2].y() - box.points[0].y(), realRatio);
+
+        // v5 is not support char boxes
 #pragma omp critical
         {
             allResultVec[i] = ctcResult.first;
             boxesResult[i] = ctcResult.first.c_str();
-            allCharBoxes[i] = currentCharBox;
         }
 
         if (needBreak) {
@@ -376,7 +348,7 @@ void PaddleOCRApp::rec(const std::vector<cv::Mat> &detectImg)
     }
 }
 
-bool PaddleOCRApp::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> &hardwareUsed)
+bool PaddleOCRAppV5::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> &hardwareUsed)
 {
     for (const auto &pair : hardwareUsed) {
         if (!supportHardwares.contains(pair.first)) {
@@ -389,24 +361,24 @@ bool PaddleOCRApp::setUseHardware(const QList<QPair<Dtk::Ocr::HardwareID, int>> 
     return true;
 }
 
-QList<Dtk::Ocr::HardwareID> PaddleOCRApp::hardwareSupportList()
+QList<Dtk::Ocr::HardwareID> PaddleOCRAppV5::hardwareSupportList()
 {
     return supportHardwares;
 }
 
-bool PaddleOCRApp::setUseMaxThreadsCount(int n)
+bool PaddleOCRAppV5::setUseMaxThreadsCount(int n)
 {
     needReset = true;
     maxThreadsUsed = n;
     return true;
 }
 
-QStringList PaddleOCRApp::imageFileSupportFormats() const
+QStringList PaddleOCRAppV5::imageFileSupportFormats() const
 {
     return {"BMP", "JPEG", "PNG", "PBM", "PGM", "PPM"};
 }
 
-bool PaddleOCRApp::setImage(const QImage &image)
+bool PaddleOCRAppV5::setImage(const QImage &image)
 {
     if (inRunning) {
         qWarning() << "analyze is running";
@@ -416,7 +388,7 @@ bool PaddleOCRApp::setImage(const QImage &image)
     return true;
 }
 
-bool PaddleOCRApp::setImageFile(const QString &filePath)
+bool PaddleOCRAppV5::setImageFile(const QString &filePath)
 {
     if (inRunning) {
         qWarning() << "analyze is running";
@@ -426,12 +398,12 @@ bool PaddleOCRApp::setImageFile(const QString &filePath)
     return !imageCache.isNull();
 }
 
-QStringList PaddleOCRApp::languageSupport() const
+QStringList PaddleOCRAppV5::languageSupport() const
 {
     return supportLanguages;
 }
 
-bool PaddleOCRApp::setLanguage(const QString &language)
+bool PaddleOCRAppV5::setLanguage(const QString &language)
 {
     if (!supportLanguages.contains(language)) {
         return false;
@@ -442,7 +414,7 @@ bool PaddleOCRApp::setLanguage(const QString &language)
     }
 }
 
-bool PaddleOCRApp::analyze()
+bool PaddleOCRAppV5::analyze()
 {
     inRunning = true;
 
@@ -462,7 +434,7 @@ bool PaddleOCRApp::analyze()
     cv::Mat matrix(image.height(), image.width(), CV_8UC3, image.bits(), image.bytesPerLine()); //HWC,BGR
 
     do {
-        auto boxes = detect(matrix, 0.3f, 0.5f, 1.6f);
+        auto boxes = detect(matrix, 0.3f, 0.6f, 1.5f);
         if (needBreak) {
             break;
         }
@@ -534,7 +506,6 @@ bool PaddleOCRApp::analyze()
 
     if (needBreak) {
         allTextBoxes.clear();
-        allCharBoxes.clear();
         allResult.clear();
         boxesResult.clear();
         needBreak = false;
@@ -546,7 +517,6 @@ bool PaddleOCRApp::analyze()
             if (boxesResult[i].isEmpty()) {
                 boxesResult.removeAt(i);
                 allTextBoxes.removeAt(i);
-                allCharBoxes.removeAt(i);
                 --i;
             }
         }
@@ -556,12 +526,12 @@ bool PaddleOCRApp::analyze()
     }
 }
 
-bool PaddleOCRApp::isRunning() const
+bool PaddleOCRAppV5::isRunning() const
 {
     return inRunning;
 }
 
-QImage PaddleOCRApp::imageCached() const
+QImage PaddleOCRAppV5::imageCached() const
 {
     if (imageCache.isNull()) {
         qWarning() << "no image cached";
@@ -570,7 +540,7 @@ QImage PaddleOCRApp::imageCached() const
     return imageCache;
 }
 
-bool PaddleOCRApp::breakAnalyze()
+bool PaddleOCRAppV5::breakAnalyze()
 {
     if (!needBreak && isRunning()) {
         needBreak = true;
@@ -580,26 +550,23 @@ bool PaddleOCRApp::breakAnalyze()
     }
 }
 
-QList<Dtk::Ocr::TextBox> PaddleOCRApp::textBoxes() const
+QList<Dtk::Ocr::TextBox> PaddleOCRAppV5::textBoxes() const
 {
     return allTextBoxes;
 }
 
-QList<Dtk::Ocr::TextBox> PaddleOCRApp::charBoxes(int index) const
+QList<Dtk::Ocr::TextBox> PaddleOCRAppV5::charBoxes(int index) const
 {
-    if (index >= allCharBoxes.size()) {
-        return QList<Dtk::Ocr::TextBox>();
-    } else {
-        return allCharBoxes.at(index);
-    }
+    Q_UNUSED(index)
+    return {};
 }
 
-QString PaddleOCRApp::simpleResult() const
+QString PaddleOCRAppV5::simpleResult() const
 {
     return allResult;
 }
 
-QString PaddleOCRApp::resultFromBox(int index) const
+QString PaddleOCRAppV5::resultFromBox(int index) const
 {
     return boxesResult.at(index);
 }

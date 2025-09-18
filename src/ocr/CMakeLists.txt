@@ -26,9 +26,6 @@ add_library(${BIN_NAME} SHARED
 include_directories(interface)
 include_directories(ppocr)
 
-add_definitions(-DPPOCR_V5)
-set(PPOCR_V5 ON)
-
 pkg_check_modules(InferenceEngine REQUIRED ncnn opencv_mobile)
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -80,18 +77,14 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${BIN_NAME}.pri DESTINATION "${
 # config the deep learning models of the default plugin
 set(SourcesDir ${CMAKE_INSTALL_PREFIX}/share)
 set(CurrentProjectSourcesDir lib${BIN_NAME})
+set(ModelSaveSubDir dtkocrmodels)
 
-if (PPOCR_V5)
-    set(ModelSaveSubDir v5/dtkocrmodels)
-else()
-    set(ModelSaveSubDir v2/dtkocrmodels)
-endif()
 set(ModelInstallDir ${SourcesDir}/${CurrentProjectSourcesDir})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CMAKE_CURRENT_LIST_DIR}/${ModelSaveSubDir}/")
 else()
-    ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CurrentProjectSourcesDir}/dtkocrmodels/")
+    ADD_DEFINITIONS(-DOCR_MODEL_DIR="${CurrentProjectSourcesDir}/${ModelSaveSubDir}/")
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${ModelSaveSubDir} DESTINATION ${ModelInstallDir})
