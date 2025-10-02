@@ -74,14 +74,22 @@ private:
     decltype(av_packet_unref) *d_av_packet_unref { nullptr };
     decltype(avcodec_free_context) *d_avcodec_free_context { nullptr };
 
+#if LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 5, 100)
+    decltype(swr_alloc_set_opts2) *d_swr_alloc_set_opts2 { nullptr };
+#else
     decltype(swr_alloc_set_opts) *d_swr_alloc_set_opts { nullptr };
+#endif
     decltype(swr_init) *d_swr_init { nullptr };
     decltype(swr_convert) *d_swr_convert { nullptr };
     decltype(swr_free) *d_swr_free { nullptr };
 
     decltype(av_audio_fifo_alloc) *d_av_audio_fifo_alloc { nullptr };
     decltype(av_frame_alloc) *d_av_frame_alloc { nullptr };
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+    decltype(av_channel_layout_default) *d_av_channel_layout_default { nullptr };
+#else
     decltype(av_get_default_channel_layout) *d_av_get_default_channel_layout { nullptr };
+#endif
     decltype(av_samples_alloc_array_and_samples) *d_av_samples_alloc_array_and_samples { nullptr };
     decltype(av_audio_fifo_space) *d_av_audio_fifo_space { nullptr };
     decltype(av_audio_fifo_write) *d_av_audio_fifo_write { nullptr };
@@ -109,6 +117,9 @@ private:
     QUrl outFilePath { "outAudioFile.aac" };
     int sampleRate { 48000 };
     int bitRate { 0 };
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)
+    AVChannelLayout *ch_layout { nullptr };
+#endif
     DAudioRecorder::AChannelsID channels { DAudioRecorder::CHANNELS_ID_STEREO };
     AVCodecID codec { AV_CODEC_ID_NONE };
 
