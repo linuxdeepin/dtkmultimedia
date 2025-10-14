@@ -63,10 +63,7 @@ endif()
 
 if (NOT ENABLE_Qt6)
     find_package(Qt5X11Extras)
-    pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
 endif()
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkwidget)
-pkg_check_modules(Dtk REQUIRED IMPORTED_TARGET dtkcore)
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 pkg_check_modules(InferenceEngine REQUIRED ncnn opencv_mobile)
 
@@ -85,7 +82,7 @@ set(TARGET_LIBS Xtst
 
 # 仅在Qt6时链接OpenGLWidgets
 if(${QT_VERSION_MAJOR} EQUAL 6)
-    target_link_libraries(TARGET_LIBS PRIVATE Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
+    list(APPEND TARGET_LIBS Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
 endif()
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
@@ -118,9 +115,8 @@ if (ENABLE_Qt6)
     )
 else()
     target_link_libraries(${BIN_NAME} PRIVATE
-        PkgConfig::DBusextended
         Qt5::X11Extras
-        )
+    )
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
