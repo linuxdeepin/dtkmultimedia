@@ -44,19 +44,17 @@ add_executable(${BIN_NAME}
     ${DFAKE_INTERFACE_DBUS_XML}
     )
 
-find_package(Qt${QT_VERSION_MAJOR}Widgets)
-find_package(Qt${QT_VERSION_MAJOR}DBus)
-find_package(Qt${QT_VERSION_MAJOR}LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR}Network)
-find_package(Qt${QT_VERSION_MAJOR}Concurrent)
-find_package(Qt${QT_VERSION_MAJOR}Multimedia)
-find_package(Qt${QT_VERSION_MAJOR}MultimediaWidgets)
-find_package(Qt${QT_VERSION_MAJOR}OpenGL)
-find_package(Qt${QT_VERSION_MAJOR}OpenGLWidgets)
-find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Widget)
-find_package(PkgConfig REQUIRED)
+# 找到基础模块
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets DBus LinguistTools Network Concurrent Multimedia MultimediaWidgets OpenGL)
+find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core Widget)
 
+# 根据Qt版本处理OpenGLWidgets
+if(${QT_VERSION_MAJOR} EQUAL 6)
+    # Qt6需要单独查找OpenGLWidgets模块
+    find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
+endif()
+
+find_package(PkgConfig REQUIRED)
 find_package(OpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
@@ -80,11 +78,15 @@ set(TARGET_LIBS Xtst
     Qt${QT_VERSION_MAJOR}::MultimediaWidgets
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::OpenGL
-    Qt${QT_VERSION_MAJOR}::OpenGLWidgets
     PkgConfig::Gst
     GL dl
     dtk${DTK_VERSION_MAJOR}multimedia
     dtk${DTK_VERSION_MAJOR}ocr)
+
+# 仅在Qt6时链接OpenGLWidgets
+if(${QT_VERSION_MAJOR} EQUAL 6)
+    target_link_libraries(TARGET_LIBS PRIVATE Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
+endif()
 
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 

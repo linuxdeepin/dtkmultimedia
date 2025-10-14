@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-set(BIN_NAME ${CMAKE_PROJECT_NAME})
+set(BIN_NAME ${LIB_NAME})
 project(${BIN_NAME} CXX C)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtkmultimedia/*")
@@ -119,6 +119,27 @@ if("${QT_VERSION_MAJOR}" STREQUAL "5")
         Qt5::X11Extras
         )
 endif()
+
+set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
+
+# for pc file config
+set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)
+set(PC_REQ_PRIVATE)
+set(PC_REQ_PUBLIC)
+
+# config pkgconfig file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtkmultimedia.pc.in ${BIN_NAME}.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+# config cmake file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtkmultimediaConfig.cmake.in ${BIN_NAME}Config.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}Config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BIN_NAME})
+
+# config qmake moudule file
+set(DTK_MODULE ${BIN_NAME})
+set(DTK_DEPS "core dbus")
+set(QMKSPECS_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/qt${QT_VERSION_MAJOR}/mkspecs/modules" CACHE STRING "INSTALL DIR FOR qt pri files")
+configure_file(${PROJECT_ROOT_DIR}/misc/qt_lib_dtkmultimedia.pri.in qt_lib_${BIN_NAME}.pri @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${BIN_NAME}.pri DESTINATION "${QMKSPECS_INSTALL_DIR}")
 
 install(FILES ${INSTALL_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME})
 install(TARGETS ${BIN_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})

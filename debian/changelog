@@ -1,3 +1,11 @@
+dtkmultimedia (6.0.3) unstable; urgency=medium
+
+  * chore: [tag]New tag 6.0.3
+  * feat: Enable build Qt6 or Qt5 package.
+  * Integrate changes from branch qt6.8.
+
+ -- re2zero <yangwu@uniontech.com>  Tue, 14 Oct 2025 15:24:12 +0800
+
 dtkmultimedia (6.0.2) unstable; urgency=medium
 
   * fix: ocr crash on sw64(Bug: 319961)

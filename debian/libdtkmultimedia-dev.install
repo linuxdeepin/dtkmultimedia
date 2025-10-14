@@ -1,0 +1,6 @@
+usr/lib/*/libdtkmultimedia*.so
+usr/include/dtkmultimedia*
+usr/lib/*/pkgconfig/dtkmultimedia*.pc
+usr/lib/*/cmake/*/dtkmultimedia*.cmake
+usr/lib/*/*/mkspecs/modules/qt_lib_dtkmultimedia*.pri
+usr/share/*/doc/dtkmultimedia*.qch

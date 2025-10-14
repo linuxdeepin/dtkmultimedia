@@ -390,14 +390,14 @@ audio_context_t *get_audio_context(void);
 /*
  * start the encoder thread
  * args:
- *   none
+ *   data - pointer to user data
  *
  * asserts:
  *   none
  *
  * returns: error code
  */
-int start_encoder_thread(void);
+int start_encoder_thread(void *data);
 
 /*
  * stop the encoder thread
