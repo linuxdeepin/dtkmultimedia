@@ -48,10 +48,6 @@ find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core Widget)
 
 find_package(PkgConfig REQUIRED)
 
-if (NOT ENABLE_Qt6)
-    pkg_check_modules(DBusextended REQUIRED IMPORTED_TARGET dbusextended-qt5)
-endif()
-
 pkg_check_modules(Gst REQUIRED IMPORTED_TARGET gobject-2.0)
 pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat)
 
@@ -93,7 +89,6 @@ if (ENABLE_Qt6)
         )
 else()
     target_link_libraries(${BIN_NAME} PRIVATE
-        PkgConfig::DBusextended
         Qt5::X11Extras
         )
 endif()
