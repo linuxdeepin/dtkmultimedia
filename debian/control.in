@@ -40,34 +40,34 @@ Build-Depends:
  libopencv-mobile-dev
 Standards-Version: 4.5.0
 
-Package: libdtk6multimedia
+Package: libdtk@DTK_VER@multimedia
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Development Tool Kit multimedia library
- libdtk6multimedia is base library of Deepin Qt/C++ applications.
+ libdtk@DTK_VER@multimedia is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
 
-Package: libdtk6multimedia-dev
+Package: libdtk@DTK_VER@multimedia-dev
 Architecture: any
-Depends: ${misc:Depends}, libdtk6multimedia( =${binary:Version})
+Depends: ${misc:Depends}, libdtk@DTK_VER@multimedia( =${binary:Version})
 Description: Development Tool Kit multimedia devel library
- libdtk6multimedia-dev is base devel library of Deepin Qt/C++ applications.
+ libdtk@DTK_VER@multimedia-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.
 
-Package: libdtk6ocr
+Package: libdtk@DTK_VER@ocr
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Development Tool Kit ocr library
- libdtk6ocr is base library of Deepin Qt/C++ applications.
+ libdtk@DTK_VER@ocr is base library of Deepin Qt/C++ applications.
  .
  This package contains the shared libraries.
 
-Package: libdtk6ocr-dev
+Package: libdtk@DTK_VER@ocr-dev
 Architecture: any
-Depends: ${misc:Depends}, libdtk6ocr( =${binary:Version})
+Depends: ${misc:Depends}, libdtk@DTK_VER@ocr( =${binary:Version})
 Description: Development Tool Kit ocr devel library
- libdtk6ocr-dev is base devel library of Deepin Qt/C++ applications.
+ libdtk@DTK_VER@ocr-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.

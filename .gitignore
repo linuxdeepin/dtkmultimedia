@@ -38,3 +38,6 @@ lupdate.sh
 
 # ctest
 Testing/
+
+# AI config file
+.spec-workflow/

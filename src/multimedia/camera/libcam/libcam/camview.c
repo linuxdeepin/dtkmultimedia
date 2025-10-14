@@ -1288,9 +1288,9 @@ void *capture_loop(void *data)
  *
  * returns: error code
  */
-int start_encoder_thread()
+int start_encoder_thread(void *data)
 {
-    int ret = __THREAD_CREATE(&encoder_thread, encoder_loop, NULL);
+    int ret = __THREAD_CREATE(&encoder_thread, encoder_loop, data);
 
     if(ret)
         fprintf(stderr, "deepin-camera: encoder thread creation failed (%i)\n", ret);

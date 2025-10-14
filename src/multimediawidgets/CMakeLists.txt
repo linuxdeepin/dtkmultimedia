@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-set(BIN_NAME ${CMAKE_PROJECT_NAME}widgets)
+set(BIN_NAME ${LIB_NAME}widgets)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtkmultimediawidgets/*")
 file(GLOB_RECURSE INCLUDE_FILES "./*.h"  "${INSTALL_INCLUDE_FILES}")

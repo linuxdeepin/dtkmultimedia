@@ -1,6 +1,29 @@
 #!/usr/bin/make -f
 include /usr/share/dpkg/default.mk
-export QT_SELECT = qt6
+
+# 检测当前安装的Qt版本，优先使用Qt6，否则使用Qt5
+define detect_qt_version
+ifneq (,$(shell which qmake6 2>/dev/null))
+    QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt6"
+    DTK_VER="6"
+else
+    QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt5"
+    DTK_VER=""
+endif
+endef
+
+# 调用检测Qt版本的命令
+$(eval $(call detect_qt_version))
+
+# hardcode this if want to force build with sepecific Qt version
+# QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt5"
+# DTK_VER=""
+
+# 使用sed替换模板中的占位符，生成最终的control文件
+$(shell sed -e "s/@DTK_VER@/$(DTK_VER)/g" debian/control.in > debian/control)
+
+DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+
 VERSION = $(DEB_VERSION_UPSTREAM)
 PACK_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$1}')
 # Fix: invalid digit "8" in octal constant. e.g.  u008 ==> 008 ==> 8
@@ -10,5 +33,10 @@ BUILD_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$2}' | sed 's/[^0-
 	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DBUILD_VERSION=$(BUILD_VER) -DVERSION=$(PACK_VER)
-
+	dh_auto_configure -- \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DHOST_MULTIARCH="$(DEB_HOST_MULTIARCH)" \
+	-DBUILD_VERSION=$(BUILD_VER) \
+	-DVERSION=$(PACK_VER) \
+	-DQT_DIR=$(QT_DIR)
