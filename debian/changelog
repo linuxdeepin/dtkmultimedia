@@ -1,3 +1,10 @@
+dtkmultimedia (6.0.4) unstable; urgency=medium
+
+  * chore: [tag]New tag 6.0.4
+  * fix: Fix Qt5 build issue
+
+ -- re2zero <yangwu@uniontech.com>  Wed, 15 Oct 2025 08:46:53 +0800
+
 dtkmultimedia (6.0.3) unstable; urgency=medium
 
   * chore: [tag]New tag 6.0.3

@@ -7,13 +7,21 @@ if (ENABLE_Qt6)
     find_package(Qt6 COMPONENTS ToolsTools CONFIG REQUIRED)
     if (TARGET Qt6::qhelpgenerator)
         get_target_property(QHelpGenerator_EXECUTABLE Qt6::qhelpgenerator LOCATION)
-        set (DOXYGEN_QHG_LOCATION "${QHelpGenerator_EXECUTABLE}")
-    else ()
-        message ("error: can't found qhelpgenerator from Qt6 tools.")
-    endif ()
-else ()
-    set (DOXYGEN_QHG_LOCATION "qhelpgenerator")
-endif ()
+        set(DOXYGEN_QHG_LOCATION "${QHelpGenerator_EXECUTABLE}")
+    else()
+        message(FATAL_ERROR "qhelpgenerator not found in Qt6 ToolsTools.")
+    endif()
+else()
+    # Qt5: directly use the real binary to avoid qtchooser/QT_SELECT issues
+    find_program(DOXYGEN_QHG_LOCATION
+        NAMES qhelpgenerator
+        PATHS /usr/lib/qt5/bin
+        NO_DEFAULT_PATH
+    )
+    if (NOT DOXYGEN_QHG_LOCATION)
+        message(FATAL_ERROR "qhelpgenerator not found for Qt5. Please install qttools5-dev-tools.")
+    endif()
+endif()
 
 set (QCH_INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/qt${QT_VERSION_MAJOR}/doc CACHE STRING "QCH install location")
 set (DOXYGEN_GENERATE_HTML "YES" CACHE STRING "Doxygen HTML output")

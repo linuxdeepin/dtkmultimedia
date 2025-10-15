@@ -24,6 +24,7 @@ $(shell sed -e "s/@DTK_VER@/$(DTK_VER)/g" debian/control.in > debian/control)
 
 DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
+export QT_SELECT=5
 VERSION = $(DEB_VERSION_UPSTREAM)
 PACK_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$1}')
 # Fix: invalid digit "8" in octal constant. e.g.  u008 ==> 008 ==> 8
