@@ -7,6 +7,9 @@
 
 #include "dgstplayerproxy.h"
 #include <QObject>
+#ifdef BUILD_Qt6
+#include <QAudioOutput>
+#endif
 
 DMULTIMEDIA_BEGIN_NAMESPACE
 class DGstPlayerProxyPrivate : public QObject
@@ -32,6 +35,9 @@ private:
     DGstPlayerProxy *q_ptr;
     QMediaPlayer *pPlayer = nullptr;
     VideoSurface *pVideoSurface = nullptr;
+#ifdef BUILD_Qt6
+    QAudioOutput *pAudioOutput = nullptr;
+#endif
     PlayingMovieInfo movieInfo;
     QVariant posBeforeBurst;
     QList<qint64> listBurstPoints;

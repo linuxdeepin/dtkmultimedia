@@ -29,6 +29,7 @@ explicit VideoSurface(QObject *parent = Q_NULLPTR);
         ~VideoSurface();
 #ifdef BUILD_Qt6
     QList<QVideoFrameFormat::PixelFormat> pixelFormat() const;
+    QVideoSink *videoSink() const { return m_sink; }
 #else
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
 #endif
@@ -37,6 +38,10 @@ explicit VideoSurface(QObject *parent = Q_NULLPTR);
 signals:
         void frameAvailable(QVideoFrame &frame);
 
+#ifdef BUILD_Qt6
+private:
+    QVideoSink *m_sink = nullptr;
+#endif
 };
 DMULTIMEDIA_END_NAMESPACE
 #endif // VIDEOSURFACE_H

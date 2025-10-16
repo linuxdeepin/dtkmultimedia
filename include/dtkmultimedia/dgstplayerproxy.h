@@ -78,12 +78,13 @@ public slots:
 protected slots:
 #if BUILD_Qt6
     void slotStateChanged(QMediaPlayer::PlaybackState newState);
+    void slotMediaError();
 #else
     void slotStateChanged(QMediaPlayer::State newState);
+    void slotMediaError(QMediaPlayer::Error error);
 #endif
     void slotMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void slotPositionChanged(qint64 position);
-    void slotMediaError(QMediaPlayer::Error error);
 
 protected:
     QScopedPointer<DGstPlayerProxyPrivate> d_ptr;
