@@ -24,17 +24,26 @@ DGstPlayerProxy::DGstPlayerProxy(QObject *parent)
     Q_D(DGstPlayerProxy);
     d->pPlayer = new QMediaPlayer(this);
     d->pVideoSurface = new VideoSurface;
+#ifdef BUILD_Qt6
+    d->pAudioOutput = new QAudioOutput(this);
+    d->pPlayer->setAudioOutput(d->pAudioOutput);
+    d->pPlayer->setVideoOutput(d->pVideoSurface->videoSink());
+#else
     d->pPlayer->setVideoOutput(d->pVideoSurface);
+#endif
 
 #ifdef BUILD_Qt6
     connect(d->pPlayer, &QMediaPlayer::playbackStateChanged, this, &DGstPlayerProxy::slotStateChanged);
+    connect(d->pPlayer, &QMediaPlayer::errorOccurred, this, &DGstPlayerProxy::slotMediaError);
 #else
     connect(d->pPlayer, &QMediaPlayer::stateChanged, this, &DGstPlayerProxy::slotStateChanged);
+    connect(d->pPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(slotMediaError(QMediaPlayer::Error)));
 #endif
     connect(d->pPlayer, &QMediaPlayer::mediaStatusChanged, this, &DGstPlayerProxy::slotMediaStatusChanged);
     connect(d->pPlayer, &QMediaPlayer::positionChanged, this, &DGstPlayerProxy::slotPositionChanged);
-    connect(d->pPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(slotMediaError(QMediaPlayer::Error)));
-    connect(d->pVideoSurface, &VideoSurface::frameAvailable, this, &DGstPlayerProxy::processFrame);
+    connect(d->pVideoSurface, &VideoSurface::frameAvailable, this, [this](QVideoFrame &frame) {
+        emit processFrame(frame);
+    });
 }
 
 DGstPlayerProxy::~DGstPlayerProxy()
@@ -132,6 +141,23 @@ void DGstPlayerProxy::slotPositionChanged(qint64 position)
     emit elapsedChanged();
 }
 
+#ifdef BUILD_Qt6
+void DGstPlayerProxy::slotMediaError()
+{
+    Q_D(DGstPlayerProxy);
+    QMediaPlayer::Error error = d->pPlayer->error();
+    switch (error) {
+    case QMediaPlayer::ResourceError:
+    case QMediaPlayer::FormatError:
+    case QMediaPlayer::NetworkError:
+    case QMediaPlayer::AccessDeniedError:
+        emit sigMediaError();
+        break;
+    default:
+        break;
+    }
+}
+#else
 void DGstPlayerProxy::slotMediaError(QMediaPlayer::Error error)
 {
     switch (error) {
@@ -139,15 +165,14 @@ void DGstPlayerProxy::slotMediaError(QMediaPlayer::Error error)
     case QMediaPlayer::FormatError:
     case QMediaPlayer::NetworkError:
     case QMediaPlayer::AccessDeniedError:
-#ifndef BUILD_Qt6
     case QMediaPlayer::ServiceMissingError:
-#endif
         emit sigMediaError();
         break;
     default:
         break;
     }
 }
+#endif
 
 void DGstPlayerProxy::savePlaybackPosition()
 {
@@ -182,8 +207,10 @@ void DGstPlayerProxy::changeVolume(int nVol)
 {
     Q_D(DGstPlayerProxy);
 #ifdef BUILD_Qt6
-    //// Qt6 QMediaPlayer没有setVolume
-
+    if (d->pAudioOutput) {
+        // Qt6: QAudioOutput的音量范围是0.0-1.0
+        d->pAudioOutput->setVolume(nVol / 100.0);
+    }
 #else
     d->pPlayer->setVolume(nVol);
 #endif
@@ -193,8 +220,8 @@ int DGstPlayerProxy::volume() const
 {
     Q_D(const DGstPlayerProxy);
 #ifdef BUILD_Qt6
-    //// Qt6 QMediaPlayer没有volume()
-    int nActualVol = 100;
+    // Qt6: 从QAudioOutput获取音量 (0.0-1.0)
+    int nActualVol = d->pAudioOutput ? static_cast<int>(d->pAudioOutput->volume() * 100) : 100;
 #else
     int nActualVol = d->pPlayer->volume();
 #endif
@@ -206,8 +233,7 @@ bool DGstPlayerProxy::muted() const
 {
     Q_D(const DGstPlayerProxy);
 #ifdef BUILD_Qt6
-    //// Qt6 QMediaPlayer没有 isMuted
-    return false;
+    return d->pAudioOutput ? d->pAudioOutput->isMuted() : false;
 #else
     return d->pPlayer->isMuted();
 #endif
@@ -219,8 +245,10 @@ void DGstPlayerProxy::toggleMute()
     bool bMute = false;
 
 #ifdef BUILD_Qt6
-    //// Qt6 QMediaPlayer没有 setMuted
-
+    if (d->pAudioOutput) {
+        bMute = d->pAudioOutput->isMuted();
+        d->pAudioOutput->setMuted(!bMute);
+    }
 #else
     bMute = d->pPlayer->isMuted();
     d->pPlayer->setMuted(!bMute);
@@ -232,8 +260,9 @@ void DGstPlayerProxy::setMute(bool bMute)
     Q_D(DGstPlayerProxy);
 
 #ifdef BUILD_Qt6
-    //// Qt6 QMediaPlayer没有 setMuted
-
+    if (d->pAudioOutput) {
+        d->pAudioOutput->setMuted(bMute);
+    }
 #else
     d->pPlayer->setMuted(bMute);
 #endif

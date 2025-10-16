@@ -7,12 +7,18 @@ DMULTIMEDIA_USE_NAMESPACE
 #ifdef BUILD_Qt6
 VideoSurface::VideoSurface(QObject *parent)
     : QObject(parent)
+    , m_sink(new QVideoSink(this))
+{
+    connect(m_sink, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame &frame) {
+        present(frame);
+    });
+}
 #else
 VideoSurface::VideoSurface(QObject *parent)
     : QAbstractVideoSurface(parent)
-#endif
 {
 }
+#endif
 
 VideoSurface::~VideoSurface()
 {
