@@ -90,17 +90,24 @@ void VideoStreamFfmpeg::stop()
 
 void VideoStreamFfmpeg::encodeWork()
 {
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    if(!d_avcodec_send_packet || !d_avcodec_receive_frame || !d_avcodec_send_frame || !d_avcodec_receive_packet) {
+        qCritical("can not encode / decode video - new API functions not available");
+        return;
+    }
+#else
     if(!d_avcodec_decode_video2 || !d_avcodec_encode_video2 || !d_avpicture_get_size) {
         qCritical("can not encode / decode video");
         return;
     }
+#endif
     int ret = 0;
     AVPacket *inputPacket = d_av_packet_alloc();
     AVFrame *inputFrame = d_av_frame_alloc();
     AVFrame *outFrame = d_av_frame_alloc();
 
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
-    int nbytes = 0;
+    int nbytes = d_av_image_get_buffer_size(pixFormat, resolutionSize.width(), resolutionSize.height(), 1);
 #else
     int nbytes = d_avpicture_get_size(pixFormat, resolutionSize.width(), resolutionSize.height());
 #endif
@@ -125,13 +132,23 @@ void VideoStreamFfmpeg::encodeWork()
             qCritical("can not read frame");
         }
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
-        ret = -1;
+        // Use new API for FFmpeg >= 4.0
+        ret = d_avcodec_send_packet(videoInCodecCtx, inputPacket);
+        if (ret < 0) {
+            qCritical("unable to send packet for decoding");
+            continue;
+        }
+        ret = d_avcodec_receive_frame(videoInCodecCtx, inputFrame);
+        frameFinished = (ret == 0) ? 1 : 0;
+        if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
+            qCritical("unable to receive decoded frame");
+        }
 #else
         ret = d_avcodec_decode_video2(videoInCodecCtx, inputFrame, &frameFinished, inputPacket);
-#endif
         if (ret < 0) {
             qCritical("unable to decode video");
         }
+#endif
 
         if (frameFinished) {
             d_sws_scale(swsCtx, inputFrame->data, inputFrame->linesize, 0, videoInCodecCtx->height, outFrame->data, outFrame->linesize);
@@ -148,16 +165,37 @@ void VideoStreamFfmpeg::encodeWork()
             outFrame->width = resolutionSize.width();
             outFrame->height = resolutionSize.height();
             outFrame->format = pixFormat;
+            
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+            // Use new API for FFmpeg >= 4.0
+            ret = d_avcodec_send_frame(videoOutCodecCtx, outFrame);
+            if (ret < 0) {
+                qCritical("unable to send frame for encoding");
+                continue;
+            }
+            
+            AVPacket *outPacket = d_av_packet_alloc();
+            ret = d_avcodec_receive_packet(videoOutCodecCtx, outPacket);
+            got = (ret == 0) ? 1 : 0;
+            
+            if (got == 1) {
+                int64_t curTime = d_av_gettime();
+                if (fristFramePts == 0) {
+                    fristFramePts = curTime;
+                }
+                outPacket->pts = outPacket->dts = static_cast<int64_t>(videoOutStream->time_base.den) * (curTime - fristFramePts) / AV_TIME_BASE;
+                if (d_av_write_frame(videoOutFormatCtx, outPacket) != 0) {
+                    qCritical("error in writing video frame");
+                }
+            }
+            d_av_packet_unref(outPacket);
+#else
             AVPacket outPacket;
             d_av_init_packet(&outPacket);
             outPacket.data = nullptr;
             outPacket.size = 0;
-
-#if LIBAVUTIL_VER_AT_LEAST(57,6)
-            got = -1;
-#else
+            
             d_avcodec_encode_video2(videoOutCodecCtx, &outPacket, outFrame, &got);
-#endif
             if (1 == got) {
                 int64_t curTime = d_av_gettime();
                 if (fristFramePts == 0) {
@@ -169,6 +207,7 @@ void VideoStreamFfmpeg::encodeWork()
                 }
                 d_av_packet_unref(&outPacket);
             }
+#endif
         }
     }
 }
@@ -210,33 +249,49 @@ bool VideoStreamFfmpeg::openInputVideoCtx()
     d_avformat_open_input(&videoInFormatCtx, QString(":0+%1,%2").arg(topLeftP.x()).arg(topLeftP.y()).toLatin1(),
                           inputFormat, &options);
 
+    AVStream *videoStream = nullptr;
     for (unsigned int i = 0; i < videoInFormatCtx->nb_streams; ++i) {
         if (videoInFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            videoStream = videoInFormatCtx->streams[i];
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
-            videoInCodecCtx = nullptr;
+            // Use new API for FFmpeg >= 4.0
+            const AVCodec *inputAVCodec = d_avcodec_find_decoder(videoStream->codecpar->codec_id);
+            if (inputAVCodec == nullptr) {
+                qCritical("unable to find the decoder");
+                return false;
+            }
+            videoInCodecCtx = d_avcodec_alloc_context3(inputAVCodec);
+            if (videoInCodecCtx == nullptr) {
+                qCritical("unable to allocate codec context");
+                return false;
+            }
+            if (d_avcodec_parameters_to_context(videoInCodecCtx, videoStream->codecpar) < 0) {
+                qCritical("unable to copy codec parameters");
+                return false;
+            }
+            ret = d_avcodec_open2(videoInCodecCtx, inputAVCodec, nullptr);
+            if (ret < 0) {
+                qCritical("unable to open the av codec");
+                return false;
+            }
 #else
-            videoInCodecCtx = videoInFormatCtx->streams[i]->codec;
+            videoInCodecCtx = videoStream->codec;
+            AVCodec *inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
+            if (inputAVCodec == nullptr) {
+                qCritical("unable to find the decoder");
+                return false;
+            }
+            ret = d_avcodec_open2(videoInCodecCtx, inputAVCodec, nullptr);
+            if (ret < 0) {
+                qCritical("unable to open the av codec");
+                return false;
+            }
 #endif
             break;
         }
     }
     if (videoInCodecCtx == nullptr) {
         qCritical("unable to find the video stream index");
-        return false;
-    }
-#if LIBAVUTIL_VER_AT_LEAST(57,6)
-    const AVCodec *inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
-#else
-    AVCodec *inputAVCodec = d_avcodec_find_decoder(videoInCodecCtx->codec_id);
-#endif
-    if (inputAVCodec == nullptr) {
-        qCritical("unable to find the decoder");
-        return false;
-    }
-
-    ret = d_avcodec_open2(videoInCodecCtx, inputAVCodec, nullptr);
-    if (ret < 0) {
-        qCritical("unable to open the av codec");
         return false;
     }
 
@@ -258,9 +313,15 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
     videoOutStream = d_avformat_new_stream(videoOutFormatCtx, nullptr);
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
     const AVCodec *outAVCodec = d_avcodec_find_encoder(codecId);
-    videoOutCodecCtx = nullptr;
-    qCritical("error find encoder the avcodec");
-    return false;
+    if (outAVCodec == nullptr) {
+        qCritical("error find encoder the avcodec");
+        return false;
+    }
+    videoOutCodecCtx = d_avcodec_alloc_context3(outAVCodec);
+    if (videoOutCodecCtx == nullptr) {
+        qCritical("unable to allocate output codec context");
+        return false;
+    }
 #else
     AVCodec *outAVCodec = d_avcodec_find_encoder(codecId);
     videoOutCodecCtx = videoOutStream->codec;
@@ -289,8 +350,16 @@ bool VideoStreamFfmpeg::openOutputVideoCtx()
 
     if (d_avcodec_open2(videoOutCodecCtx, outAVCodec, &param) < 0) {
         qCritical("error in opening the avcodec");
-        return true;
+        return false;
     }
+
+#if LIBAVUTIL_VER_AT_LEAST(57,6)
+    // Copy codec parameters to stream for new API
+    if (d_avcodec_parameters_from_context(videoOutStream->codecpar, videoOutCodecCtx) < 0) {
+        qCritical("unable to copy codec parameters to stream");
+        return false;
+    }
+#endif
 
     if (!(videoOutFormatCtx->flags & AVFMT_NOFILE)) {
         if (d_avio_open2(&videoOutFormatCtx->pb, outFilePath.toString().toLatin1(), AVIO_FLAG_WRITE, nullptr, nullptr) < 0) {
@@ -353,8 +422,15 @@ bool VideoStreamFfmpeg::loadFunction()
 #endif
     d_avcodec_find_encoder = reinterpret_cast<decltype(avcodec_find_encoder) *>(libavcodec.resolve("avcodec_find_encoder"));
     d_avcodec_alloc_context3 = reinterpret_cast<decltype(avcodec_alloc_context3) *>(libavcodec.resolve("avcodec_alloc_context3"));
+    d_avcodec_parameters_to_context = reinterpret_cast<decltype(avcodec_parameters_to_context) *>(libavcodec.resolve("avcodec_parameters_to_context"));
+    d_avcodec_parameters_from_context = reinterpret_cast<decltype(avcodec_parameters_from_context) *>(libavcodec.resolve("avcodec_parameters_from_context"));
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
     d_avcodec_encode_video2 = nullptr;
+    d_avcodec_send_packet = reinterpret_cast<decltype(avcodec_send_packet) *>(libavcodec.resolve("avcodec_send_packet"));
+    d_avcodec_receive_frame = reinterpret_cast<decltype(avcodec_receive_frame) *>(libavcodec.resolve("avcodec_receive_frame"));
+    d_avcodec_send_frame = reinterpret_cast<decltype(avcodec_send_frame) *>(libavcodec.resolve("avcodec_send_frame"));
+    d_avcodec_receive_packet = reinterpret_cast<decltype(avcodec_receive_packet) *>(libavcodec.resolve("avcodec_receive_packet"));
+    d_av_image_get_buffer_size = reinterpret_cast<decltype(av_image_get_buffer_size) *>(libavutil.resolve("av_image_get_buffer_size"));
 #else
     d_avcodec_encode_video2 = reinterpret_cast<decltype(avcodec_encode_video2) *>(libavcodec.resolve("avcodec_encode_video2"));
 #endif

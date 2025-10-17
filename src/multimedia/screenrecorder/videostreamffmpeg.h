@@ -67,8 +67,15 @@ private:
 #endif
     decltype(avcodec_find_encoder) *d_avcodec_find_encoder { nullptr };
     decltype(avcodec_alloc_context3) *d_avcodec_alloc_context3 { nullptr };
+    decltype(avcodec_parameters_to_context) *d_avcodec_parameters_to_context { nullptr };
+    decltype(avcodec_parameters_from_context) *d_avcodec_parameters_from_context { nullptr };
 #if LIBAVUTIL_VER_AT_LEAST(57,6)
     void *d_avcodec_encode_video2 { nullptr };
+    decltype(avcodec_send_packet) *d_avcodec_send_packet { nullptr };
+    decltype(avcodec_receive_frame) *d_avcodec_receive_frame { nullptr };
+    decltype(avcodec_send_frame) *d_avcodec_send_frame { nullptr };
+    decltype(avcodec_receive_packet) *d_avcodec_receive_packet { nullptr };
+    decltype(av_image_get_buffer_size) *d_av_image_get_buffer_size { nullptr };
 #else
      decltype(avcodec_encode_video2) *d_avcodec_encode_video2 { nullptr };
 #endif
