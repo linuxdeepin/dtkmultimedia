@@ -83,6 +83,9 @@ set_target_properties(${BIN_NAME} PROPERTIES
 target_compile_definitions(${BIN_NAME} PRIVATE VERSION="${CMAKE_PROJECT_VERSION}")
 
 find_package(Qt${QT_VERSION_MAJOR}Gui)
+if(Qt6_VERSION VERSION_GREATER_EQUAL 6.10)
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS GuiPrivate REQUIRED)
+endif()
 find_package(Qt${QT_VERSION_MAJOR}Multimedia)
 find_package(PkgConfig)
 
