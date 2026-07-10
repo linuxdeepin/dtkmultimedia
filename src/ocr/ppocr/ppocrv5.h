@@ -54,6 +54,7 @@ private:
     std::vector<std::vector<std::vector<int>>> detect(const cv::Mat &src, float thresh, float boxThresh, float unclipRatio);
     std::pair<std::string, std::vector<int>> ctcDecode(const std::vector<float> &recNetOutputData, int h, int w);
     void rec(const std::vector<cv::Mat> &detectImg);
+    QList<Dtk::Ocr::TextBox> lengthToBox(const std::vector<int> &lengths, QPointF basePoint, float rectHeight, float ratio);
 private:
     QString currentPath;
     std::atomic_bool needReset = false;
@@ -73,6 +74,7 @@ private:
     QStringList supportLanguages = {"zh-Hans_en"};
 
     QList<Dtk::Ocr::TextBox> allTextBoxes;
+    QVector<QList<Dtk::Ocr::TextBox>> allCharBoxes;
     QString allResult;
     QVector<QString> boxesResult;
 };
