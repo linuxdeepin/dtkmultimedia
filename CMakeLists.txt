@@ -79,6 +79,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(examples/mideaConvertAndInfo)
 endif ()
 
+# 仅在库目标存在（依赖齐全）时构建 tablerecognizerCmd 示例。
+if (TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
+    add_subdirectory(examples/tablerecognizerCmd)
+endif()
+
 if (BUILD_DOCS STREQUAL ON)
     find_package(Doxygen)
     if (BUILD_DOCS AND DOXYGEN_FOUND)

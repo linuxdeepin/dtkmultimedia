@@ -37,6 +37,21 @@ include_directories(../src/multimediawidgets/engine/plugin/ffmpeg)
 include_directories(../src/multimediawidgets/engine/plugin/gstreamer)
 include_directories(../src/ocr/ppocr)
 
+# tablerecognizer 测试硬依赖 libonnxruntime + opencv_mobile。
+pkg_check_modules(TABLEREC IMPORTED_TARGET libonnxruntime opencv_mobile)
+if(TABLEREC_FOUND)
+    file(GLOB_RECURSE TABLEREC_SRCS
+        "../src/tablerecognizer/*.h"
+        "../src/tablerecognizer/*.cpp")
+    list(APPEND SRCS ${TABLEREC_SRCS})
+    include_directories("../src/tablerecognizer")
+    include_directories("../include/dtktablerecognizer")
+else()
+    list(FILTER TEST_FILES EXCLUDE REGEX
+        "ut_celltextmapper|ut_htmltablebuilder|ut_ortinferenceengine|ut_tablestructuredetector|ut_img2tablefallback|ut_dtablerecognizer")
+    message(STATUS "tablerecognizer tests skipped: libonnxruntime/opencv_mobile dev packages not found")
+endif()
+
 add_executable(${BIN_NAME}
     ${INCLUDE_FILES}
     ${SRCS}
@@ -45,7 +60,7 @@ add_executable(${BIN_NAME}
     )
 
 # 找到基础模块
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets DBus LinguistTools Network Concurrent Multimedia MultimediaWidgets OpenGL)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets DBus LinguistTools Network Concurrent Multimedia MultimediaWidgets OpenGL Test)
 find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core Widget)
 
 # 根据Qt版本处理OpenGLWidgets
@@ -75,6 +90,7 @@ set(TARGET_LIBS Xtst
     Qt${QT_VERSION_MAJOR}::MultimediaWidgets
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::OpenGL
+    Qt${QT_VERSION_MAJOR}::Test
     PkgConfig::Gst
     GL dl
     dtk${DTK_VERSION_MAJOR}multimedia
@@ -84,7 +100,10 @@ set(TARGET_LIBS Xtst
 if(${QT_VERSION_MAJOR} EQUAL 6)
     list(APPEND TARGET_LIBS Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
 endif()
-
+# tablerecognizer 依赖须在 set(TARGET_LIBS) 之后追加，否则被整体覆盖（见 AI 初审 Medium 项）。
+if(TABLEREC_FOUND)
+    list(APPEND TARGET_LIBS PkgConfig::TABLEREC)
+endif()
 list(APPEND PROJECT_INCLUDE /usr/include/glib-2.0 /usr/include/gstreamer-1.0)
 
 target_include_directories(${BIN_NAME} PUBLIC

@@ -21,7 +21,10 @@ AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 SET(SRC_PATH ${DIR_SRCS})
 
 # 6.add executable file
-file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
+file(GLOB_RECURSE INCLUDE_FILES
+    "../../include/dtkmultimedia/*.h"
+    "../../include/dtkmultimediawidgets/*.h"
+    "../../include/dtkocr/*.h")
 
 if(ENABLE_Qt6)
     file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/qt6player/*.cpp)
