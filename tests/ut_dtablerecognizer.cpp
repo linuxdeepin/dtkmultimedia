@@ -562,3 +562,118 @@ TEST(ut_DTableRecognizer, tooFewCellsDegradesEvenIfConfident)
     EXPECT_EQ(result.source.toStdString(), "img2table");
 }
 
+// ===== H3 v3：结构-内容一致性信号接入路由 =====
+
+// H3 v3-A：一致（SLANet列==OCR列簇数）→ 信任 SLANet。
+// SLANet 返回 2 列，OCR 文本框分属 2 个列簇（x 间距 > gapTolerance）→ 一致 → 留 SLANet。
+TEST(ut_DTableRecognizer, consistentColumnsKeepsSlanet)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    // SLANet 返回 2 列（col 0, col 1），高置信。
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       DetectedCell c0; c0.row = 0; c0.col = 0; c0.bbox = QRectF(0, 0, 50, 100);
+                       DetectedCell c1; c1.row = 0; c1.col = 1; c1.bbox = QRectF(50, 0, 50, 100);
+                       cells << c0 << c1;
+                       if (conf) *conf = 0.95f;
+                       return true;
+                   });
+    // OCR 返回 2 个文本框，x 间距大 → 2 个列簇（与 SLANet 一致）。
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox b0; b0.bbox = QRectF(5, 10, 30, 20);  b0.text = QStringLiteral("A");
+                       OcrTextBox b1; b1.bbox = QRectF(60, 10, 30, 20);  b1.text = QStringLiteral("B");
+                       boxes << b0 << b1;
+                       return true;
+                   });
+
+    const QImage image = makeWiredGridImage(300, 300);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.source.toStdString(), "SLANet_plus");
+    ASSERT_EQ(result.cells.size(), 2);
+}
+
+// H3 v3-B：粘列（SLANet列 < OCR列簇数）→ 降级 wireless 启发式。
+// SLANet 返回 1 列（把 2 列粘成 1 列），OCR 文本框分属 2 个列簇 → 粘列 → wireless。
+TEST(ut_DTableRecognizer, mergedColumnsRouteToWireless)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    // SLANet 返回 1 列（col 0），高置信——但实际是 2 列被粘成 1 列。
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       DetectedCell c0; c0.row = 0; c0.col = 0; c0.bbox = QRectF(0, 0, 100, 100);
+                       cells << c0;
+                       if (conf) *conf = 0.95f;
+                       return true;
+                   });
+    // OCR 返回 2 个文本框，x 间距大 → 2 个列簇（SLANet 1 < OCR 2 → 粘列）。
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox b0; b0.bbox = QRectF(5, 10, 30, 20);  b0.text = QStringLiteral("A");
+                       OcrTextBox b1; b1.bbox = QRectF(60, 10, 30, 20);  b1.text = QStringLiteral("B");
+                       boxes << b0 << b1;
+                       return true;
+                   });
+
+    QImage image(300, 300, QImage::Format_RGB32);   // 空白图（无线表场景）
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    // 粘列 → 降级 wireless（splitColumns(boxes, 5.0) = 2 列 → build 1 行 2 列）
+    EXPECT_EQ(result.source.toStdString(), "wireless");
+    ASSERT_EQ(result.cells.size(), 2);
+    EXPECT_EQ(result.cells[0].text.toStdString(), "A");
+    EXPECT_EQ(result.cells[1].text.toStdString(), "B");
+}
+
+// H3 v3-C：多列（SLANet列 > OCR列簇数）→ 保留 SLANet 不降级。
+// SLANet 返回 3 列，OCR 文本框分属 2 个列簇 → 多列 → 保留 SLANet（AT 证回退更差）。
+TEST(ut_DTableRecognizer, splitColumnsKeepsSlanet)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    // SLANet 返回 3 列（多拆了列），高置信。
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       DetectedCell c0; c0.row = 0; c0.col = 0; c0.bbox = QRectF(0, 0, 33, 100);
+                       DetectedCell c1; c1.row = 0; c1.col = 1; c1.bbox = QRectF(33, 0, 34, 100);
+                       DetectedCell c2; c2.row = 0; c2.col = 2; c2.bbox = QRectF(67, 0, 33, 100);
+                       cells << c0 << c1 << c2;
+                       if (conf) *conf = 0.95f;
+                       return true;
+                   });
+    // OCR 返回 2 个文本框 → 2 个列簇（SLANet 3 > OCR 2 → 多列）。
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox b0; b0.bbox = QRectF(5, 10, 30, 20);  b0.text = QStringLiteral("A");
+                       OcrTextBox b1; b1.bbox = QRectF(60, 10, 30, 20);  b1.text = QStringLiteral("B");
+                       boxes << b0 << b1;
+                       return true;
+                   });
+
+    const QImage image = makeWiredGridImage(300, 300);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    // 多列 → 保留 SLANet 不降级
+    EXPECT_EQ(result.source.toStdString(), "SLANet_plus");
+    ASSERT_EQ(result.cells.size(), 3);
+}
+

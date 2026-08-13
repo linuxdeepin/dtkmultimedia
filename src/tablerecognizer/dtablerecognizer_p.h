@@ -24,6 +24,7 @@
 #include "CellTextMapper.h"
 #include "HtmlTableBuilder.h"
 #include "Img2TableFallback.h"
+#include "WirelessTableHeuristic.h"
 
 D_TABLERECOGNIZER_BEGIN_NAMESPACE
 
@@ -47,6 +48,7 @@ public:
     DtkOcrWrapper ocr;
     CellTextMapper mapper;
     Img2TableFallback fallback;
+    WirelessTableHeuristic wireless;
 
     QAtomicInt timedOut{0};
     QAtomicInt emitted{0};

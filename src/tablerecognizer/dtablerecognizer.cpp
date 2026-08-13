@@ -11,6 +11,7 @@
 #include "CellTextMapper.h"
 #include "HtmlTableBuilder.h"
 #include "Img2TableFallback.h"
+#include "WirelessTableHeuristic.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -19,6 +20,7 @@
 #include <QTimer>
 #include <QThreadPool>
 #include <QLoggingCategory>
+#include <algorithm>
 
 D_TABLERECOGNIZER_BEGIN_NAMESPACE
 
@@ -33,6 +35,9 @@ static constexpr const char *kModelFileName = "SLANet_plus.onnx";
 static constexpr float kSlanetConfidenceThreshold = 0.9f;
 // M1：合理表格的最小单元格数（少于 2 视为噪声/非表格）。
 static constexpr int kMinReasonableCells = 2;
+// H3：表格线密度门。线密度低于此值视为无线/弱线表，启用文本对齐启发式。
+// 值为启发式默认，可按实测样张校准。
+static constexpr float kWeakLineDensityThreshold = 0.01f;
 
 QString defaultModelPath()
 {
@@ -163,35 +168,106 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
     QString error;
     float slanetConfidence = 1.0f;   // M1：结构置信度（detect 成功时由模型 logits 填充）
     bool structOk = false;
-    if (detector && detector->available()) {
+    const bool modelRan = detector && detector->available();
+    if (modelRan) {
         structOk = detector->detect(image, cells, error, &slanetConfidence);
         if (!structOk)
             qCWarning(lcTableRecognizer) << "Main path (SLANet_plus) detect failed:" << error
-                                          << "— falling back to img2table";
+                                          << "— will try quality path";
     } else {
         qCWarning(lcTableRecognizer) << "Main path unavailable (model not loaded)"
                                       << "— falling back to img2table";
     }
-    // M1：旧逻辑仅在 !structOk || cells.isEmpty() 降级，导致「自信但错误」的非空输出
-    // 永不触发降级。扩展为「置信度低或 cell 数不合理也降级」，使降级链对低质量输出生效。
-    const bool mainTrusted = structOk && !cells.isEmpty()
-                             && slanetConfidence >= kSlanetConfidenceThreshold
-                             && cells.size() >= kMinReasonableCells;
+
+    // 阶段2（条件提前）：模型曾运行时提前做 OCR，供结构-内容一致性信号使用。
+    // 模型缺失时不提前 OCR——走既有 img2table 流程后再 OCR（保留已验证行为）。
+    QList<OcrTextBox> ocrBoxes;
+    bool ocrDone = false;
+    if (modelRan) {
+        if (ocr.recognize(image, ocrBoxes, error)) {
+            ocrDone = true;
+        } else {
+            qCWarning(lcTableRecognizer) << "OCR for consistency check failed:" << error;
+        }
+    }
+
+    // H3 v3：结构-内容一致性信号——SLANet 预测列数 vs OCR 文本框列簇数。
+    // 仪表化：逐张打印真实置信度、SLANet 列数、OCR 列簇数、线密度、路由结果（为 Step 2 采数据）。
+    int slanetCols = 0;
+    if (structOk && !cells.isEmpty()) {
+        int maxCol = 0;
+        for (const DetectedCell &c : cells)
+            maxCol = std::max(maxCol, c.col + std::max(1, c.colSpan) - 1);
+        slanetCols = maxCol + 1;
+    }
+    const int ocrColClusters = ocrDone
+        ? WirelessTableHeuristic::splitColumns(ocrBoxes, 5.0).size() : 0;
+
+    // M1 门：置信度 + cell 数合理性。
+    const bool m1Gate = structOk && !cells.isEmpty()
+                        && slanetConfidence >= kSlanetConfidenceThreshold
+                        && cells.size() >= kMinReasonableCells;
+    // H3 v3：结构-内容一致性——M1 门通过后，用 SLANet 列数 vs OCR 列簇数判定。
+    // 一致 → 信任 SLANet；粘列(slanet<ocr) → wireless；多列(slanet>ocr) → 保留 SLANet。
+    bool mainTrusted = false;
+    if (!modelRan) {
+        mainTrusted = false;   // 模型缺失 → img2table 降级（不变）。
+    } else if (!m1Gate) {
+        mainTrusted = false;   // M1 门未通过 → 降级。
+    } else if (!ocrDone) {
+        mainTrusted = true;    // M1 门通过但 OCR 失败 → 无法检查一致性，保留 SLANet。
+    } else {
+        const bool consistent = (slanetCols == ocrColClusters);
+        if (consistent) {
+            mainTrusted = true;   // 一致 → 信任 SLANet。
+        } else if (slanetCols < ocrColClusters) {
+            mainTrusted = false;  // 粘列 → 降级 wireless。
+        } else {
+            mainTrusted = true;   // 多列 → 保留 SLANet 不降级（AT 证回退更差）。
+        }
+    }
+
     if (!mainTrusted) {
-        // 阶段1降级：img2table（OpenCV 有线表格）。
+        // 线密度：从属确认信号，仅在 !mainTrusted 时用于 wireless/img2table 二选一。
+        const float lineDensityVal = modelRan ? WirelessTableHeuristic::lineDensity(image) : 1.0f;
+        const bool weakLine = lineDensityVal < kWeakLineDensityThreshold;
+        // 判定降级目标：粘列(slanet<ocr) → wireless；M1 门失败时按线密度二选一。
+        const bool routeToWireless = modelRan && ocrDone && slanetCols > 0
+            && slanetCols < ocrColClusters;
+        const bool routeToWirelessByDensity = modelRan && !m1Gate && weakLine && ocrDone;
+        const bool useWireless = routeToWireless || routeToWirelessByDensity;
+
         qCWarning(lcTableRecognizer) << "Main path untrusted (structOk=" << structOk
                                       << "confidence=" << slanetConfidence
-                                      << "cells=" << cells.size() << ") — falling back to img2table";
+                                      << "cells=" << cells.size()
+                                      << "slanetCols=" << slanetCols
+                                      << "ocrColClusters=" << ocrColClusters
+                                      << "lineDensity=" << lineDensityVal
+                                      << "route=" << (useWireless ? "wireless" : "img2table")
+                                      << ") — entering quality path";
         cells.clear();
-        if (fallback.detect(image, cells, error)) {
-            if (cells.isEmpty()) {
-                // 降级实现返回成功但未产出结构，视为未识别到表格，避免空表格 + success=true。
-                result.success = false;
-                result.errorMessage = QStringLiteral("未识别到表格");
-                return result;
+        bool gotStructure = false;
+        if (useWireless) {
+            if (wireless.build(image.size(), ocrBoxes, cells, error) && !cells.isEmpty()) {
+                result.source = QStringLiteral("wireless");
+                gotStructure = true;
+            } else {
+                qCWarning(lcTableRecognizer) << "Wireless heuristic failed:" << error;
             }
-            result.source = QStringLiteral("img2table");
-        } else {
+        }
+        if (!gotStructure) {
+            // 有线降级：img2table（霍夫线检测）。
+            if (fallback.detect(image, cells, error)) {
+                if (cells.isEmpty()) {
+                    result.success = false;
+                    result.errorMessage = QStringLiteral("未识别到表格");
+                    return result;
+                }
+                result.source = QStringLiteral("img2table");
+                gotStructure = true;
+            }
+        }
+        if (!gotStructure) {
             result.errorMessage = error.isEmpty() ? QStringLiteral("未识别到表格") : error;
             return result;
         }
@@ -199,22 +275,20 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         result.source = QStringLiteral("SLANet_plus");
     }
 
-    if (timedOut.loadAcquire() || std::chrono::steady_clock::now() > deadline) {
-        result.cells.clear();
-        result.html.clear();
-        result.source.clear();
-        result.errorMessage = QStringLiteral("识别超时");
-        result.success = false;
-        return result;
-    }
+    qCDebug(lcTableRecognizer) << "Instrumentation: confidence=" << slanetConfidence
+                               << "slanetCols=" << slanetCols
+                               << "ocrColClusters=" << ocrColClusters
+                               << "route=" << result.source;
 
-    // 阶段2：OCR 文字识别。按详细设计 §7.1，OCR 失败应置 success=false 并记录错误。
-    QList<OcrTextBox> ocrBoxes;
-    if (!ocr.recognize(image, ocrBoxes, error)) {
-        result.errorMessage = QStringLiteral("OCR 失败：%1").arg(error);
-        return result;
+    // 阶段3：OCR 文字识别（若模型缺失或早期 OCR 失败，此处补做；按详细设计 OCR 失败置 success=false）。
+    if (!ocrDone) {
+        if (!ocr.recognize(image, ocrBoxes, error)) {
+            result.errorMessage = QStringLiteral("OCR 失败：%1").arg(error);
+            return result;
+        }
+        ocrDone = true;
     }
-    // 阶段3：将 OCR 文本框映射到单元格。
+    // 将 OCR 文本框映射到单元格。
     mapper.map(cells, ocrBoxes);
 
     // 转 public 数据结构。
