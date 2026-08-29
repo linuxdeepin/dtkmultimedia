@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <cstdio>
 #include <unistd.h>
+#include <thread>
 
 D_TABLERECOGNIZER_BEGIN_NAMESPACE
 
@@ -98,6 +99,22 @@ bool OrtInferenceEngine::loadModel(const QString &modelPath)
     try {
         Ort::SessionOptions sessionOptions;
         sessionOptions.SetLogSeverityLevel(4);
+
+        // ORT 线程数配置：优先 TABLEREC_ORT_THREADS 环境变量，默认取物理核数。
+        // 三平台统一口径：bench CLI 通过设置此环境变量控制线程数。
+        {
+            int numThreads = static_cast<int>(std::thread::hardware_concurrency());
+            if (numThreads < 1)
+                numThreads = 1;
+            const QByteArray envThreads = qgetenv("TABLEREC_ORT_THREADS");
+            if (!envThreads.isEmpty()) {
+                bool ok = false;
+                const int envVal = envThreads.toInt(&ok);
+                if (ok && envVal > 0)
+                    numThreads = envVal;
+            }
+            sessionOptions.SetIntraOpNumThreads(numThreads);
+        }
 
         // 临时重定向 stderr 到 /dev/null，抑制 ONNX schema 重复注册告警。
         // 这些告警由底层 onnx 库在 Session 构造时直接输出到 stderr，
