@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 UnionTech Software Technology Co., Ltd.
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# 忽略运行时产物
+results/
+samples/
+samples.tar.gz
+__pycache__/
