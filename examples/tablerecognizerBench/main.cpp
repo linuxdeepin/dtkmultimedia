@@ -84,6 +84,7 @@ TimingRecord recognizeImage(DTableRecognizer &recognizer, const QImage &image,
 
     bool gotResult = false;
     QObject::connect(&recognizer, &DTableRecognizer::recognitionDone,
+                     &recognizer,
                      [&rec, &gotResult](const DTableResult &result) {
                          rec.success = result.success;
                          rec.source = result.source;
