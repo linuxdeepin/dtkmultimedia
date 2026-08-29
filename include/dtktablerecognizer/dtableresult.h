@@ -19,6 +19,11 @@ struct DTableResult
     QList<DTableCell> cells;       // 结构化单元格列表
     QString source;                // 识别来源："SLANet_plus" 或 "img2table"
     QString errorMessage;          // 失败时的错误说明
+
+    // 计时字段（Stage 2 速度测试）：ABI 友好，仅尾部追加。
+    qint64 structureMs = 0;        // 结构检测耗时（SLANet_plus ONNX 推理 + 降级路径）
+    qint64 ocrMs = 0;             // OCR 耗时（dtk6ocr PP-OCRv5）
+    qint64 totalMs = 0;           // 端到端总耗时
 };
 
 Q_DECLARE_METATYPE(DTableResult)

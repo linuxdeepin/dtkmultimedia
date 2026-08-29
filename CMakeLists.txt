@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+# SPDX-FileCopyrightText: 2022 - 2026 UnionTech Software Technology Co., Ltd.
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
@@ -77,6 +77,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(examples/ocrCmd)
     add_subdirectory(examples/ocrDebugger)
     add_subdirectory(examples/mideaConvertAndInfo)
+    add_subdirectory(examples/tablerecognizerBench)
 endif ()
 
 if (BUILD_DOCS STREQUAL ON)
