@@ -23,6 +23,7 @@ file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
 # Phase 0/Phase 1 表格识别单测由独立的 ut-tablerecognizer 目标构建（见文件末尾），
 # 从 ut-dtkmultimedia glob 中剔除，避免在未编译 tablerecognizer 源码时产生未定义符号。
 list(FILTER TEST_FILES EXCLUDE REGEX "ut_ortinferenceengine|ut_tablestructuredetector|ut_dtablerecognizer|ut_img2tablefallback|ut_htmltablebuilder|ut_celltextmapper")
+list(FILTER TEST_FILES EXCLUDE REGEX "benchmarks/")
 
 include_directories(
     "../include/dtkmultimedia"

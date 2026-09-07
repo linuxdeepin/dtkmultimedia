@@ -5,6 +5,7 @@
 set(BIN_NAME dtk${DTK_VERSION_MAJOR}tablerecognizer)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtktablerecognizer/*")
+file(GLOB_RECURSE INCLUDE_FILES "./*.h")
 file(GLOB_RECURSE SRCS "./*.h" "./*.cpp")
 
 include_directories(../../include/dtktablerecognizer)
@@ -60,6 +61,7 @@ mark_as_advanced(ORT_INCLUDE_DIR ORT_LIBRARY)
 
 add_library(${BIN_NAME} SHARED
     ${INSTALL_INCLUDE_FILES}
+    ${INCLUDE_FILES}
     ${SRCS}
 )
 
@@ -74,6 +76,9 @@ target_compile_definitions(${BIN_NAME} PRIVATE
 target_include_directories(${BIN_NAME} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../../include/dtktablerecognizer)
 
+# 复用 libdtk6ocr 公开 API（DOcr），不修改其源码。
+# dtk6ocr 目标未通过 INTERFACE_INCLUDE_DIRECTORIES 导出头文件路径，需显式添加。
+target_include_directories(${BIN_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../include/dtkocr)
 target_link_libraries(${BIN_NAME}
     PUBLIC Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui
     PRIVATE Ort::Runtime
@@ -93,10 +98,26 @@ else()
             DESTINATION share/lib${BIN_NAME})
 endif()
 
-install(TARGETS ${BIN_NAME}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# ===== Phase 2：库安装 + pkgconfig/cmake/pri 集成模板（镜像 libdtk6ocr 范式）=====
+install(FILES ${INSTALL_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME})
+install(TARGETS ${BIN_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../include/dtktablerecognizer/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dtktablerecognizer
-        FILES_MATCHING PATTERN "*.h")
+set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
+
+# for pc file config
+set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)
+set(PC_REQ_PRIVATE)
+set(PC_REQ_PUBLIC dtk${DTK_VERSION_MAJOR}ocr)
+# config pkgconfig file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtk6tablerecognizer.pc.in ${BIN_NAME}.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+# config cmake file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtk6tablerecognizerConfig.cmake.in ${BIN_NAME}Config.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}Config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BIN_NAME})
+
+# config qmake moudule file
+set(DTK_MODULE ${BIN_NAME})
+set(DTK_DEPS "core")
+set(QMKSPECS_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/qt${QT_VERSION_MAJOR}/mkspecs/modules" CACHE STRING "INSTALL DIR FOR qt pri files")
+configure_file(${PROJECT_ROOT_DIR}/misc/qt_lib_dtk6tablerecognizer.pri.in qt_lib_${BIN_NAME}.pri @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${BIN_NAME}.pri DESTINATION "${QMKSPECS_INSTALL_DIR}")
