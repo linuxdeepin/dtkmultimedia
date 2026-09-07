@@ -15,9 +15,16 @@ bool DtkOcrWrapper::initialize()
     if (m_loaded)
         return true;
     m_loaded = m_ocr.loadPlugin(QStringLiteral("PPOCR_V5"));
-    if (!m_loaded)
+    if (!m_loaded) {
         qWarning() << "DtkOcrWrapper: load PPOCR_V5 failed, installed:" << m_ocr.installedPluginNames();
-    return m_loaded;
+        return false;
+    }
+
+    // 与 deepin-ocr 的默认使用方式保持一致：PPOCR_V5 的识别阶段支持 OpenMP
+    // 并行，但插件默认 maxThreadsUsed=1；表格图片文字框多，loong64 CPU 路径下
+    // 单线程容易超过表格识别默认超时。
+    m_ocr.setUseMaxThreadsCount(2);
+    return true;
 }
 
 bool DtkOcrWrapper::recognize(const QImage &image, QList<OcrTextBox> &boxes, QString &error)

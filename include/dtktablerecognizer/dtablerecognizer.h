@@ -28,7 +28,7 @@ public:
 
     // 异步识别；结果通过 recognitionDone 信号返回。
     void recognizeAsync(const QImage &image,
-                        std::chrono::milliseconds timeout = std::chrono::seconds(10));
+                        std::chrono::milliseconds timeout = std::chrono::seconds(25));
 
 signals:
     void recognitionDone(const DTableResult &result);

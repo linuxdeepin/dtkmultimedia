@@ -63,6 +63,107 @@ TEST(ut_DTableRecognizer, timeoutReturnsFailure)
     EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("超时")));
 }
 
+// 用例3a：竞态修复——超时后旧工作线程未退出前，busy 锁不释放，新任务被单飞
+// 守卫拒绝；旧线程退出后不投递过期结果。修复前超时直接释放 busy，新任务进入并
+// 重置 emitted，旧线程投递过期结果导致状态混乱。
+TEST(ut_DTableRecognizer, timeoutHoldsBusyUntilWorkerExits)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    // 降级路径阻塞 500ms，确保 10ms 超时先触发，且旧工作线程仍在运行时发起第二次调用。
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &) {
+                       std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                       return false;
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+
+    // 第一次：10ms 超时，应收到超时失败结果。超时仅置标志不释放 busy 锁。
+    recognizer.recognizeAsync(image, std::chrono::milliseconds(10));
+    ASSERT_TRUE(spy.wait(2000));
+    ASSERT_EQ(spy.count(), 1);
+    const DTableResult first = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+    EXPECT_FALSE(first.success);
+    EXPECT_TRUE(first.errorMessage.contains(QStringLiteral("超时")));
+
+    // 超时后立即发起第二次调用——旧工作线程仍在运行（阻塞 500ms），
+    // busy 锁未释放，单飞守卫应拒绝而非启动新任务。
+    recognizer.recognizeAsync(image, std::chrono::milliseconds(10));
+    ASSERT_TRUE(spy.wait(2000));
+    ASSERT_EQ(spy.count(), 1);
+    const DTableResult second = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+    EXPECT_FALSE(second.success);
+    EXPECT_EQ(second.errorMessage.toStdString(), "已有识别任务在执行");
+
+    // 等待旧工作线程退出（~500ms），确认不再产生过期结果信号。
+    EXPECT_FALSE(spy.wait(1000));
+    EXPECT_EQ(spy.count(), 0);
+}
+
+// 用例3b：竞态修复——工作线程提前完成后旧超时定时器不误投递。任务 A 工作线程
+// 提前完成并释放 busy，任务 B 进入重置 emitted；任务 A 的超时定时器仍可能触发，
+// 通过 taskId 比对丢弃过期定时器，避免向任务 B 错误投递超时结果。
+TEST(ut_DTableRecognizer, staleTimeoutTimerFilteredByTaskId)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    // 降级路径立即返回失败，使任务 A 工作线程提前完成。
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &) {
+                       return false;   // 无结构，立即返回
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+
+    // 任务 A：长超时（2000ms），工作线程立即完成并投递「未识别到表格」失败。
+    recognizer.recognizeAsync(image, std::chrono::milliseconds(2000));
+    ASSERT_TRUE(spy.wait(3000));
+    ASSERT_EQ(spy.count(), 1);
+    const DTableResult first = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+    EXPECT_FALSE(first.success);
+    EXPECT_TRUE(first.errorMessage.contains(QStringLiteral("未识别到表格")));
+
+    // 任务 A 完成后 busy 已释放，任务 B 进入（重置 emitted/timedOut/taskId）。
+    // 任务 A 的 2000ms 超时定时器仍在 pending，届时应被 taskId 过滤。
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 50, 50);
+                       cells.append(c);
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox box;
+                       box.bbox = QRectF(10, 10, 20, 20);
+                       box.text = QStringLiteral("B");
+                       boxes.append(box);
+                       return true;
+                   });
+
+    // 任务 B：短超时（100ms），工作线程很快完成。
+    recognizer.recognizeAsync(image, std::chrono::milliseconds(100));
+    ASSERT_TRUE(spy.wait(3000));
+    ASSERT_EQ(spy.count(), 1);
+    const DTableResult second = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+    // 任务 B 应成功（img2table + OCR），不应被任务 A 的过期超时定时器误投递为超时。
+    EXPECT_TRUE(second.success);
+    EXPECT_EQ(second.source.toStdString(), "img2table");
+    ASSERT_EQ(second.cells.size(), 1);
+    EXPECT_EQ(second.cells[0].text.toStdString(), "B");
+}
+
 // 用例3：降级路径 source 字段。主路径不可用，img2table + OCR 全部 stub 成功。
 TEST(ut_DTableRecognizer, degradationPathSetsSource)
 {
