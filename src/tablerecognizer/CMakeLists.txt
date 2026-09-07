@@ -2,10 +2,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-# Phase 0 骨架：仅编译 OrtInferenceEngine + TableStructureDetector，链接 onnxruntime + Qt Core/Gui。
-# 越界（Phase 1/2）项已裁掉：opencv_mobile/xlsxwriter/dtk6ocr 链接、
-# pkgconfig/cmake/pri 模板、整库 install。
-
 set(BIN_NAME dtk${DTK_VERSION_MAJOR}tablerecognizer)
 
 file(GLOB_RECURSE INSTALL_INCLUDE_FILES "../../include/dtktablerecognizer/*")
@@ -13,8 +9,15 @@ file(GLOB_RECURSE SRCS "./*.h" "./*.cpp")
 
 include_directories(../../include/dtktablerecognizer)
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui)
-find_package(PkgConfig QUIET)
+# Qt 依赖：Core/Gui（基础类型）、Concurrent（线程池/异步运行）。
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Concurrent)
+find_package(PkgConfig REQUIRED)
+
+# OpenCV：与主项目一致使用 pkg_check_modules(opencv_mobile)。
+pkg_check_modules(OPENCV REQUIRED IMPORTED_TARGET opencv_mobile)
+
+# dtkocr：OCR 插件库，提供 DOcr。
+pkg_check_modules(DTKOCR REQUIRED IMPORTED_TARGET dtk${DTK_VERSION_MAJOR}ocr)
 
 # ===== onnxruntime 查找策略（三架构统一）=====
 # 统一导出 imported target Ort::Runtime：
@@ -73,7 +76,10 @@ target_include_directories(${BIN_NAME} PUBLIC
 
 target_link_libraries(${BIN_NAME}
     PUBLIC Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui
-    PRIVATE Ort::Runtime)
+    PRIVATE Ort::Runtime
+           Qt${QT_VERSION_MAJOR}::Concurrent
+           PkgConfig::OPENCV
+           PkgConfig::DTKOCR)
 
 # 模型随包分发路径（Debug 指向源码 models/，Release 指向 share 路径）。
 set(ModelSaveSubDir models)
