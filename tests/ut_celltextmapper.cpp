@@ -64,7 +64,8 @@ TEST(ut_CellTextMapper, multipleBoxesConcatenatedLeftToRightTopToBottom)
     mapper.map(cells, boxes);
 
     ASSERT_EQ(cells.size(), 1);
-    EXPECT_EQ(cells[0].text.toStdString(), "ABC");
+    // 通用拼接规则：拉丁片段之间补一个空格（原无分隔拼接会导致长文本粘连）。
+    EXPECT_EQ(cells[0].text.toStdString(), "A B C");
 }
 
 TEST(ut_CellTextMapper, iouFallbackForCrossBoundaryBox)
@@ -125,4 +126,96 @@ TEST(ut_CellTextMapper, lowOverlapBoxDropped)
 
     ASSERT_EQ(cells.size(), 1);
     EXPECT_TRUE(cells[0].text.isEmpty());
+}
+
+// 通用：两个拉丁单词分属不同 OCR 框 -> 之间补一个空格，避免粘连。
+TEST(ut_CellTextMapper, latinFragmentsJoinedWithSpace)
+{
+    QList<DetectedCell> cells;
+    DetectedCell cell;
+    cell.bbox = QRectF(0, 0, 200, 100);
+    cells << cell;
+
+    QList<OcrTextBox> boxes;
+    OcrTextBox left;
+    left.bbox = QRectF(10, 10, 60, 30);
+    left.text = QStringLiteral("Hello");
+    OcrTextBox right;
+    right.bbox = QRectF(120, 10, 60, 30);
+    right.text = QStringLiteral("World");
+    boxes << left << right;
+
+    CellTextMapper mapper;
+    mapper.map(cells, boxes);
+    ASSERT_EQ(cells.size(), 1);
+    EXPECT_EQ(cells[0].text.toStdString(), "Hello World");
+}
+
+// 通用：CJK 片段相邻不补空格（CJK 无词间空格）。
+TEST(ut_CellTextMapper, cjkFragmentsJoinedWithoutSpace)
+{
+    QList<DetectedCell> cells;
+    DetectedCell cell;
+    cell.bbox = QRectF(0, 0, 200, 100);
+    cells << cell;
+
+    QList<OcrTextBox> boxes;
+    OcrTextBox left;
+    left.bbox = QRectF(10, 10, 60, 30);
+    left.text = QStringLiteral("你好");
+    OcrTextBox right;
+    right.bbox = QRectF(120, 10, 60, 30);
+    right.text = QStringLiteral("世界");
+    boxes << left << right;
+
+    CellTextMapper mapper;
+    mapper.map(cells, boxes);
+    ASSERT_EQ(cells.size(), 1);
+    EXPECT_EQ(cells[0].text.toStdString(), "你好世界");
+}
+
+// 通用：拉丁与 CJK 相邻补一个空格，避免不同文种黏连。
+TEST(ut_CellTextMapper, mixedLatinCjkJoinedWithSpace)
+{
+    QList<DetectedCell> cells;
+    DetectedCell cell;
+    cell.bbox = QRectF(0, 0, 200, 100);
+    cells << cell;
+
+    QList<OcrTextBox> boxes;
+    OcrTextBox left;
+    left.bbox = QRectF(10, 10, 60, 30);
+    left.text = QStringLiteral("abc");
+    OcrTextBox right;
+    right.bbox = QRectF(120, 10, 60, 30);
+    right.text = QStringLiteral("你好");
+    boxes << left << right;
+
+    CellTextMapper mapper;
+    mapper.map(cells, boxes);
+    ASSERT_EQ(cells.size(), 1);
+    EXPECT_EQ(cells[0].text.toStdString(), "abc 你好");
+}
+
+// 通用：前段已以空白结尾时不重复补空格，避免出现双空格。
+TEST(ut_CellTextMapper, separatorNotDoubledWhenPrevEndsWithSpace)
+{
+    QList<DetectedCell> cells;
+    DetectedCell cell;
+    cell.bbox = QRectF(0, 0, 200, 100);
+    cells << cell;
+
+    QList<OcrTextBox> boxes;
+    OcrTextBox left;
+    left.bbox = QRectF(10, 10, 60, 30);
+    left.text = QStringLiteral("Hello ");   // 末尾已有空格
+    OcrTextBox right;
+    right.bbox = QRectF(120, 10, 60, 30);
+    right.text = QStringLiteral("World");
+    boxes << left << right;
+
+    CellTextMapper mapper;
+    mapper.map(cells, boxes);
+    ASSERT_EQ(cells.size(), 1);
+    EXPECT_EQ(cells[0].text.toStdString(), "Hello World");
 }

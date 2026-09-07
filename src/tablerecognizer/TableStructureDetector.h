@@ -23,7 +23,10 @@ public:
     ~TableStructureDetector();
 
     // 对图片做表格结构检测；成功返回 true 并填充 cells。
-    bool detect(const QImage &image, QList<DetectedCell> &cells, QString &error);
+    // confidence（可选出参）接收结构 token 的 softmax 均值置信度（0~1）：
+    // 越低表示模型对结构越不自信，供 runPipeline 门控降级使用（M1 置信度门）。
+    bool detect(const QImage &image, QList<DetectedCell> &cells, QString &error,
+                float *confidence = nullptr);
 
     // 引擎已加载模型时返回 true。
     bool available() const;
@@ -33,6 +36,12 @@ public:
     // QImage -> NCHW float 张量（resize 到 inputSize，归一化 mean/std）。
     // 返回 CHW 顺序的 float 数据，shape = {1, 3, inputSize, inputSize}。
     static std::vector<float> preprocess(const QImage &image, int inputSize);
+
+    // 计算 [T, V] 结构 logits 的逐时间步 softmax 最大概率均值（置信度）。
+    // ids 为已 argmax 的 token 序列（用于界定有效时间步范围）。
+    // 返回 0~1：1 表示模型在每个时间步都唯一确信，越低越不自信。
+    static float meanMaxConfidence(const std::vector<float> &logits, int V, int T,
+                                   const std::vector<int> &ids);
 
     // 结构 token id 序列 + bbox 浮点序列 -> DetectedCell 列表。
     // bboxStride 为每个单元格的浮点数个数（4 表示 [x1,y1,x2,y2]，

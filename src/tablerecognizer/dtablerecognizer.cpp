@@ -28,6 +28,12 @@ Q_LOGGING_CATEGORY(lcTableRecognizer, "dtk.tablerecognizer")
 // SLANet_plus 模型文件名。
 static constexpr const char *kModelFileName = "SLANet_plus.onnx";
 
+// M1：SLANet 结构 置信度门（概率直读）。低于此值认为模型对结构不自信，
+// 触发降级/质量路径。值为启发式默认，可按实测样张校准。
+static constexpr float kSlanetConfidenceThreshold = 0.9f;
+// M1：合理表格的最小单元格数（少于 2 视为噪声/非表格）。
+static constexpr int kMinReasonableCells = 2;
+
 QString defaultModelPath()
 {
 #ifdef TABLEREC_MODEL_DIR
@@ -155,9 +161,10 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
     // 阶段1：表格结构检测（主路径 SLANet_plus via ORT）。
     QList<DetectedCell> cells;
     QString error;
+    float slanetConfidence = 1.0f;   // M1：结构置信度（detect 成功时由模型 logits 填充）
     bool structOk = false;
     if (detector && detector->available()) {
-        structOk = detector->detect(image, cells, error);
+        structOk = detector->detect(image, cells, error, &slanetConfidence);
         if (!structOk)
             qCWarning(lcTableRecognizer) << "Main path (SLANet_plus) detect failed:" << error
                                           << "— falling back to img2table";
@@ -165,8 +172,16 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         qCWarning(lcTableRecognizer) << "Main path unavailable (model not loaded)"
                                       << "— falling back to img2table";
     }
-    if (!structOk || cells.isEmpty()) {
+    // M1：旧逻辑仅在 !structOk || cells.isEmpty() 降级，导致「自信但错误」的非空输出
+    // 永不触发降级。扩展为「置信度低或 cell 数不合理也降级」，使降级链对低质量输出生效。
+    const bool mainTrusted = structOk && !cells.isEmpty()
+                             && slanetConfidence >= kSlanetConfidenceThreshold
+                             && cells.size() >= kMinReasonableCells;
+    if (!mainTrusted) {
         // 阶段1降级：img2table（OpenCV 有线表格）。
+        qCWarning(lcTableRecognizer) << "Main path untrusted (structOk=" << structOk
+                                      << "confidence=" << slanetConfidence
+                                      << "cells=" << cells.size() << ") — falling back to img2table";
         cells.clear();
         if (fallback.detect(image, cells, error)) {
             if (cells.isEmpty()) {
