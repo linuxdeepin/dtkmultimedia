@@ -20,9 +20,9 @@ file(GLOB_RECURSE SRCS
     )
 file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
 
-# Phase 0 表格结构检测单测由独立的 ut-tablerecognizer 目标构建（见文件末尾），
+# Phase 0/Phase 1 表格识别单测由独立的 ut-tablerecognizer 目标构建（见文件末尾），
 # 从 ut-dtkmultimedia glob 中剔除，避免在未编译 tablerecognizer 源码时产生未定义符号。
-list(FILTER TEST_FILES EXCLUDE REGEX "ut_ortinferenceengine|ut_tablestructuredetector")
+list(FILTER TEST_FILES EXCLUDE REGEX "ut_ortinferenceengine|ut_tablestructuredetector|ut_dtablerecognizer|ut_img2tablefallback|ut_htmltablebuilder|ut_celltextmapper")
 
 include_directories(
     "../include/dtkmultimedia"
@@ -138,17 +138,22 @@ add_subdirectory(ocrplugin)
 add_test(NAME ${BIN_NAME} COMMAND ${BIN_NAME})
 
 
-# ===== Phase 0: 表格结构检测单元测试（独立可验证子集）=====
-# 门控 dtk6tablerecognizer 目标（即 onnxruntime 可用）；仅接 ut_ortinferenceengine +
-# ut_tablestructuredetector。其余 5 个 tablerecognizer 测试属 Phase 1，本阶段不引入。
+# ===== Phase 0 + Phase 1: 表格识别单元测试（独立可验证子集）=====
+# 门控 dtk6tablerecognizer 目标（即 onnxruntime 可用）；接入全部 6 个 tablerecognizer 单测。
 if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
     set(UT_TR_NAME ut-tablerecognizer)
     add_executable(${UT_TR_NAME}
         ut_ortinferenceengine.cpp
-        ut_tablestructuredetector.cpp)
+        ut_tablestructuredetector.cpp
+        ut_dtablerecognizer.cpp
+        ut_img2tablefallback.cpp
+        ut_htmltablebuilder.cpp
+        ut_celltextmapper.cpp)
     target_include_directories(${UT_TR_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/../src/tablerecognizer
-        ${CMAKE_CURRENT_LIST_DIR}/../include/dtktablerecognizer)
+        ${CMAKE_CURRENT_LIST_DIR}/../include/dtktablerecognizer
+        ${CMAKE_CURRENT_LIST_DIR}/3rdparty/cpp-stub
+        ${CMAKE_CURRENT_LIST_DIR}/3rdparty/stub-ext)
     find_package(GTest)
     if(GTest_FOUND)
         set(UT_TR_GTEST GTest::gtest GTest::gtest_main)
@@ -159,6 +164,7 @@ if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
         dtk${DTK_VERSION_MAJOR}tablerecognizer
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Concurrent
         ${UT_TR_GTEST}
         pthread)
     add_test(NAME ${UT_TR_NAME} COMMAND ${UT_TR_NAME})
