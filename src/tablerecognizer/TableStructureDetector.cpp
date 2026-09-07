@@ -8,6 +8,7 @@
 
 #include <QDebug>
 #include <algorithm>
+#include <cmath>
 #include <QMap>
 #include <QString>
 
@@ -103,7 +104,8 @@ bool TableStructureDetector::available() const
     return m_engine && m_engine->isLoaded();
 }
 
-bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &cells, QString &error)
+bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &cells, QString &error,
+                                       float *confidence)
 {
     cells.clear();
     if (!available()) {
@@ -210,6 +212,10 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
     if (eosIt != structIds.end())
         structIds.erase(eosIt + 1, structIds.end());
 
+    // M1：在 argmax 后计算结构 token 的 softmax 均值置信度，供 runPipeline 门控。
+    if (confidence)
+        *confidence = meanMaxConfidence(structOut, V, static_cast<int>(T), structIds);
+
     cells = decodeStructure(structIds, bboxOut, image.size(), bboxStride, bboxPerTimeStep);
     if (cells.isEmpty()) {
         qWarning() << "TableStructureDetector: decodeStructure returned 0 cells."
@@ -227,6 +233,69 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
         return false;
     }
     return true;
+}
+
+float TableStructureDetector::meanMaxConfidence(const std::vector<float> &logits, int V, int T,
+                                           const std::vector<int> &ids)
+{
+    if (V <= 0 || T <= 0 || logits.empty())
+        return 0.0f;
+    // 有效时间步取 min(T, ids.size())，与 argmax 序列实际长度对齐。
+    const size_t steps = std::min<size_t>(static_cast<size_t>(T), ids.size());
+    if (steps == 0)
+        return 0.0f;
+
+    // 输出类型自适应（通用，防未来换模型）：探测首步行是否已是概率分布——
+    // 值全在 [0,1] 且行和 ≈ 1 → 视为概率，直接取 row[argmax] 作为置信度（概率直读）；
+    // 否则视为原始 logits → 做 softmax 再取概率。
+    // SLANet_plus ONNX 图内含 1 个 Softmax 算子，结构输出本身即概率——
+    // 若再做 softmax（双重 softmax）会把真实 0.9993 压成 ~0.0525，导致置信度无判别力。
+    bool isProbability = false;
+    {
+        const float *firstRow = logits.data();
+        double rowSum = 0.0;
+        bool allInRange = true;
+        for (int v = 0; v < V; ++v) {
+            const double val = static_cast<double>(firstRow[v]);
+            if (val < -1e-4 || val > 1.0 + 1e-4) {
+                allInRange = false;
+                break;
+            }
+            rowSum += val;
+        }
+        if (allInRange && std::abs(rowSum - 1.0) < 0.01)
+            isProbability = true;
+    }
+
+    double sum = 0.0;
+    size_t counted = 0;
+    for (size_t t = 0; t < steps; ++t) {
+        const float *row = logits.data() + t * static_cast<size_t>(V);
+        const int id = ids[t];
+        if (id < 0 || id >= V)
+            continue;   // 越界时间步不计入均值。
+
+        if (isProbability) {
+            // 概率直读：row[argmax] 即该步置信度（与 PaddleOCR preds.max(axis=2) 一致）。
+            sum += static_cast<double>(row[id]);
+            ++counted;
+        } else {
+            // 原始 logits → 数值稳定 softmax。
+            float maxLogit = row[0];
+            for (int v = 1; v < V; ++v)
+                maxLogit = std::max(maxLogit, row[v]);
+            double expSum = 0.0;
+            for (int v = 0; v < V; ++v)
+                expSum += std::exp(static_cast<double>(row[v]) - static_cast<double>(maxLogit));
+            if (expSum <= 0.0)
+                continue;
+            sum += std::exp(static_cast<double>(row[id]) - static_cast<double>(maxLogit)) / expSum;
+            ++counted;
+        }
+    }
+    if (counted == 0)
+        return 0.0f;
+    return static_cast<float>(sum / static_cast<double>(counted));
 }
 
 std::vector<float> TableStructureDetector::preprocess(const QImage &image, int inputSize)

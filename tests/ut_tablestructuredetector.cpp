@@ -135,3 +135,123 @@ TEST(ut_TableStructureDetector, vocabularySize)
     EXPECT_FALSE(TableStructureDetector::vocabulary().isEmpty());
     EXPECT_EQ(TableStructureDetector::vocabulary().size(), 50);
 }
+
+// ===== M1：meanMaxConfidence 置信度计算 =====
+
+// 每个时间步 logits 为 one-hot（某一类远大于其他）时，softmax 最大概率接近 1，均值≈1。
+TEST(ut_TableStructureDetector, confidenceHighOnOneHotLogits)
+{
+    // V=4, T=2。每个时间步第 0 类 logits=10，其余=0 → softmax 近似 [1,0,0,0]。
+    std::vector<float> logits = {
+        10.0f, 0.0f, 0.0f, 0.0f,
+        10.0f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0, 0};
+    const float conf = TableStructureDetector::meanMaxConfidence(logits, 4, 2, ids);
+    EXPECT_GT(conf, 0.99f);
+}
+
+// 每个时间步 logits 均匀（全 0）时，softmax 均匀=1/V，均值=1/V。
+TEST(ut_TableStructureDetector, confidenceLowOnUniformLogits)
+{
+    std::vector<float> logits = {
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0, 1};
+    const float conf = TableStructureDetector::meanMaxConfidence(logits, 4, 2, ids);
+    EXPECT_FLOAT_EQ(conf, 0.25f);   // 1/V = 1/4
+}
+
+// ids 长度小于 T 时，仅按 ids.size() 个时间步计算均值（与 argmax 序列实际范围对齐）。
+TEST(ut_TableStructureDetector, confidenceUsesIdCountWhenShorterThanT)
+{
+    // T=3 但 ids 只有 2 个（eos 截断后的常见情形）。第 1 步 one-hot、第 2 步均匀。
+    std::vector<float> logits = {
+        10.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0, 1};
+    const float conf = TableStructureDetector::meanMaxConfidence(logits, 4, 3, ids);
+    // 均值 = (1.0 + 0.25) / 2 = 0.625
+    EXPECT_NEAR(conf, 0.625f, 1e-4f);
+}
+
+// 退化输入返回 0（V<=0 / 空 logits）。
+TEST(ut_TableStructureDetector, confidenceZeroOnDegenerateInput)
+{
+    std::vector<int> ids = {0};
+    EXPECT_FLOAT_EQ(TableStructureDetector::meanMaxConfidence({}, 4, 1, ids), 0.0f);
+    std::vector<float> logits = {1.0f, 0.0f};
+    EXPECT_FLOAT_EQ(TableStructureDetector::meanMaxConfidence(logits, 0, 1, ids), 0.0f);
+    EXPECT_FLOAT_EQ(TableStructureDetector::meanMaxConfidence(logits, 2, 0, ids), 0.0f);
+}
+
+// ids 越界的时间步被跳过，不影响其他时间步。
+TEST(ut_TableStructureDetector, confidenceSkipsOutOfRangeIds)
+{
+    std::vector<float> logits = {
+        10.0f, 0.0f, 0.0f, 0.0f,
+        10.0f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0, 99};   // 第 2 步 id 越界，被跳过 → 均值=1.0/1=1.0
+    const float conf = TableStructureDetector::meanMaxConfidence(logits, 4, 2, ids);
+    EXPECT_GT(conf, 0.99f);
+}
+
+// ===== M1 v2：输出类型自适应（概率直读 vs logits softmax） =====
+
+// 概率输入（值全在 [0,1] 且行和≈1）→ 直接取 row[argmax]，不再 softmax。
+// 模拟 SLANet_plus 真实输出：概率 0.9993 → 直读得 0.9993（不被双重 softmax 压成 ~0.0525）。
+TEST(ut_TableStructureDetector, confidenceProbabilityDirectRead)
+{
+    // V=4, T=2。概率分布：[0.9993, 0.0002, 0.0003, 0.0002]，argmax=0
+    std::vector<float> probs = {
+        0.9993f, 0.0002f, 0.0003f, 0.0002f,
+        0.9991f, 0.0003f, 0.0004f, 0.0002f,
+    };
+    std::vector<int> ids = {0, 0};
+    const float conf = TableStructureDetector::meanMaxConfidence(probs, 4, 2, ids);
+    // 概率直读：均值 = (0.9993 + 0.9991) / 2 ≈ 0.9992，远高于双重 softmax 的 ~0.0525
+    EXPECT_GT(conf, 0.99f);
+    EXPECT_NEAR(conf, 0.9992f, 1e-3f);
+}
+
+// 概率输入但置信度较低 → 直读得低值（不被 softmax 扭曲）。
+TEST(ut_TableStructureDetector, confidenceProbabilityLowConfidence)
+{
+    // V=4, T=1。概率分布：[0.3, 0.25, 0.25, 0.2]，argmax=0 → 直读 0.3
+    std::vector<float> probs = {
+        0.3f, 0.25f, 0.25f, 0.2f,
+    };
+    std::vector<int> ids = {0};
+    const float conf = TableStructureDetector::meanMaxConfidence(probs, 4, 1, ids);
+    EXPECT_NEAR(conf, 0.3f, 1e-4f);
+}
+
+// 原始 logits 输入（值 > 1 或行和 ≠ 1）→ 自动走 softmax 路径。
+TEST(ut_TableStructureDetector, confidenceLogitsTriggersSoftmax)
+{
+    // V=4, T=1。logits=[2, 0, 0, 0]，值 > 1 → 检测为 logits → softmax → ~0.88
+    std::vector<float> logits = {
+        2.0f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0};
+    const float conf = TableStructureDetector::meanMaxConfidence(logits, 4, 1, ids);
+    // softmax([2,0,0,0]) = e^2/(e^2+3) ≈ 0.7113 → 均值=0.7113
+    EXPECT_NEAR(conf, 0.7113f, 1e-3f);
+}
+
+// 自动判定：概率输入即使值全在 [0,1] 但行和 ≠ 1 → 视为 logits → softmax。
+TEST(ut_TableStructureDetector, confidenceAutoDetectNonProbabilityRow)
+{
+    // V=4, T=1。值全在 [0,1] 但行和=0.5 ≠ 1 → 视为 logits → softmax
+    std::vector<float> vals = {
+        0.5f, 0.0f, 0.0f, 0.0f,
+    };
+    std::vector<int> ids = {0};
+    const float conf = TableStructureDetector::meanMaxConfidence(vals, 4, 1, ids);
+    // softmax([0.5,0,0,0]) = e^0.5/(e^0.5+3) ≈ 0.3547 → 均值=0.3547
+    EXPECT_NEAR(conf, 0.3547f, 1e-3f);
+}

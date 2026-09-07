@@ -12,6 +12,9 @@
 #include <QImage>
 #include <QSignalSpy>
 #include <QFileInfo>
+#include <QPainter>
+#include <QPen>
+#include <QColor>
 #include <stubext.h>
 
 #include <chrono>
@@ -26,6 +29,26 @@ static DTableResult waitForDone(QSignalSpy &spy, int timeoutMs = 5000)
     if (spy.isEmpty())
         return DTableResult{};
     return qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+}
+
+// 生成带清晰网格线的有线表图（高线密度），供需要「非弱线」场景的用例使用。
+static QImage makeWiredGridImage(int w, int h)
+{
+    QImage img(w, h, QImage::Format_RGB32);
+    img.fill(Qt::white);
+    QPainter painter(&img);
+    QPen pen(Qt::black);
+    pen.setWidth(2);
+    painter.setPen(pen);
+    for (int r = 0; r <= 3; ++r) {   // 3 行网格线
+        const int y = h * r / 3;
+        painter.drawLine(0, y, w, y);
+    }
+    for (int c = 0; c <= 3; ++c) {   // 3 列网格线
+        const int x = w * c / 3;
+        painter.drawLine(x, 0, x, h);
+    }
+    return img;
 }
 
 // 用例1：无效图片直接返回失败（同步路径）。
@@ -396,3 +419,146 @@ TEST(ut_DTableRecognizer, noStructureReturnsFailure)
     EXPECT_FALSE(result.success);
     EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("未识别到表格")));
 }
+
+// ===== M1：SLANet 置信度门集成 =====
+// detect 返回带置信度的非空输出，runPipeline 依据置信度/cell 数决定是否信任主路径。
+
+// M1-A：主路径输出「自信但低置信」（confidence < 阈值）仍触发降级到 img2table。
+// 修复前仅在 !structOk || cells.isEmpty() 降级，此类非空低置信输出永不降级。
+TEST(ut_DTableRecognizer, lowConfidenceNonEmptyOutputDegradesToImg2Table)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    // 主路径「自信但错误」：返回 4 个非空单元格，但置信度 0.2 < 0.5 阈值。
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       for (int i = 0; i < 4; ++i) {
+                           DetectedCell c;
+                           c.row = 0;
+                           c.col = i;
+                           c.bbox = QRectF(i * 25, 0, 25, 100);
+                           cells.append(c);
+                       }
+                       if (conf)
+                           *conf = 0.2f;
+                       return true;
+                   });
+    // 降级目标：img2table 返回 1 个单元格。
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 100, 100);
+                       cells.append(c);
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox box;
+                       box.bbox = QRectF(10, 10, 20, 20);
+                       box.text = QStringLiteral("A");
+                       boxes.append(box);
+                       return true;
+                   });
+
+    const QImage image = makeWiredGridImage(300, 300);   // 有线表：隔离 M1 置信度门，避免 H3 weakLine 路由
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.source.toStdString(), "img2table");
+    ASSERT_EQ(result.cells.size(), 1);
+    EXPECT_EQ(result.cells[0].text.toStdString(), "A");
+}
+
+// M1-B：高置信 + 合理 cell 数 → 信任主路径，source=SLANet_plus。
+TEST(ut_DTableRecognizer, highConfidenceKeepsMainPath)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       DetectedCell c0;
+                       c0.row = 0;
+                       c0.col = 0;
+                       c0.bbox = QRectF(0, 0, 50, 100);
+                       DetectedCell c1;
+                       c1.row = 0;
+                       c1.col = 1;
+                       c1.bbox = QRectF(50, 0, 50, 100);
+                       cells << c0 << c1;
+                       if (conf)
+                           *conf = 0.9f;
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox box;
+                       box.bbox = QRectF(10, 10, 20, 20);
+                       box.text = QStringLiteral("A");
+                       boxes.append(box);
+                       return true;
+                   });
+
+    const QImage image = makeWiredGridImage(300, 300);   // 有线表：隔离 M1 置信度门，避免 H3 weakLine 路由
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.source.toStdString(), "SLANet_plus");
+    ASSERT_EQ(result.cells.size(), 2);
+    EXPECT_EQ(result.cells[0].text.toStdString(), "A");
+}
+
+// M1-C：cell 数不合理（< 2）即使高置信也降级。
+TEST(ut_DTableRecognizer, tooFewCellsDegradesEvenIfConfident)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *conf) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 100, 100);
+                       cells.append(c);
+                       if (conf)
+                           *conf = 0.9f;
+                       return true;
+                   });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 100, 100);
+                       cells.append(c);
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox box;
+                       box.bbox = QRectF(10, 10, 20, 20);
+                       box.text = QStringLiteral("A");
+                       boxes.append(box);
+                       return true;
+                   });
+
+    const QImage image = makeWiredGridImage(300, 300);   // 有线表：隔离 M1 cell 数门，避免 H3 weakLine 路由
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+    EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.source.toStdString(), "img2table");
+}
+

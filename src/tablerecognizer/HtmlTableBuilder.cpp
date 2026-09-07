@@ -87,6 +87,21 @@ QString HtmlTableBuilder::build(const QList<DTableCell> &cells)
     html.reserve(256);
     html += QStringLiteral("<table>");
     for (int r = 0; r < rows; ++r) {
+        // H2 v2：跳过「整行无任何有文本映射的单元格」的行。
+        // v1 仅检查「全 -1」（无单元格），但 SLANet 的伪空首行含占位 cell（grid 值 ≥0）
+        // 但该 cell 无 OCR 文本映射——v1 不过滤，v2 放宽为检查是否有文本。
+        // 有内容行中的空单元格（占位列）仍保留为 <td></td>，不误伤。
+        bool rowHasText = false;
+        for (int c = 0; c < cols; ++c) {
+            const int v = grid[r][c];
+            if (v >= 0 && !sorted.at(v).text.isEmpty()) {
+                rowHasText = true;
+                break;
+            }
+        }
+        if (!rowHasText)
+            continue;
+
         html += QStringLiteral("<tr>");
         for (int c = 0; c < cols; ++c) {
             const int v = grid[r][c];
