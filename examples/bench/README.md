@@ -18,7 +18,7 @@
 
 ```bash
 git clone -b phase0/v634-ort-table-structure https://github.com/dengzhongyuan365-dev/dtkmultimedia.git
-cd dtkmultimedia/bench
+cd dtkmultimedia/examples/bench
 ```
 
 ### 2. 环境检查
@@ -42,11 +42,11 @@ sudo apt install cmake g++ make qt6-base-dev \
 ### 3. 编译
 
 ```bash
-cd ..
+cd ../..
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc) tablerecognizerbench
-cd ../bench
+cd ../examples/bench
 ```
 
 ### 4. 准备样本数据
@@ -55,11 +55,11 @@ cd ../bench
 
 在 x86 机器上：
 ```bash
-cd dtkmultimedia/bench
+cd dtkmultimedia/examples/bench
 ./prepare-samples.sh --pack /path/to/samples   # 打包为 samples.tar.gz
 ```
 
-将 `samples.tar.gz` 传到目标机器的 `bench/` 目录。
+将 `samples.tar.gz` 传到目标机器的 `examples/bench/` 目录。
 
 在目标机器上：
 ```bash
@@ -68,7 +68,7 @@ cd dtkmultimedia/bench
 
 **方式二：直接放置图片**
 
-将 50 张表格图片放到 `bench/samples/` 目录（支持 png/jpg/jpeg/bmp/tiff/webp）。
+将 50 张表格图片放到 `examples/bench/samples/` 目录（支持 png/jpg/jpeg/bmp/tiff/webp）。
 
 **方式三：生成合成样本（仅测试流程，非真实数据）**
 
@@ -91,7 +91,7 @@ cd dtkmultimedia/bench
 ./run-bench.sh --rounds 5 --threads 8 --warmup 5
 ```
 
-结果输出到 `bench/results/`：
+结果输出到 `examples/bench/results/`：
 - `run-01.json` ~ `run-10.json` — 每轮原始 JSON
 - `meta.json` — 架构、时间戳、参数等元数据
 
@@ -124,7 +124,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc) tablerecognizerbench
 ```
 
-bench 脚本默认查找 `../build/examples/tablerecognizerBench/tablerecognizerBench`。
+bench 脚本默认查找 `../../build/examples/tablerecognizerBench/tablerecognizerBench`。
 
 ### Q: 模型文件缺失
 

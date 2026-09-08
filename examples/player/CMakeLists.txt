@@ -22,6 +22,7 @@ SET(SRC_PATH ${DIR_SRCS})
 
 # 6.add executable file
 file(GLOB_RECURSE INCLUDE_FILES "../../include/*.h")
+list(FILTER INCLUDE_FILES EXCLUDE REGEX "dtktablerecognizer")
 
 if(ENABLE_Qt6)
     file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/qt6player/*.cpp)

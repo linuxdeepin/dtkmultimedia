@@ -3,12 +3,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
-# 统计报告生成器 —— 从 bench/results/ 下的 JSON 数据生成 Markdown 报告
+# 统计报告生成器 —— 从 examples/bench/results/ 下的 JSON 数据生成 Markdown 报告
 # 计算 min / max / mean / median / stddev / P95，Median 和 Mean 双口径
 # 格式与 x86_64 报告 V-566-性能基准报告.md 一致
 #
 # 用法:
-#   ./generate-report.py                              # 读取 bench/results/，输出到 bench/results/report.md
+#   ./generate-report.py                              # 读取 examples/bench/results/，输出到 examples/bench/results/report.md
 #   ./generate-report.py --results-dir <dir>          # 指定结果目录
 #   ./generate-report.py --output <file>              # 指定输出文件
 #   ./generate-report.py --base-sha <sha>             # 指定 Base SHA
@@ -224,7 +224,7 @@ def generate_report(runs, meta, base_sha="", patch_version=""):
 
 def main():
     parser = argparse.ArgumentParser(description="生成表格识别性能基准报告")
-    parser.add_argument("--results-dir", default=None, help="结果目录（默认 bench/results/）")
+    parser.add_argument("--results-dir", default=None, help="结果目录（默认 examples/bench/results/）")
     parser.add_argument("--output", "-o", default=None, help="输出文件（默认 stdout）")
     parser.add_argument("--base-sha", default="", help="Base SHA")
     parser.add_argument("--patch-version", default="", help="Patch 版本")

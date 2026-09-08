@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
 # 一键执行脚本 —— 自动检测物理核数，运行 50 样本 × 10 轮（warmup 3）
-# 调用 tablerecognizerBench，输出原始 JSON 到 bench/results/
+# 调用 tablerecognizerBench，输出原始 JSON 到 examples/bench/results/
 #
 # 用法:
 #   ./run-bench.sh                     # 使用默认参数（10 轮, warmup 3）
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_DIR="$(cd "$BENCH_DIR/.." && pwd)"
+REPO_DIR="$(cd "$BENCH_DIR/../.." && pwd)"
 BENCH_BIN="$REPO_DIR/build/examples/tablerecognizerBench/tablerecognizerBench"
 SAMPLES_DIR="$BENCH_DIR/samples"
 RESULTS_DIR="$BENCH_DIR/results"
@@ -48,7 +48,7 @@ while [ $# -gt 0 ]; do
             echo "  --rounds N         运行轮数（默认 10）"
             echo "  --warmup N         预热次数（默认 3）"
             echo "  --threads N        ORT 线程数（默认物理核数）"
-            echo "  --samples-dir PATH 样本图片目录（默认 bench/samples/）"
+            echo "  --samples-dir PATH 样本图片目录（默认 examples/bench/samples/）"
             exit 0 ;;
         *) fail "未知参数: $1"; exit 1 ;;
     esac

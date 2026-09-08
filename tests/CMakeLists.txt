@@ -11,6 +11,7 @@ set(BIN_NAME ut-dtkmultimedia)
 include(./dbus/fakeInterface.cmake)
 
 file(GLOB_RECURSE INCLUDE_FILES "../include/*.h")
+list(FILTER INCLUDE_FILES EXCLUDE REGEX "dtktablerecognizer")
 file(GLOB_RECURSE SRCS
     "../src/multimediawidgets/*.h"
     "../src/multimediawidgets/*.cpp"
@@ -22,7 +23,7 @@ file(GLOB_RECURSE TEST_FILES "./*.h" "./*.cpp")
 
 # Phase 0/Phase 1 表格识别单测由独立的 ut-tablerecognizer 目标构建（见文件末尾），
 # 从 ut-dtkmultimedia glob 中剔除，避免在未编译 tablerecognizer 源码时产生未定义符号。
-list(FILTER TEST_FILES EXCLUDE REGEX "ut_ortinferenceengine|ut_tablestructuredetector|ut_dtablerecognizer|ut_img2tablefallback|ut_htmltablebuilder|ut_celltextmapper|ut_wirelesstableheuristic")
+list(FILTER TEST_FILES EXCLUDE REGEX "ut_ortinferenceengine|ut_tablestructuredetector|ut_dtablerecognizer|ut_img2tablefallback|ut_htmltablebuilder|ut_celltextmapper|ut_wirelesstableheuristic|benchmarks")
 
 include_directories(
     "../include/dtkmultimedia"
@@ -149,12 +150,14 @@ if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
         ut_img2tablefallback.cpp
         ut_htmltablebuilder.cpp
         ut_celltextmapper.cpp
-        ut_wirelesstableheuristic.cpp)
+        ut_wirelesstableheuristic.cpp
+        3rdparty/stub-ext/stub-shadow.cpp)
     target_include_directories(${UT_TR_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/../src/tablerecognizer
         ${CMAKE_CURRENT_LIST_DIR}/../include/dtktablerecognizer
         ${CMAKE_CURRENT_LIST_DIR}/3rdparty/cpp-stub
         ${CMAKE_CURRENT_LIST_DIR}/3rdparty/stub-ext)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
     find_package(GTest)
     if(GTest_FOUND)
         set(UT_TR_GTEST GTest::gtest GTest::gtest_main)
@@ -166,6 +169,7 @@ if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Gui
         Qt${QT_VERSION_MAJOR}::Concurrent
+        Qt${QT_VERSION_MAJOR}::Test
         ${UT_TR_GTEST}
         pthread)
     add_test(NAME ${UT_TR_NAME} COMMAND ${UT_TR_NAME})
