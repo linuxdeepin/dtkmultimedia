@@ -9,6 +9,7 @@
 
 #include <QRectF>
 #include <QString>
+#include <QMetaType>
 
 D_TABLERECOGNIZER_BEGIN_NAMESPACE
 
@@ -21,8 +22,8 @@ struct DTableCell
     QRectF bbox;       // 单元格在原图中的物理包围盒
     QString text;      // 单元格内识别文字（OCR 填充）
 };
-Q_DECLARE_METATYPE(DTableCell)
-
 D_TABLERECOGNIZER_END_NAMESPACE
+
+Q_DECLARE_METATYPE(Dtk::TableRecognizer::DTableCell)
 
 #endif // DTABLECELL_H

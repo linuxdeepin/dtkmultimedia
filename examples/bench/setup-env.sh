@@ -10,7 +10,7 @@
 set -euo pipefail
 
 BENCH_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_DIR="$(cd "$BENCH_DIR/.." && pwd)"
+REPO_DIR="$(cd "$BENCH_DIR/../.." && pwd)"
 BENCH_BIN="$REPO_DIR/build/examples/tablerecognizerBench/tablerecognizerBench"
 
 # 颜色输出
@@ -146,7 +146,7 @@ else
     warn "样本数据未找到"
     echo ""
     echo "请通过以下方式之一准备样本："
-    echo "  1. 从 x86 机器复制: 将 bench/samples.tar.gz 传到本机 bench/ 目录"
+    echo "  1. 从 x86 机器复制: 将 examples/bench/samples.tar.gz 传到本机 examples/bench/ 目录"
     echo "  2. 手动放置: 将图片放到 $SAMPLES_DIR/"
     echo "  3. 生成合成样本(仅测试流程用): bash $BENCH_DIR/prepare-samples.sh --synthetic"
     echo ""

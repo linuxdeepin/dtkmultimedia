@@ -26,7 +26,7 @@ struct DTableResult
     qint64 totalMs = 0;           // 端到端总耗时
 };
 
-Q_DECLARE_METATYPE(DTableResult)
-
 D_TABLERECOGNIZER_END_NAMESPACE
+
+Q_DECLARE_METATYPE(Dtk::TableRecognizer::DTableResult)
 #endif // DTABLERESULT_H
