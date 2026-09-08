@@ -1,0 +1,5 @@
+usr/lib/*/libdtk6tablerecognizer*.so
+usr/include/dtk6tablerecognizer
+usr/lib/*/pkgconfig/dtk6tablerecognizer.pc
+usr/lib/*/cmake/dtk6tablerecognizer/*.cmake
+usr/lib/*/*/mkspecs/modules/qt_lib_dtk6tablerecognizer.pri

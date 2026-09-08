@@ -36,7 +36,8 @@ Build-Depends:
  portaudio19-dev,
  libv4l-dev,
  libncnn-dev,
- libopencv-mobile-dev
+ libopencv-mobile-dev,
+ libonnxruntime-dev
 Standards-Version: 4.5.0
 
 Package: libdtk6multimedia
@@ -68,5 +69,21 @@ Architecture: any
 Depends: ${misc:Depends}, libdtk6ocr( =${binary:Version})
 Description: Development Tool Kit ocr devel library
  libdtk6ocr-dev is base devel library of Deepin Qt/C++ applications.
+ .
+ This package contains the header files and static libraries.
+
+Package: libdtk6tablerecognizer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Development Tool Kit table recognizer library
+ libdtk6tablerecognizer is table recognition library of Deepin Qt/C++ applications.
+ .
+ This package contains the shared libraries and models.
+
+Package: libdtk6tablerecognizer-dev
+Architecture: any
+Depends: ${misc:Depends}, libdtk6tablerecognizer( =${binary:Version})
+Description: Development Tool Kit table recognizer devel library
+ libdtk6tablerecognizer-dev is base devel library of Deepin Qt/C++ applications.
  .
  This package contains the header files and static libraries.
