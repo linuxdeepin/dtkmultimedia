@@ -36,13 +36,15 @@ public:
     ~DTableRecognizerPrivate();
 
     void start(const QImage &image, std::chrono::milliseconds timeout);
-    DTableResult runPipeline(QImage image, std::chrono::steady_clock::time_point deadline);
+    DTableResult runPipeline(QImage image, std::chrono::steady_clock::time_point deadline,
+                             qint64 budgetMs);
     // 早返回投递：不参与单飞 bookkeeping（busy/emitted），
     // 用于空图片 / 单飞拒绝等未启动管线的路径。
     void emitImmediate(const DTableResult &result);
 
     DTableRecognizer *q_ptr = nullptr;
 
+    QString modelPath;             // SLANet_plus 模型路径（诊断信息用）
     QScopedPointer<OrtInferenceEngine> ortEngine;
     QScopedPointer<TableStructureDetector> detector;
     DtkOcrWrapper ocr;

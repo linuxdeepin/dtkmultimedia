@@ -4,6 +4,8 @@
 
 #include "WirelessTableHeuristic.h"
 
+#include "TableErrorUtils.h"
+
 #include <QDebug>
 
 #include <opencv2/core.hpp>
@@ -93,9 +95,11 @@ bool WirelessTableHeuristic::build(const QSize &imageSize, const QList<OcrTextBo
                                     QList<DetectedCell> &cells, QString &error)
 {
     cells.clear();
-    Q_UNUSED(imageSize)
     if (ocrBoxes.isEmpty()) {
-        error = QStringLiteral("无线启发式：无 OCR 文本框可用");
+        error = TableErrorUtils::detail(
+            QStringLiteral("wireless"), QStringLiteral("no OCR text boxes available"),
+            {{QStringLiteral("boxes"), QStringLiteral("0")},
+             {QStringLiteral("image"), QStringLiteral("%1x%2").arg(imageSize.width()).arg(imageSize.height())}});
         return false;
     }
 
@@ -117,7 +121,11 @@ bool WirelessTableHeuristic::build(const QSize &imageSize, const QList<OcrTextBo
     const QList<QList<int>> rows = clusterRows(ocrBoxes, yTol);
     const QList<QPair<qreal, qreal>> cols = splitColumns(ocrBoxes, gapTol);
     if (rows.isEmpty() || cols.isEmpty()) {
-        error = QStringLiteral("无线启发式：行列聚类为空");
+        error = TableErrorUtils::detail(
+            QStringLiteral("wireless"), QStringLiteral("row/column clustering is empty"),
+            {{QStringLiteral("rows"), QString::number(rows.size())},
+             {QStringLiteral("cols"), QString::number(cols.size())},
+             {QStringLiteral("boxes"), QString::number(ocrBoxes.size())}});
         return false;
     }
 
@@ -164,7 +172,11 @@ bool WirelessTableHeuristic::build(const QSize &imageSize, const QList<OcrTextBo
     }
 
     if (cells.isEmpty()) {
-        error = QStringLiteral("无线启发式：未构建出单元格");
+        error = TableErrorUtils::detail(
+            QStringLiteral("wireless"), QStringLiteral("no cells built"),
+            {{QStringLiteral("rows"), QString::number(rows.size())},
+             {QStringLiteral("cols"), QString::number(cols.size())},
+             {QStringLiteral("boxes"), QString::number(ocrBoxes.size())}});
         return false;
     }
     return true;

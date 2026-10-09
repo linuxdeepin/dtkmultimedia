@@ -4,6 +4,8 @@
 
 #include "Img2TableFallback.h"
 
+#include "TableErrorUtils.h"
+
 #include <QDebug>
 
 #include <opencv2/core.hpp>
@@ -62,6 +64,11 @@ std::vector<int> clusterCoords(std::vector<int> coords, int threshold)
 
 } // namespace
 
+Img2TableFallback::Failure Img2TableFallback::lastFailure() const
+{
+    return m_failure;
+}
+
 bool Img2TableFallback::available() const
 {
     return true;
@@ -70,14 +77,21 @@ bool Img2TableFallback::available() const
 bool Img2TableFallback::detect(const QImage &image, QList<DetectedCell> &cells, QString &error)
 {
     cells.clear();
+    m_failure = Failure::None;
     if (image.isNull()) {
-        error = QStringLiteral("输入图片无效");
+        error = TableErrorUtils::detail(QStringLiteral("img2table"),
+                                        QStringLiteral("invalid input image"),
+                                        {{QStringLiteral("image"), QStringLiteral("null")}});
+        m_failure = Failure::InvalidImage;
         return false;
     }
 
     cv::Mat src = qImageToMat(image);
     if (src.empty()) {
-        error = QStringLiteral("图片转换失败");
+        error = TableErrorUtils::detail(
+            QStringLiteral("img2table"), QStringLiteral("failed to convert image"),
+            {{QStringLiteral("image"), QStringLiteral("%1x%2").arg(image.width()).arg(image.height())}});
+        m_failure = Failure::ConversionFailed;
         return false;
     }
 
@@ -99,7 +113,13 @@ bool Img2TableFallback::detect(const QImage &image, QList<DetectedCell> &cells, 
     auto vLines = detectLines(vert, false);
 
     if (hLines.size() < 2 || vLines.size() < 2) {
-        error = QStringLiteral("未识别到表格线");
+        error = TableErrorUtils::detail(
+            QStringLiteral("img2table"), QStringLiteral("no table lines detected"),
+            {{QStringLiteral("h_lines"), QString::number(hLines.size())},
+             {QStringLiteral("v_lines"), QString::number(vLines.size())},
+             {QStringLiteral("min_lines"), QStringLiteral("2")},
+             {QStringLiteral("image"), QStringLiteral("%1x%2").arg(src.cols).arg(src.rows)}});
+        m_failure = Failure::NoTableLines;
         return false;
     }
 
@@ -115,7 +135,12 @@ bool Img2TableFallback::detect(const QImage &image, QList<DetectedCell> &cells, 
     xs = clusterCoords(xs, std::max(2, src.cols / 40));
 
     if (ys.size() < 2 || xs.size() < 2) {
-        error = QStringLiteral("表格线聚类后不足构成网格");
+        error = TableErrorUtils::detail(
+            QStringLiteral("img2table"), QStringLiteral("table lines do not form a grid"),
+            {{QStringLiteral("rows"), QString::number(ys.size())},
+             {QStringLiteral("cols"), QString::number(xs.size())},
+             {QStringLiteral("image"), QStringLiteral("%1x%2").arg(src.cols).arg(src.rows)}});
+        m_failure = Failure::NoGrid;
         return false;
     }
 
