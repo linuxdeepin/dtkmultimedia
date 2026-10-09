@@ -98,5 +98,32 @@ install(TARGETS ${BIN_NAME}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../include/dtktablerecognizer/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dtktablerecognizer
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${BIN_NAME}
         FILES_MATCHING PATTERN "*.h")
+
+# ===== 对外集成：pkg-config / CMake config / qmake pri =====
+# 与 src/ocr、src/multimedia 采用同一套范式，使下游可用
+# pkg-config、find_package、qmake QT_CONFIG 三种方式接入。
+set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
+
+# for pc file config
+set(PC_LIBS_PRIVATE Qt${QT_VERSION_MAJOR}Core)
+set(PC_REQ_PRIVATE)
+# 实现层链接 dtkocr（OCR 引擎），其类型不出现在公开头文件中；但共享库
+# 运行期依赖它，且下游统一经 pkg-config 接入，故对外列为公开 Requires。
+set(PC_REQ_PUBLIC dtk${DTK_VERSION_MAJOR}ocr)
+
+# config pkgconfig file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtktablerecognizer.pc.in ${BIN_NAME}.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+# config cmake file
+configure_file(${PROJECT_ROOT_DIR}/misc/dtktablerecognizerConfig.cmake.in ${BIN_NAME}Config.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${BIN_NAME}Config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BIN_NAME})
+
+# config qmake module file
+set(DTK_MODULE ${BIN_NAME})
+set(DTK_DEPS "core")
+set(QMKSPECS_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/qt${QT_VERSION_MAJOR}/mkspecs/modules" CACHE STRING "INSTALL DIR FOR qt pri files")
+configure_file(${PROJECT_ROOT_DIR}/misc/qt_lib_dtktablerecognizer.pri.in qt_lib_${BIN_NAME}.pri @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qt_lib_${BIN_NAME}.pri DESTINATION "${QMKSPECS_INSTALL_DIR}")
