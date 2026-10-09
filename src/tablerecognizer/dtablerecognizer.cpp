@@ -12,6 +12,7 @@
 #include "HtmlTableBuilder.h"
 #include "Img2TableFallback.h"
 #include "WirelessTableHeuristic.h"
+#include "TableErrorUtils.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -40,6 +41,29 @@ static constexpr int kMinReasonableCells = 2;
 // 值为启发式默认，可按实测样张校准。
 static constexpr float kWeakLineDensityThreshold = 0.01f;
 
+QString imageSizeText(const QImage &image)
+{
+    return QStringLiteral("%1x%2").arg(image.width()).arg(image.height());
+}
+
+// DetectedCell（内部结构）-> DTableCell（公开结构）。
+QList<DTableCell> toPublicCells(const QList<DetectedCell> &cells)
+{
+    QList<DTableCell> publicCells;
+    publicCells.reserve(cells.size());
+    for (const DetectedCell &dc : cells) {
+        DTableCell pc;
+        pc.row = dc.row;
+        pc.col = dc.col;
+        pc.rowSpan = dc.rowSpan;
+        pc.colSpan = dc.colSpan;
+        pc.bbox = dc.bbox;
+        pc.text = dc.text;
+        publicCells.append(pc);
+    }
+    return publicCells;
+}
+
 QString defaultModelPath()
 {
 #ifdef TABLEREC_MODEL_DIR
@@ -62,9 +86,9 @@ DTableRecognizer::DTableRecognizer(QObject *parent)
     d->detector.reset(new TableStructureDetector(d->ortEngine.data()));
     // 初始化时加载主模型 SLANet_plus.onnx，使主路径（ORT 推理）可用。
     // 加载失败时记录错误，自动降级到 img2table（现有降级逻辑保留）。
-    const QString modelPath = defaultModelPath();
-    if (!d->ortEngine->loadModel(modelPath)) {
-        qCWarning(lcTableRecognizer) << "Failed to load SLANet_plus model at" << modelPath
+    d->modelPath = defaultModelPath();
+    if (!d->ortEngine->loadModel(d->modelPath)) {
+        qCWarning(lcTableRecognizer) << "Failed to load SLANet_plus model at" << d->modelPath
                                      << ":" << d->ortEngine->lastError()
                                      << "(will fall back to img2table)";
     }
@@ -99,7 +123,10 @@ void DTableRecognizerPrivate::start(const QImage &image, std::chrono::millisecon
     if (image.isNull()) {
         DTableResult result;
         result.success = false;
-        result.errorMessage = QStringLiteral("输入图片无效");
+        result.error = TableError::InvalidImage;
+        result.errorMessage = TableErrorUtils::detail(
+            QStringLiteral("image"), QStringLiteral("invalid input image"),
+            {{QStringLiteral("image"), QStringLiteral("null")}});
         emitImmediate(result);
         return;
     }
@@ -108,7 +135,10 @@ void DTableRecognizerPrivate::start(const QImage &image, std::chrono::millisecon
     if (!busy.testAndSetAcquire(0, 1)) {
         DTableResult result;
         result.success = false;
-        result.errorMessage = QStringLiteral("已有识别任务在执行");
+        result.error = TableError::Busy;
+        result.errorMessage = TableErrorUtils::detail(
+            QStringLiteral("pipeline"), QStringLiteral("rejected: a recognition task is already running"),
+            {{QStringLiteral("busy"), QStringLiteral("true")}});
         emitImmediate(result);
         return;
     }
@@ -122,23 +152,28 @@ void DTableRecognizerPrivate::start(const QImage &image, std::chrono::millisecon
     // 超时定时器：到点置标志，若工作尚未完成则下发超时失败结果。
     // 注意：超时路径不重置 busy——只有工作线程完成时才重置 busy，
     // 以确保旧任务的工作线程完全退出后新任务才能启动，避免并发访问共享状态。
-    QTimer::singleShot(std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count(), this, [this, gen]() {
+    const qint64 timeoutMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count();
+    QTimer::singleShot(timeoutMs, this, [this, gen, timeoutMs]() {
         timedOut.storeRelease(1);
         Q_Q(DTableRecognizer);
-        QMetaObject::invokeMethod(q, [this, gen]() {
+        QMetaObject::invokeMethod(q, [this, gen, timeoutMs]() {
             if (gen != static_cast<quint32>(generation.loadAcquire()))
                 return;  // 过期回调：新任务已启动。
             if (emitted.testAndSetAcquire(0, 1)) {
                 DTableResult result;
                 result.success = false;
-                result.errorMessage = QStringLiteral("识别超时");
+                result.error = TableError::Timeout;
+                result.errorMessage = TableErrorUtils::detail(
+                    QStringLiteral("timeout"), QStringLiteral("recognition timed out"),
+                    {{QStringLiteral("stage"), QStringLiteral("pipeline")},
+                     {QStringLiteral("budget_ms"), QString::number(timeoutMs)}});
                 emit q_ptr->recognitionDone(result);
             }
         }, Qt::QueuedConnection);
     });
 
-    QFuture<void> future = QtConcurrent::run(QThreadPool::globalInstance(), [this, imageCopy, deadline, gen]() {
-        DTableResult result = runPipeline(std::move(imageCopy), deadline);
+    QFuture<void> future = QtConcurrent::run(QThreadPool::globalInstance(), [this, imageCopy, deadline, gen, timeoutMs]() {
+        DTableResult result = runPipeline(std::move(imageCopy), deadline, timeoutMs);
         QMetaObject::invokeMethod(q_ptr, [this, gen, result]() {
             busy.storeRelease(0);   // 工作线程完成，回到 Idle。
             if (gen != static_cast<quint32>(generation.loadAcquire()))
@@ -151,7 +186,8 @@ void DTableRecognizerPrivate::start(const QImage &image, std::chrono::millisecon
 }
 
 DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
-                                                   std::chrono::steady_clock::time_point deadline)
+                                                   std::chrono::steady_clock::time_point deadline,
+                                                   qint64 budgetMs)
 {
     DTableResult result;
     result.success = false;
@@ -163,15 +199,52 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
     const auto pipelineStart = std::chrono::steady_clock::now();
     const auto now = pipelineStart;
     if (now > deadline) {
-        result.errorMessage = QStringLiteral("识别超时");
+        result.error = TableError::Timeout;
+        result.errorMessage = TableErrorUtils::detail(
+            QStringLiteral("timeout"), QStringLiteral("deadline exceeded before pipeline start"),
+            {{QStringLiteral("overdue_ms"),
+              QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(now - deadline).count())}});
         result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - pipelineStart).count();
         return result;
     }
 
+    // 超时判定：定时器置位，或本地已越过 deadline。
+    const auto isExpired = [&]() {
+        return timedOut.loadAcquire() != 0 || std::chrono::steady_clock::now() > deadline;
+    };
+    // 统一的超时收尾：丢弃结构结果，但保留「当时走的哪条路」用于定位。
+    const auto finishAsTimeout = [&]() {
+        const QString activeRoute = result.source;
+        result.cells.clear();
+        result.html.clear();
+        result.source.clear();
+        result.success = false;
+        result.error = TableError::Timeout;
+        result.errorMessage = TableErrorUtils::detail(
+            QStringLiteral("timeout"), QStringLiteral("recognition timed out"),
+            {{QStringLiteral("stage"), QStringLiteral("structure")},
+             {QStringLiteral("source"),
+              activeRoute.isEmpty() ? QStringLiteral("<none>") : activeRoute},
+             {QStringLiteral("budget_ms"), QString::number(budgetMs)},
+             {QStringLiteral("image"), imageSizeText(image)},
+             {QStringLiteral("elapsed_ms"),
+              QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::steady_clock::now() - pipelineStart).count())},
+             {QStringLiteral("overdue_ms"),
+              QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::steady_clock::now() - deadline).count())}});
+        result.structureMs = structureMsAccum;
+        result.ocrMs = ocrMsAccum;
+        result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - pipelineStart).count();
+        return result;
+    };
+
     // 阶段1：表格结构检测（主路径 SLANet_plus via ORT）。
     QList<DetectedCell> cells;
     QString error;
+    QStringList attempts;   // 各结构路径的失败诊断，最终拼进 errorMessage
     float slanetConfidence = 1.0f;   // M1：结构置信度（detect 成功时由模型 logits 填充）
     bool structOk = false;
     const bool modelRan = detector && detector->available();
@@ -180,12 +253,22 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         structOk = detector->detect(image, cells, error, &slanetConfidence);
         structureMsAccum += std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - t0).count();
-        if (!structOk)
+        if (!structOk) {
             qCWarning(lcTableRecognizer) << "Main path (SLANet_plus) detect failed:" << error
-                                          << "— will try quality path";
+                                          << "- will try quality path";
+            attempts << TableErrorUtils::detail(
+                QStringLiteral("slanet"),
+                error.isEmpty() ? QStringLiteral("detect failed") : error,
+                {{QStringLiteral("confidence"), QString::number(slanetConfidence, 'f', 3)},
+                 {QStringLiteral("cells"), QString::number(cells.size())},
+                 {QStringLiteral("failure"), QString::number(static_cast<int>(detector->lastFailure()))}});
+        }
     } else {
         qCWarning(lcTableRecognizer) << "Main path unavailable (model not loaded)"
-                                      << "— falling back to img2table";
+                                      << "- falling back to img2table";
+        attempts << TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("unavailable: model not loaded"),
+            {{QStringLiteral("model"), modelPath}});
     }
 
     // 阶段2（条件提前）：模型曾运行时提前做 OCR，供结构-内容一致性信号使用。
@@ -249,6 +332,16 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         const bool routeToWirelessByDensity = modelRan && !m1Gate && weakLine && ocrDone;
         const bool useWireless = routeToWireless || routeToWirelessByDensity;
 
+        if (modelRan) {
+            attempts << TableErrorUtils::detail(
+                QStringLiteral("slanet"), QStringLiteral("structure rejected by quality gate"),
+                {{QStringLiteral("confidence"), QString::number(slanetConfidence, 'f', 3)},
+                 {QStringLiteral("cells"), QString::number(cells.size())},
+                 {QStringLiteral("slanet_cols"), QString::number(slanetCols)},
+                 {QStringLiteral("ocr_col_clusters"), QString::number(ocrColClusters)},
+                 {QStringLiteral("line_density"), QString::number(lineDensityVal, 'f', 5)},
+                 {QStringLiteral("route"), useWireless ? QStringLiteral("wireless") : QStringLiteral("img2table")}});
+        }
         qCWarning(lcTableRecognizer) << "Main path untrusted (structOk=" << structOk
                                       << "confidence=" << slanetConfidence
                                       << "cells=" << cells.size()
@@ -256,7 +349,7 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
                                       << "ocrColClusters=" << ocrColClusters
                                       << "lineDensity=" << lineDensityVal
                                       << "route=" << (useWireless ? "wireless" : "img2table")
-                                      << ") — entering quality path";
+                                      << ") - entering quality path";
         cells.clear();
         const auto t0 = std::chrono::steady_clock::now();
         bool gotStructure = false;
@@ -266,6 +359,10 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
                 gotStructure = true;
             } else {
                 qCWarning(lcTableRecognizer) << "Wireless heuristic failed:" << error;
+                attempts << (error.isEmpty()
+                                 ? TableErrorUtils::detail(QStringLiteral("wireless"),
+                                                           QStringLiteral("no cells built"))
+                                 : error);
             }
         }
         if (!gotStructure) {
@@ -274,8 +371,16 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
                 if (cells.isEmpty()) {
                     structureMsAccum += std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::steady_clock::now() - t0).count();
+                    if (isExpired())
+                        return finishAsTimeout();
                     result.success = false;
-                    result.errorMessage = QStringLiteral("未识别到表格");
+                    result.error = TableError::NoTableDetected;
+                    result.errorMessage = TableErrorUtils::detail(
+                        QStringLiteral("structure"), QStringLiteral("no table detected"),
+                        {{QStringLiteral("route"), QStringLiteral("img2table")},
+                         {QStringLiteral("cells"), QStringLiteral("0")},
+                         {QStringLiteral("image"), imageSizeText(image)},
+                         {QStringLiteral("attempts"), attempts.join(QStringLiteral(" | "))}});
                     result.structureMs = structureMsAccum;
                     result.ocrMs = ocrMsAccum;
                     result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -289,7 +394,29 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         structureMsAccum += std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - t0).count();
         if (!gotStructure) {
-            result.errorMessage = error.isEmpty() ? QStringLiteral("未识别到表格") : error;
+            if (!error.isEmpty())
+                attempts << error;
+            // 已越过 deadline：各路径的结论都不再可信，统一按超时上报。
+            if (isExpired())
+                return finishAsTimeout();
+            // 主路径内部异常（推理失败 / 输出不符约定 / 预处理失败），或降级路径内部处理失败时，
+            // 不能断言「图里没有表格」，上报 InternalError 并带上原因与各路径尝试记录。
+            const bool mainInternalFailure =
+                modelRan && detector
+                && (detector->lastFailure() == TableStructureDetector::Failure::InferenceFailed
+                    || detector->lastFailure() == TableStructureDetector::Failure::BadOutput
+                    || detector->lastFailure() == TableStructureDetector::Failure::PreprocessFailed);
+            const bool fallbackInternalFailure =
+                fallback.lastFailure() == Img2TableFallback::Failure::ConversionFailed;
+            const bool internalFailure = mainInternalFailure || fallbackInternalFailure;
+            result.error = internalFailure ? TableError::InternalError : TableError::NoTableDetected;
+            result.errorMessage = TableErrorUtils::detail(
+                QStringLiteral("structure"),
+                internalFailure ? QStringLiteral("no table detected, main path failed internally")
+                                : QStringLiteral("no table detected by any route"),
+                {{QStringLiteral("image"), imageSizeText(image)},
+                 {QStringLiteral("cells"), QString::number(cells.size())},
+                 {QStringLiteral("attempts"), attempts.join(QStringLiteral(" | "))}});
             result.structureMs = structureMsAccum;
             result.ocrMs = ocrMsAccum;
             result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -300,18 +427,8 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         result.source = QStringLiteral("SLANet_plus");
     }
 
-    if (timedOut.loadAcquire() || std::chrono::steady_clock::now() > deadline) {
-        result.cells.clear();
-        result.html.clear();
-        result.source.clear();
-        result.errorMessage = QStringLiteral("识别超时");
-        result.success = false;
-        result.structureMs = structureMsAccum;
-        result.ocrMs = ocrMsAccum;
-        result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - pipelineStart).count();
-        return result;
-    }
+    if (isExpired())
+        return finishAsTimeout();
 
     qCDebug(lcTableRecognizer) << "Instrumentation: confidence=" << slanetConfidence
                                << "slanetCols=" << slanetCols
@@ -324,7 +441,37 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
         if (!ocr.recognize(image, ocrBoxes, error)) {
             ocrMsAccum += std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - t0).count();
-            result.errorMessage = QStringLiteral("OCR 失败：%1").arg(error);
+            // 结构已识别出来，文字缺失不应把结构一起丢掉：cells/html 尽力保留，
+            // 由调用方决定是否降级使用（success 仍为 false）。
+            result.cells = toPublicCells(cells);
+            result.html = HtmlTableBuilder::build(result.cells);
+
+            QString what = QStringLiteral("table structure detected, OCR failed");
+            switch (ocr.lastFailure()) {
+            case DtkOcrWrapper::Failure::NoTextDetected:
+                result.error = TableError::NoTextDetected;
+                what = QStringLiteral("table structure detected, no text recognized");
+                break;
+            case DtkOcrWrapper::Failure::PluginUnavailable:
+                result.error = TableError::OcrEngineUnavailable;
+                what = QStringLiteral("table structure detected, OCR engine unavailable");
+                break;
+            case DtkOcrWrapper::Failure::InvalidImage:
+                result.error = TableError::InvalidImage;
+                what = QStringLiteral("table structure detected, invalid input image");
+                break;
+            case DtkOcrWrapper::Failure::EngineFailed:
+            case DtkOcrWrapper::Failure::None:
+                result.error = TableError::OcrFailed;
+                break;
+            }
+            result.errorMessage = TableErrorUtils::detail(
+                QStringLiteral("ocr"), what,
+                {{QStringLiteral("ocr_failure"), QString::number(static_cast<int>(ocr.lastFailure()))},
+                 {QStringLiteral("source"), result.source},
+                 {QStringLiteral("cells"), QString::number(result.cells.size())},
+                 {QStringLiteral("ocr_error"), error},
+                 {QStringLiteral("image"), imageSizeText(image)}});
             result.structureMs = structureMsAccum;
             result.ocrMs = ocrMsAccum;
             result.totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -339,18 +486,7 @@ DTableResult DTableRecognizerPrivate::runPipeline(QImage image,
     mapper.map(cells, ocrBoxes);
 
     // 转 public 数据结构。
-    QList<DTableCell> publicCells;
-    publicCells.reserve(cells.size());
-    for (const DetectedCell &dc : cells) {
-        DTableCell pc;
-        pc.row = dc.row;
-        pc.col = dc.col;
-        pc.rowSpan = dc.rowSpan;
-        pc.colSpan = dc.colSpan;
-        pc.bbox = dc.bbox;
-        pc.text = dc.text;
-        publicCells.append(pc);
-    }
+    const QList<DTableCell> publicCells = toPublicCells(cells);
 
     // 阶段4：构建 HTML。
     result.html = HtmlTableBuilder::build(publicCells);

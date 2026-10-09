@@ -4,6 +4,8 @@
 
 #include "TableStructureDetector.h"
 
+#include "TableErrorUtils.h"
+
 #include "OrtInferenceEngine.h"
 
 #include <QDebug>
@@ -108,19 +110,29 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
                                        float *confidence)
 {
     cells.clear();
+    m_failure = Failure::None;
     if (!available()) {
-        error = QStringLiteral("表格结构检测器不可用：ORT 模型未加载");
+        m_failure = Failure::Unavailable;
+        error = TableErrorUtils::detail(QStringLiteral("slanet"),
+                                        QStringLiteral("unavailable: ORT model not loaded"));
         return false;
     }
     if (image.isNull()) {
-        error = QStringLiteral("输入图片无效");
+        m_failure = Failure::InvalidImage;
+        error = TableErrorUtils::detail(QStringLiteral("slanet"),
+                                        QStringLiteral("invalid input image"),
+                                        {{QStringLiteral("image"), QStringLiteral("null")}});
         return false;
     }
 
     constexpr int kInputSize = 488;
     std::vector<float> input = preprocess(image, kInputSize);
     if (input.empty()) {
-        error = QStringLiteral("图片预处理失败");
+        m_failure = Failure::PreprocessFailed;
+        error = TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("image preprocessing failed"),
+            {{QStringLiteral("image"), QStringLiteral("%1x%2").arg(image.width()).arg(image.height())},
+             {QStringLiteral("input_size"), QString::number(kInputSize)}});
         return false;
     }
 
@@ -128,13 +140,20 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
     std::vector<std::vector<int64_t>> outShapes;
     std::vector<std::vector<float>> outputs = m_engine->run(input, shape, &outShapes);
     if (outputs.empty()) {
-        error = m_engine->lastError();
-        if (error.isEmpty())
-            error = QStringLiteral("ORT 推理无输出");
+        m_failure = Failure::InferenceFailed;
+        const QString engineError = m_engine->lastError();
+        error = TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("ORT inference produced no output"),
+            {{QStringLiteral("engine_error"), engineError.isEmpty() ? QStringLiteral("none") : engineError},
+             {QStringLiteral("engine_failure"), QString::number(static_cast<int>(m_engine->lastFailure()))}});
         return false;
     }
     if (outputs.size() < 2) {
-        error = QStringLiteral("ORT 输出节点不足（需结构与 bbox 两个）");
+        m_failure = Failure::BadOutput;
+        error = TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("ORT output nodes are not enough"),
+            {{QStringLiteral("nodes"), QString::number(outputs.size())},
+             {QStringLiteral("expect"), QStringLiteral(">=2")}});
         return false;
     }
 
@@ -202,7 +221,11 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
     } else {
         qWarning() << "TableStructureDetector: cannot determine V from output shape, "
                    << "structOut size =" << structOut.size() << "V =" << V;
-        error = QStringLiteral("结构输出形状解析失败");
+        m_failure = Failure::BadOutput;
+        error = TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("failed to parse structure output shape"),
+            {{QStringLiteral("struct_out"), QString::number(structOut.size())},
+             {QStringLiteral("V"), QString::number(V)}});
         return false;
     }
 
@@ -229,10 +252,21 @@ bool TableStructureDetector::detect(const QImage &image, QList<DetectedCell> &ce
         for (size_t i = 0; i < structIds.size() && i < 50; ++i)
             idsStr += QString::number(structIds[i]) + QLatin1Char(' ');
         qWarning() << "TableStructureDetector: first 50 structIds:" << idsStr;
-        error = QStringLiteral("未识别到表格（结构解码无单元格）");
+        m_failure = Failure::NoStructure;
+        error = TableErrorUtils::detail(
+            QStringLiteral("slanet"), QStringLiteral("no table detected"),
+            {{QStringLiteral("tokens"), QString::number(structIds.size())},
+             {QStringLiteral("cells"), QStringLiteral("0")},
+             {QStringLiteral("V"), QString::number(V)},
+             {QStringLiteral("T"), QString::number(T)}});
         return false;
     }
     return true;
+}
+
+TableStructureDetector::Failure TableStructureDetector::lastFailure() const
+{
+    return m_failure;
 }
 
 float TableStructureDetector::meanMaxConfidence(const std::vector<float> &logits, int V, int T,

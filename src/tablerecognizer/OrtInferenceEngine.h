@@ -38,7 +38,19 @@ public:
     // 返回模型输出名称列表（loadModel 成功后有效）。
     QStringList outputNames() const;
 
+    // 失败分类（与 lastError() 配合使用；lastError() 为详细诊断文本）。
+    enum class Failure {
+        None = 0,
+        ModelPathEmpty,   // 模型路径为空
+        ModelNotFound,    // 模型文件不存在
+        LoadFailed,       // Session 构建/加载抛异常
+        NotLoaded,        // 未加载模型就调用 run()
+        InvalidInput,     // 输入张量为空
+        InferenceFailed,  // run() 抛异常（ORT 或 std 异常）
+    };
+
     QString lastError() const;
+    Failure lastFailure() const;
 
 private:
     class Impl;

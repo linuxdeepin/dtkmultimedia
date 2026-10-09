@@ -31,6 +31,18 @@ public:
     // 引擎已加载模型时返回 true。
     bool available() const;
 
+    // 最近一次 detect() 的失败分类（与 error 出参的详细诊断文本配合使用）。
+    enum class Failure {
+        None = 0,
+        Unavailable,       // ORT 模型未加载
+        InvalidImage,      // 传入图片无效
+        PreprocessFailed,  // 预处理失败
+        InferenceFailed,   // ORT 推理失败/无输出（含引擎内部异常）
+        BadOutput,         // 输出节点数/形状不符合模型约定
+        NoStructure,       // 解码后没有任何单元格（图片里没有表格）
+    };
+    Failure lastFailure() const;
+
     // ===== 以下为可单独测试的纯逻辑接口 =====
 
     // QImage -> NCHW float 张量（resize 到 inputSize，归一化 mean/std）。
@@ -59,6 +71,7 @@ public:
 
 private:
     OrtInferenceEngine *m_engine;
+    Failure m_failure = Failure::None;
 };
 
 D_TABLERECOGNIZER_END_NAMESPACE

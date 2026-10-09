@@ -68,6 +68,7 @@ public:
     QStringList inputNames;
     QStringList outputNames;
     QString lastError;
+    OrtInferenceEngine::Failure lastFailure = OrtInferenceEngine::Failure::None;
     bool loaded = false;
 };
 
@@ -83,16 +84,19 @@ bool OrtInferenceEngine::loadModel(const QString &modelPath)
     d->loaded = false;
     d->session.reset();
     d->lastError.clear();
+    d->lastFailure = Failure::None;
     d->inputNames.clear();
     d->outputNames.clear();
 
     if (modelPath.isEmpty()) {
-        d->lastError = QStringLiteral("模型路径为空");
+        d->lastFailure = Failure::ModelPathEmpty;
+        d->lastError = QStringLiteral("model path is empty");
         return false;
     }
     const QFileInfo info(modelPath);
     if (!info.exists() || !info.isFile()) {
-        d->lastError = QStringLiteral("模型文件不存在: %1").arg(modelPath);
+        d->lastFailure = Failure::ModelNotFound;
+        d->lastError = QStringLiteral("model file not found: %1").arg(modelPath);
         return false;
     }
 
@@ -140,11 +144,13 @@ bool OrtInferenceEngine::loadModel(const QString &modelPath)
         d->loaded = true;
         return true;
     } catch (const Ort::Exception &e) {
-        d->lastError = QStringLiteral("ORT 加载失败: %1").arg(QString::fromUtf8(e.what()));
+        d->lastFailure = Failure::LoadFailed;
+        d->lastError = QStringLiteral("ORT load failed: %1").arg(QString::fromUtf8(e.what()));
         d->session.reset();
         return false;
     } catch (const std::exception &e) {
-        d->lastError = QStringLiteral("ORT 加载异常: %1").arg(QString::fromUtf8(e.what()));
+        d->lastFailure = Failure::LoadFailed;
+        d->lastError = QStringLiteral("ORT load exception: %1").arg(QString::fromUtf8(e.what()));
         d->session.reset();
         return false;
     }
@@ -161,11 +167,13 @@ std::vector<std::vector<float>> OrtInferenceEngine::run(const std::vector<float>
 {
     std::vector<std::vector<float>> outputs;
     if (!isLoaded()) {
-        d->lastError = QStringLiteral("模型未加载");
+        d->lastFailure = Failure::NotLoaded;
+        d->lastError = QStringLiteral("model not loaded");
         return outputs;
     }
     if (input.empty() || inputShape.empty()) {
-        d->lastError = QStringLiteral("输入张量为空");
+        d->lastFailure = Failure::InvalidInput;
+        d->lastError = QStringLiteral("input tensor is empty");
         return outputs;
     }
 
@@ -204,10 +212,13 @@ std::vector<std::vector<float>> OrtInferenceEngine::run(const std::vector<float>
                 outShapes->emplace_back(shape.begin(), shape.end());
         }
         d->lastError.clear();
+        d->lastFailure = Failure::None;
     } catch (const Ort::Exception &e) {
-        d->lastError = QStringLiteral("ORT 推理失败: %1").arg(QString::fromUtf8(e.what()));
+        d->lastFailure = Failure::InferenceFailed;
+        d->lastError = QStringLiteral("ORT inference failed: %1").arg(QString::fromUtf8(e.what()));
     } catch (const std::exception &e) {
-        d->lastError = QStringLiteral("ORT 推理异常: %1").arg(QString::fromUtf8(e.what()));
+        d->lastFailure = Failure::InferenceFailed;
+        d->lastError = QStringLiteral("ORT inference exception: %1").arg(QString::fromUtf8(e.what()));
     }
     return outputs;
 }
@@ -225,6 +236,11 @@ QStringList OrtInferenceEngine::outputNames() const
 QString OrtInferenceEngine::lastError() const
 {
     return d ? d->lastError : QString();
+}
+
+OrtInferenceEngine::Failure OrtInferenceEngine::lastFailure() const
+{
+    return d ? d->lastFailure : Failure::None;
 }
 
 D_TABLERECOGNIZER_END_NAMESPACE

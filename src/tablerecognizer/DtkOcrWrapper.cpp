@@ -4,6 +4,8 @@
 
 #include "DtkOcrWrapper.h"
 
+#include "TableErrorUtils.h"
+
 #include <DOcr>
 
 #include <QtDebug>
@@ -30,18 +32,44 @@ bool DtkOcrWrapper::initialize()
 bool DtkOcrWrapper::recognize(const QImage &image, QList<OcrTextBox> &boxes, QString &error)
 {
     boxes.clear();
+    m_failure = Failure::None;
     if (!m_loaded && !initialize()) {
-        error = QStringLiteral("OCR 插件未就绪");
+        m_failure = Failure::PluginUnavailable;
+        const QStringList installed = m_ocr.installedPluginNames();
+        error = TableErrorUtils::detail(
+            QStringLiteral("ocr"), QStringLiteral("engine unavailable"),
+            {{QStringLiteral("plugin"), QStringLiteral("PPOCR_V5")},
+             {QStringLiteral("installed"),
+              installed.isEmpty() ? QStringLiteral("none") : installed.join(QLatin1Char(','))}});
         return false;
     }
     if (image.isNull()) {
-        error = QStringLiteral("输入图片无效");
+        m_failure = Failure::InvalidImage;
+        error = TableErrorUtils::detail(QStringLiteral("ocr"), QStringLiteral("invalid input image"),
+                                        {{QStringLiteral("image"), QStringLiteral("null")}});
         return false;
     }
 
     m_ocr.setImage(image);
     if (!m_ocr.analyze()) {
-        error = QStringLiteral("OCR analyze 失败");
+        // PPOCR_V5 的 analyze() 用 false 同时表示「执行失败」和「一个文本框都没有」
+        // （实现见 src/ocr/ppocr/ppocrv5.cpp 的 `return !allTextBoxes.empty();`）。
+        // 这里按「引擎可用 + 文本框数为 0」判定为无文字，使上层能区分
+        // 「图里没有文字」和「OCR 挂了」——否则两者都会落成同一个错误码。
+        const int boxCount = m_ocr.textBoxes().size();
+        const QList<TableErrorUtils::Field> fields = {
+            {QStringLiteral("engine"), QStringLiteral("PPOCR_V5")},
+            {QStringLiteral("boxes"), QString::number(boxCount)},
+            {QStringLiteral("image"), QStringLiteral("%1x%2").arg(image.width()).arg(image.height())}};
+        if (boxCount == 0) {
+            m_failure = Failure::NoTextDetected;
+            error = TableErrorUtils::detail(QStringLiteral("ocr"), QStringLiteral("no text detected"),
+                                            fields);
+            return false;
+        }
+        m_failure = Failure::EngineFailed;
+        error = TableErrorUtils::detail(QStringLiteral("ocr"), QStringLiteral("analyze failed"),
+                                        fields);
         return false;
     }
 
@@ -70,6 +98,11 @@ bool DtkOcrWrapper::recognize(const QImage &image, QList<OcrTextBox> &boxes, QSt
 bool DtkOcrWrapper::available() const
 {
     return m_loaded;
+}
+
+DtkOcrWrapper::Failure DtkOcrWrapper::lastFailure() const
+{
+    return m_failure;
 }
 
 D_TABLERECOGNIZER_END_NAMESPACE
