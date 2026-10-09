@@ -7,6 +7,7 @@
 #include "../src/tablerecognizer/TableStructureDetector.h"
 #include "../src/tablerecognizer/DtkOcrWrapper.h"
 #include "../src/tablerecognizer/Img2TableFallback.h"
+#include "../src/tablerecognizer/dtablerecognizer_p.h"
 
 #include <gtest/gtest.h>
 #include <QImage>
@@ -29,6 +30,16 @@ static DTableResult waitForDone(QSignalSpy &spy, int timeoutMs = 5000)
     if (spy.isEmpty())
         return DTableResult{};
     return qvariant_cast<DTableResult>(spy.takeFirst().at(0));
+}
+
+// 诊断信息（errorMessage）必须为纯 ASCII：库内不再出现中文/本地化文案。
+static bool isAsciiOnly(const QString &text)
+{
+    for (const QChar &c : text) {
+        if (c.unicode() > 0x7F)
+            return false;
+    }
+    return true;
 }
 
 // 生成带清晰网格线的有线表图（高线密度），供需要「非弱线」场景的用例使用。
@@ -59,7 +70,7 @@ TEST(ut_DTableRecognizer, invalidImageEmitsFailure)
     recognizer.recognizeAsync(QImage());
     const DTableResult result = waitForDone(spy, 2000);
     EXPECT_FALSE(result.success);
-    EXPECT_EQ(result.errorMessage.toStdString(), "输入图片无效");
+    EXPECT_EQ(result.error, TableError::InvalidImage);
 }
 
 // 用例2：超时返回失败。stub detect 阻塞，使超时定时器先触发。
@@ -73,7 +84,7 @@ TEST(ut_DTableRecognizer, timeoutReturnsFailure)
     stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
     // 降级路径阻塞 300ms，确保 10ms 超时先触发。
     stub.set_lamda(ADDR(Img2TableFallback, detect),
-                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &) {
                        std::this_thread::sleep_for(std::chrono::milliseconds(300));
                        return false;
                    });
@@ -83,7 +94,10 @@ TEST(ut_DTableRecognizer, timeoutReturnsFailure)
     recognizer.recognizeAsync(image, std::chrono::milliseconds(10));
     const DTableResult result = waitForDone(spy, 3000);
     EXPECT_FALSE(result.success);
-    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("超时")));
+    EXPECT_EQ(result.error, TableError::Timeout);
+    // 诊断信息必须带上下文（阶段 + 超时预算），而不是一句笼统文案。
+    EXPECT_TRUE(result.errorMessage.startsWith(QStringLiteral("timeout: ")));
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("budget_ms=")));
 }
 
 // 用例3a：竞态修复——超时后旧工作线程未退出前，busy 锁不释放，新任务被单飞
@@ -112,7 +126,7 @@ TEST(ut_DTableRecognizer, timeoutHoldsBusyUntilWorkerExits)
     ASSERT_EQ(spy.count(), 1);
     const DTableResult first = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
     EXPECT_FALSE(first.success);
-    EXPECT_TRUE(first.errorMessage.contains(QStringLiteral("超时")));
+    EXPECT_EQ(first.error, TableError::Timeout);
 
     // 超时后立即发起第二次调用——旧工作线程仍在运行（阻塞 500ms），
     // busy 锁未释放，单飞守卫应拒绝而非启动新任务。
@@ -121,7 +135,7 @@ TEST(ut_DTableRecognizer, timeoutHoldsBusyUntilWorkerExits)
     ASSERT_EQ(spy.count(), 1);
     const DTableResult second = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
     EXPECT_FALSE(second.success);
-    EXPECT_EQ(second.errorMessage.toStdString(), "已有识别任务在执行");
+    EXPECT_EQ(second.error, TableError::Busy);
 
     // 等待旧工作线程退出（~500ms），确认不再产生过期结果信号。
     EXPECT_FALSE(spy.wait(1000));
@@ -147,13 +161,13 @@ TEST(ut_DTableRecognizer, staleTimeoutTimerFilteredByTaskId)
     QImage image(100, 100, QImage::Format_RGB32);
     image.fill(Qt::white);
 
-    // 任务 A：长超时（2000ms），工作线程立即完成并投递「未识别到表格」失败。
+    // 任务 A：长超时（2000ms），工作线程立即完成并投递 NoTableDetected 失败。
     recognizer.recognizeAsync(image, std::chrono::milliseconds(2000));
     ASSERT_TRUE(spy.wait(3000));
     ASSERT_EQ(spy.count(), 1);
     const DTableResult first = qvariant_cast<DTableResult>(spy.takeFirst().at(0));
     EXPECT_FALSE(first.success);
-    EXPECT_TRUE(first.errorMessage.contains(QStringLiteral("未识别到表格")));
+    EXPECT_EQ(first.error, TableError::NoTableDetected);
 
     // 任务 A 完成后 busy 已释放，任务 B 进入（重置 emitted/timedOut/taskId）。
     // 任务 A 的 2000ms 超时定时器仍在 pending，届时应被 taskId 过滤。
@@ -217,6 +231,7 @@ TEST(ut_DTableRecognizer, degradationPathSetsSource)
     recognizer.recognizeAsync(image, std::chrono::seconds(10));
     const DTableResult result = waitForDone(spy, 5000);
     EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.error, TableError::None);
     EXPECT_EQ(result.source.toStdString(), "img2table");
     ASSERT_EQ(result.cells.size(), 1);
     EXPECT_EQ(result.cells[0].text.toStdString(), "A");
@@ -316,7 +331,7 @@ TEST(ut_DTableRecognizer, singleFlightRejectDoesNotSwallowInFlightResult)
     const DTableResult &reject = r0.success ? r1 : r0;
     const DTableResult &real = r0.success ? r0 : r1;
     EXPECT_FALSE(reject.success);
-    EXPECT_TRUE(reject.errorMessage.contains(QStringLiteral("已有识别任务在执行")));
+    EXPECT_EQ(reject.error, TableError::Busy);
     EXPECT_TRUE(real.success);
     EXPECT_EQ(real.source.toStdString(), "img2table");
     ASSERT_EQ(real.cells.size(), 1);
@@ -365,10 +380,10 @@ TEST(ut_DTableRecognizer, reuseInstanceReceivesResultAfterSuccess)
     ASSERT_EQ(spy.count(), 2);
     const DTableResult second = qvariant_cast<DTableResult>(spy.at(1).at(0));
     EXPECT_FALSE(second.success);
-    EXPECT_EQ(second.errorMessage.toStdString(), "输入图片无效");
+    EXPECT_EQ(second.error, TableError::InvalidImage);
 }
 
-// 用例8：OCR 失败分支（success=false、errorMessage 含「OCR 失败」）。
+// 用例8：OCR 失败分支（success=false、error 为 OcrFailed）。
 TEST(ut_DTableRecognizer, ocrFailureReturnsFailure)
 {
     DTableRecognizer recognizer;
@@ -387,19 +402,21 @@ TEST(ut_DTableRecognizer, ocrFailureReturnsFailure)
                    });
     stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
                    [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
-                       err = QStringLiteral("plugin not loaded");
+                       err = QStringLiteral("ocr: analyze failed (engine=PPOCR_V5; boxes=0)");
                        return false;
                    });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::EngineFailed; });
 
     QImage image(100, 100, QImage::Format_RGB32);
     image.fill(Qt::white);
     recognizer.recognizeAsync(image, std::chrono::seconds(10));
     const DTableResult result = waitForDone(spy, 5000);
     EXPECT_FALSE(result.success);
-    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("OCR 失败")));
+    EXPECT_EQ(result.error, TableError::OcrFailed);
 }
 
-// 用例9：主路径与降级均无结构（errorMessage 含「未识别到表格」）。
+// 用例9：主路径与降级均无结构（error 为 NoTableDetected），且诊断信息带各路径尝试记录。
 TEST(ut_DTableRecognizer, noStructureReturnsFailure)
 {
     DTableRecognizer recognizer;
@@ -417,7 +434,309 @@ TEST(ut_DTableRecognizer, noStructureReturnsFailure)
     recognizer.recognizeAsync(image, std::chrono::seconds(10));
     const DTableResult result = waitForDone(spy, 5000);
     EXPECT_FALSE(result.success);
-    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("未识别到表格")));
+    EXPECT_EQ(result.error, TableError::NoTableDetected);
+    EXPECT_TRUE(result.errorMessage.startsWith(QStringLiteral("structure: ")));
+    // 审查意见 6：不能只断言存在 attempts= 键（空 attempts 也能通过），
+    // 必须断言各路径的真实失败原因被记录进 attempts。
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("attempts=slanet: ")));
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("unavailable: model not loaded")));
+}
+
+// ===== 错误码细分：OCR 语义 =====
+
+// 「有结构、无文字」：不再混成 OcrFailed，且结构（cells/html）必须保留。
+TEST(ut_DTableRecognizer, noTextDetectedKeepsStructure)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 50, 50);
+                       cells.append(c);
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
+                       err = QStringLiteral("ocr: no text detected (engine=PPOCR_V5; boxes=0)");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::NoTextDetected; });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::NoTextDetected);
+    EXPECT_EQ(result.source.toStdString(), "img2table");
+    // 结构不能因为文字缺失被丢掉。
+    ASSERT_EQ(result.cells.size(), 1);
+    EXPECT_FALSE(result.html.isEmpty());
+    EXPECT_TRUE(result.errorMessage.startsWith(QStringLiteral("ocr: ")));
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("no text recognized")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// OCR 插件不可用：环境问题，独立错误码（与「引擎执行报错」区分）。
+TEST(ut_DTableRecognizer, ocrEngineUnavailableReported)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &cells, QString &) {
+                       DetectedCell c;
+                       c.row = 0;
+                       c.col = 0;
+                       c.bbox = QRectF(0, 0, 50, 50);
+                       cells.append(c);
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
+                       err = QStringLiteral("ocr: engine unavailable (plugin=PPOCR_V5; installed=none)");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::PluginUnavailable; });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::OcrEngineUnavailable);
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("engine unavailable")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// ===== 错误码细分：主路径内部异常 =====
+
+// 主路径 ORT 推理内部失败 + 降级路径无结构 → InternalError（不能断言「图里没有表格」）。
+TEST(ut_DTableRecognizer, internalErrorWhenMainPathFailsInternally)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &,
+                      QString &err, float *confidence) {
+                       err = QStringLiteral("slanet: ORT inference produced no output "
+                                            "(engine_error=ORT inference failed: boom)");
+                       if (confidence)
+                           *confidence = 0.0f;
+                       return false;
+                   });
+    stub.set_lamda(ADDR(TableStructureDetector, lastFailure),
+                   []() { return TableStructureDetector::Failure::InferenceFailed; });
+    // 提前 OCR 也失败，且降级路径无结构。
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
+                       err = QStringLiteral("ocr: analyze failed (engine=PPOCR_V5; boxes=0)");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::EngineFailed; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &err) {
+                       err = QStringLiteral("img2table: no table lines detected (h_lines=0; v_lines=0)");
+                       return false;
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::InternalError);
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("failed internally")));
+    // 各路径的尝试记录都要保留，便于定位。
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("slanet: ")));
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("img2table: ")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// 降级路径内部处理失败（QImage->cv::Mat 转换失败）：不能断言「图里没有表格」，
+// 必须上报 InternalError——否则会把内部错误伪装成「确实没有表格」。
+TEST(ut_DTableRecognizer, internalErrorWhenFallbackConversionFails)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    // 主路径不可用（模型未加载），只剩降级路径。
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    // 降级路径失败，且原因是内部处理失败（转换失败）而非「确实没有表格」。
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &err) {
+                       err = QStringLiteral("img2table: failed to convert image (image=100x100)");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(Img2TableFallback, lastFailure),
+                   []() { return Img2TableFallback::Failure::ConversionFailed; });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::InternalError);
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("failed internally")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// SLANet 预处理失败 + 降级无结构：属于内部异常，必须 InternalError（此前漏判 PreprocessFailed）。
+TEST(ut_DTableRecognizer, internalErrorWhenSlanetPreprocessFails)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &,
+                      QString &err, float *confidence) {
+                       err = QStringLiteral("slanet: preprocess failed (resize)");
+                       if (confidence)
+                           *confidence = 0.0f;
+                       return false;
+                   });
+    stub.set_lamda(ADDR(TableStructureDetector, lastFailure),
+                   []() { return TableStructureDetector::Failure::PreprocessFailed; });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
+                       err = QStringLiteral("ocr: analyze failed");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::EngineFailed; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &err) {
+                       err = QStringLiteral("img2table: no table lines detected");
+                       return false;
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult result = waitForDone(spy, 5000);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::InternalError);
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("failed internally")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// ===== 超时（deadline）语义：审查意见 1 / 5 =====
+// 白盒：直接驱动 runPipeline，用「已越过 deadline」稳定复现工作线程侧的三个 no-structure /
+// 已识别分支。不能说「靠公共信号」触发——外层超时定时器会先投递 stage=pipeline 的超时结果。
+
+// 意见 1：结构路径越过 deadline 且最终无结构时，必须报 Timeout，而不是 NoTableDetected/InternalError。
+TEST(ut_DTableRecognizer, expiredNoStructureReportsTimeout)
+{
+    DTableRecognizer recognizer;
+    DTableRecognizerPrivate *priv = recognizer.findChild<DTableRecognizerPrivate *>();
+    ASSERT_NE(priv, nullptr);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &err, float *confidence) {
+                       std::this_thread::sleep_for(std::chrono::milliseconds(120));   // 越过 deadline
+                       cells.clear();
+                       err = QStringLiteral("slanet: no cells built");
+                       if (confidence)
+                           *confidence = 0.0f;
+                       return false;
+                   });
+    stub.set_lamda(ADDR(TableStructureDetector, lastFailure),
+                   []() { return TableStructureDetector::Failure::BadOutput; });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &, QString &err) {
+                       err = QStringLiteral("ocr: analyze failed");
+                       return false;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, lastFailure),
+                   []() { return DtkOcrWrapper::Failure::EngineFailed; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &err) {
+                       err = QStringLiteral("img2table: no table lines detected");
+                       return false;
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(30);
+    const DTableResult result = priv->runPipeline(image, deadline, 30);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::Timeout);   // 不是 NoTableDetected/InternalError
+    EXPECT_TRUE(result.errorMessage.startsWith(QStringLiteral("timeout: ")));
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("stage=structure")));
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
+}
+
+// 意见 5：超时诊断必须保留当时的 source（此前先 clear 再取值，source 恒为空）。
+TEST(ut_DTableRecognizer, timeoutDiagnosticKeepsSource)
+{
+    DTableRecognizer recognizer;
+    DTableRecognizerPrivate *priv = recognizer.findChild<DTableRecognizerPrivate *>();
+    ASSERT_NE(priv, nullptr);
+
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return true; });
+    stub.set_lamda(ADDR(TableStructureDetector, detect),
+                   [](TableStructureDetector *, const QImage &, QList<DetectedCell> &cells,
+                      QString &, float *confidence) {
+                       std::this_thread::sleep_for(std::chrono::milliseconds(120));   // 越过 deadline
+                       DetectedCell c0;
+                       c0.row = 0;
+                       c0.col = 0;
+                       c0.bbox = QRectF(0, 0, 50, 100);
+                       DetectedCell c1;
+                       c1.row = 0;
+                       c1.col = 1;
+                       c1.bbox = QRectF(50, 0, 50, 100);
+                       cells << c0 << c1;
+                       if (confidence)
+                           *confidence = 0.9f;
+                       return true;
+                   });
+    stub.set_lamda(ADDR(DtkOcrWrapper, recognize),
+                   [](DtkOcrWrapper *, const QImage &, QList<OcrTextBox> &boxes, QString &) {
+                       OcrTextBox box;
+                       box.bbox = QRectF(10, 10, 20, 20);
+                       box.text = QStringLiteral("A");
+                       boxes.append(box);
+                       return true;
+                   });
+
+    QImage image(300, 300, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(30);
+    const DTableResult result = priv->runPipeline(image, deadline, 30);
+
+    EXPECT_FALSE(result.success);
+    EXPECT_EQ(result.error, TableError::Timeout);
+    EXPECT_TRUE(result.errorMessage.contains(QStringLiteral("source=SLANet_plus")))
+        << result.errorMessage.toStdString();
+    EXPECT_TRUE(isAsciiOnly(result.errorMessage)) << result.errorMessage.toStdString();
 }
 
 // ===== M1：SLANet 置信度门集成 =====
@@ -677,3 +996,36 @@ TEST(ut_DTableRecognizer, splitColumnsKeepsSlanet)
     ASSERT_EQ(result.cells.size(), 3);
 }
 
+
+// ===== 错误码契约 =====
+// 库对外只承诺错误码（TableError）：成功必为 None、失败必为非 None；
+// errorMessage 仅作诊断使用，必须为纯 ASCII（库内不再出现中文文案）。
+TEST(ut_DTableRecognizer, errorCodeContract)
+{
+    DTableRecognizer recognizer;
+    QSignalSpy spy(&recognizer, &DTableRecognizer::recognitionDone);
+
+    // 空图片：InvalidImage，且诊断信息为纯 ASCII。
+    recognizer.recognizeAsync(QImage());
+    const DTableResult invalid = waitForDone(spy, 2000);
+    EXPECT_FALSE(invalid.success);
+    EXPECT_EQ(invalid.error, TableError::InvalidImage);
+    EXPECT_TRUE(isAsciiOnly(invalid.errorMessage)) << invalid.errorMessage.toStdString();
+
+    // 主路径与降级路径均无结构：NoTableDetected。
+    stub_ext::StubExt stub;
+    stub.set_lamda(ADDR(TableStructureDetector, available), []() { return false; });
+    stub.set_lamda(ADDR(Img2TableFallback, detect),
+                   [](Img2TableFallback *, const QImage &, QList<DetectedCell> &, QString &err) {
+                       err = QStringLiteral("no table lines detected");
+                       return false;
+                   });
+
+    QImage image(100, 100, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    recognizer.recognizeAsync(image, std::chrono::seconds(10));
+    const DTableResult noTable = waitForDone(spy, 5000);
+    EXPECT_FALSE(noTable.success);
+    EXPECT_EQ(noTable.error, TableError::NoTableDetected);
+    EXPECT_TRUE(isAsciiOnly(noTable.errorMessage)) << noTable.errorMessage.toStdString();
+}

@@ -143,7 +143,12 @@ add_test(NAME ${BIN_NAME} COMMAND ${BIN_NAME})
 # 门控 dtk6tablerecognizer 目标（即 onnxruntime 可用）；接入全部 6 个 tablerecognizer 单测。
 if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
     set(UT_TR_NAME ut-tablerecognizer)
+    # 表格识别单测依赖 Qt 事件循环：DTableResult 经 QueuedConnection 投递，
+    # QSignalSpy::wait() 需要事件循环，否则等待不会超时（挂死）。
+    # 故与 ut-dtkmultimedia 一致，使用 tests/main.cpp 提供的 QApplication main，
+    # 而不使用 gtest_main。
     add_executable(${UT_TR_NAME}
+        main.cpp
         ut_ortinferenceengine.cpp
         ut_tablestructuredetector.cpp
         ut_dtablerecognizer.cpp
@@ -151,6 +156,7 @@ if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
         ut_htmltablebuilder.cpp
         ut_celltextmapper.cpp
         ut_wirelesstableheuristic.cpp
+        ut_tableerrorutils.cpp
         3rdparty/stub-ext/stub-shadow.cpp)
     target_include_directories(${UT_TR_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/../src/tablerecognizer
@@ -160,14 +166,15 @@ if(TARGET dtk${DTK_VERSION_MAJOR}tablerecognizer)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
     find_package(GTest)
     if(GTest_FOUND)
-        set(UT_TR_GTEST GTest::gtest GTest::gtest_main)
+        set(UT_TR_GTEST GTest::gtest)
     else()
-        set(UT_TR_GTEST gtest gtest_main)
+        set(UT_TR_GTEST gtest)
     endif()
     target_link_libraries(${UT_TR_NAME} PRIVATE
         dtk${DTK_VERSION_MAJOR}tablerecognizer
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Concurrent
         Qt${QT_VERSION_MAJOR}::Test
         ${UT_TR_GTEST}
