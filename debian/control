@@ -37,7 +37,7 @@ Build-Depends:
  libv4l-dev,
  libncnn-dev,
  libopencv-mobile-dev,
- libonnxruntime-dev
+ libonnxruntime-dev [amd64 arm64 loong64]
 Standards-Version: 4.5.0
 
 Package: libdtk6multimedia
@@ -73,7 +73,7 @@ Description: Development Tool Kit ocr devel library
  This package contains the header files and static libraries.
 
 Package: libdtk6tablerecognizer
-Architecture: any
+Architecture: amd64 arm64 loong64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Development Tool Kit table recognizer library
  libdtk6tablerecognizer is base library of Deepin Qt/C++ applications.
@@ -81,7 +81,7 @@ Description: Development Tool Kit table recognizer library
  This package contains the shared libraries and models.
 
 Package: libdtk6tablerecognizer-dev
-Architecture: any
+Architecture: amd64 arm64 loong64
 Depends: ${misc:Depends}, libdtk6tablerecognizer( =${binary:Version}),
  libdtk6ocr-dev
 Description: Development Tool Kit table recognizer devel library
