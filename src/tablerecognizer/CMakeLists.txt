@@ -16,8 +16,8 @@ find_package(PkgConfig REQUIRED)
 # OpenCV：与主项目一致使用 pkg_check_modules(opencv_mobile)。
 pkg_check_modules(OPENCV REQUIRED IMPORTED_TARGET opencv_mobile)
 
-# dtkocr：OCR 插件库，提供 DOcr。
-pkg_check_modules(DTKOCR REQUIRED IMPORTED_TARGET dtk${DTK_VERSION_MAJOR}ocr)
+# dtkocr：OCR 插件库，提供 DOcr。它与本模块同源构建，直接链接项目内的
+# dtk6ocr target，避免依赖同源产物 libdtk6ocr-dev 造成构建自依赖。
 
 # ===== onnxruntime 查找策略（三架构统一）=====
 # 统一导出 imported target Ort::Runtime：
@@ -73,13 +73,15 @@ target_compile_definitions(${BIN_NAME} PRIVATE
 
 target_include_directories(${BIN_NAME} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../../include/dtktablerecognizer)
+target_include_directories(${BIN_NAME} PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../../include/dtkocr)
 
 target_link_libraries(${BIN_NAME}
     PUBLIC Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Gui
     PRIVATE Ort::Runtime
            Qt${QT_VERSION_MAJOR}::Concurrent
            PkgConfig::OPENCV
-           PkgConfig::DTKOCR)
+           dtk${DTK_VERSION_MAJOR}ocr)
 
 # 模型随包分发路径（Debug 指向源码 models/，Release 指向 share 路径）。
 set(ModelSaveSubDir models)

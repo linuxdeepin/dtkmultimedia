@@ -6,9 +6,11 @@ define detect_qt_version
 ifneq (,$(shell which qmake6 2>/dev/null))
     QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt6"
     DTK_VER="6"
+    DTK_MAJOR=6
 else
     QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt5"
     DTK_VER=""
+    DTK_MAJOR=
 endif
 endef
 
@@ -19,8 +21,12 @@ $(eval $(call detect_qt_version))
 # QT_DIR="/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Qt5"
 # DTK_VER=""
 
-# 使用sed替换模板中的占位符，生成最终的control文件
+# control.in 是 Qt5 模板（不含 tablerecognizer/onnx）：仅在走 Qt5 时用它生成
+# control。Qt6 直接用仓库里已写好的 debian/control（含 dtk6 + tab 包），不再覆盖。
+ifeq ($(DTK_MAJOR),6)
+else
 $(shell sed -e "s/@DTK_VER@/$(DTK_VER)/g" debian/control.in > debian/control)
+endif
 
 DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
@@ -29,6 +35,19 @@ VERSION = $(DEB_VERSION_UPSTREAM)
 PACK_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$1}')
 # Fix: invalid digit "8" in octal constant. e.g.  u008 ==> 008 ==> 8
 BUILD_VER = $(shell echo $(VERSION) | awk -F'[+_~-]' '{print $$2}' | sed 's/[^0-9]//g' | awk '{print int($$1)}')
+
+# 表格识别库（tablerecognizer）仅在我们自己的 Qt6 构建里编译：
+#  - Qt5 构建直接 -DDTK_ENABLE_TABLERECOGNIZER=OFF，不编译该子库；
+#  - Qt6 下也只在这三个架构打包，与 debian/control(.in) 中
+#    libdtk6tablerecognizer* 的 Architecture 限定保持一致，其它架构缺少
+#    onnxruntime 时同样关闭，避免构建失败。
+TABLEREC_SUPPORTED_ARCHES = amd64 arm64 loong64
+TABLEREC_CMAKE_OPT = -DDTK_ENABLE_TABLERECOGNIZER=OFF
+ifneq (,$(filter $(DEB_HOST_ARCH),$(TABLEREC_SUPPORTED_ARCHES)))
+ifneq ($(DTK_MAJOR),)
+TABLEREC_CMAKE_OPT =
+endif
+endif
 
 %:
 	dh $@ --parallel
@@ -40,4 +59,5 @@ override_dh_auto_configure:
 	-DHOST_MULTIARCH="$(DEB_HOST_MULTIARCH)" \
 	-DBUILD_VERSION=$(BUILD_VER) \
 	-DVERSION=$(PACK_VER) \
-	-DQT_DIR=$(QT_DIR)
+	-DQT_DIR=$(QT_DIR) \
+	$(TABLEREC_CMAKE_OPT)
