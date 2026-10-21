@@ -1,3 +1,33 @@
+dtkmultimedia (6.0.5) unstable; urgency=medium
+
+  * fix(debian): fix tablerecognizer packaging dependencies
+  * test(tablerecognizer): keep ut_tableerrorutils out of ut-dtkmultimedia
+  * feat(tablerecognizer): add pkg-config/cmake/pri export and deb packaging
+  * test(tablerecognizer): cover error code contract and diagnostics
+  * feat(tablerecognizer): add machine-readable error codes
+  * refactor(bench): move bench/ to examples/bench/ and fix pre-existing build issues
+  * fix(bench): add context QObject to functor-based connect
+  * bench: add multi-architecture benchmark suite
+  * feat(tablerecognizer): add timing fields and bench CLI for speed testing
+  * fix(tablerecognizer): add structure-content consistency routing
+  * fix(tablerecognizer): output quality and accuracy fixes
+  * fix(tablerecognizer): timeout race condition and OCR timeout handling
+  * test(tablerecognizer): add unit tests for DTableRecognizer and Img2TableFallback
+  * feat(tablerecognizer): add table recognition pipeline with OCR fallback
+  * feat(tablerecognizer): add HtmlTableBuilder for HTML table output generation
+  * feat(tablerecognizer): add CellTextMapper for text-box to cell coordinate mapping
+  * feat(tablerecognizer): add DtkOcrWrapper for OCR engine abstraction
+  * feat(tablerecognizer): add ort table structure detection base module
+  * feat(ppocr-v5): 从 CTC 解码结果生成逐字框
+  * chore(CI): add debian check workflow
+  * Multiple fixes (#78)
+  * fix: Drop set_vulkan_compute method
+  * feat: Support ffmpeg 7
+  * feat: Enhance DGstPlayerProxy for Qt6 support
+  * feat: Update video encoding/decoding to use FFmpeg's new API
+
+ -- dengzhongyuan <dengzhongyuan@uniontech.com>  Wed, 21 Oct 2026 17:17:41 +0800
+
 dtkmultimedia (6.0.4) unstable; urgency=medium
 
   * chore: [tag]New tag 6.0.4
