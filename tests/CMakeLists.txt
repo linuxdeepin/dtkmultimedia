@@ -52,6 +52,9 @@ add_executable(${BIN_NAME}
 # 找到基础模块
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets DBus LinguistTools Network Concurrent Multimedia MultimediaWidgets OpenGL)
 find_package(Dtk${DTK_VERSION_MAJOR} REQUIRED COMPONENTS Core Widget)
+if(Qt6_VERSION VERSION_GREATER_EQUAL 6.10)
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS GuiPrivate REQUIRED)
+endif()
 
 # 根据Qt版本处理OpenGLWidgets
 if(${QT_VERSION_MAJOR} EQUAL 6)
